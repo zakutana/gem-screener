@@ -884,6 +884,11 @@ svg text{font-family:"IBM Plex Mono",ui-monospace,monospace; font-variant-numeri
 <div class="popover" id="popover"></div>
 
 <script>window.GEM_SERVED = /*__SERVED__*/false;</script>
+<!-- the language a first-time viewer gets: build_viewer.py stamps 'en' into the
+     published artifact, app.py leaves Czech; #en / #cs and a saved choice win -->
+<script>window.GEM_DEFAULT_LANG = /*__LANG__*/'cs';</script>
+<!-- the tab the page opens on: the artifact opens on Apps, app.py on Start -->
+<script>window.GEM_DEFAULT_VIEW = /*__VIEW__*/'start';</script>
 <script id="snapshot-data" type="application/json">/*__SNAPSHOT_JSON__*/</script>
 <script>
 (function(){
@@ -930,8 +935,8 @@ function detectLang(){
   try {
     var s = localStorage.getItem('gem-lang');
     if (s === 'en' || s === 'cs') return s;
-  } catch (err) { /* no storage: fall through to Czech */ }
-  return 'cs';
+  } catch (err) { /* no storage: fall through to the build's default */ }
+  return window.GEM_DEFAULT_LANG === 'en' ? 'en' : 'cs';
 }
 state.lang = detectLang();
 
@@ -3979,6 +3984,7 @@ function renderExcludeNotes(){
 
 /* ================= go ================= */
 applyStaticText();
-setView('start');
+setView(['start', 'apps', 'chains', 'sectors'].indexOf(window.GEM_DEFAULT_VIEW) >= 0
+  ? window.GEM_DEFAULT_VIEW : 'start');
 })();
 </script>
