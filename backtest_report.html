@@ -1,0 +1,284 @@
+<!doctype html><html lang="cs"><head><meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Backtest Potenciálu</title>
+<style>
+:root{--bg:#f7f5f2;--fg:#1d1b19;--mut:#6b655e;--line:#ddd6cc;--card:#fff;--blue:#2f6fd0;--coral:#d8583f;--gold:#b8860b}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]){--bg:#15130f;--fg:#ece6dc;--mut:#9d958a;--line:#332e28;--card:#1d1a16;--blue:#6ea0ff;--coral:#ff8a70;--gold:#e0b44a}}
+:root[data-theme="dark"]{--bg:#15130f;--fg:#ece6dc;--mut:#9d958a;--line:#332e28;--card:#1d1a16;--blue:#6ea0ff;--coral:#ff8a70;--gold:#e0b44a}
+body{background:var(--bg);color:var(--fg);font:15px/1.5 system-ui,-apple-system,"Segoe UI",sans-serif;margin:0;padding:24px 16px}
+main{max-width:1040px;margin:0 auto}
+h1{font-size:26px;margin:0 0 4px}h2{font-size:19px;margin:34px 0 8px;border-bottom:1px solid var(--line);padding-bottom:4px}
+h3{font-size:16px;margin:20px 0 6px}
+p,li{max-width:80ch}.mut{color:var(--mut)}
+.banner{border-radius:10px;padding:16px 18px;margin:18px 0;border:2px solid}
+.banner.ok{border-color:var(--blue)}.banner.mid{border-color:var(--gold)}.banner.bad{border-color:var(--coral)}
+.banner .v{font-size:28px;font-weight:700;letter-spacing:.02em}
+.banner.ok .v{color:var(--blue)}.banner.mid .v{color:var(--gold)}.banner.bad .v{color:var(--coral)}
+.warn{border:2px solid var(--coral);border-radius:10px;padding:12px 16px;margin:14px 0;color:var(--coral);font-weight:600}
+.tw{overflow-x:auto;margin:8px 0 14px}
+table{border-collapse:collapse;background:var(--card);font-size:13.5px;min-width:100%}
+th,td{border:1px solid var(--line);padding:5px 8px;text-align:right;white-space:nowrap}
+th{background:var(--bg);font-weight:600}td.l,th.l{text-align:left;white-space:normal}
+.pass{color:var(--blue);font-weight:700}.fail{color:var(--coral);font-weight:700}
+code,pre{font-family:ui-monospace,Consolas,monospace;font-size:12.5px}
+pre{background:var(--card);border:1px solid var(--line);padding:10px;overflow-x:auto;white-space:pre-wrap}
+details{margin:10px 0}summary{cursor:pointer;font-weight:600}
+</style></head><body><main>
+<h1>Backtest Potenciálu — předregistrovaný, k datu formace</h1>
+<p class="mut">Vygenerováno 2026-09-22 19:54 UTC · formace 1/2024–6/2026 (30) · data do 22. 9. 2026 · mcap dnes z CoinGecka 2026-09-22 19:45</p>
+<div class="banner mid"><div class="v">NEPRŮKAZNÉ</div><div>Odhady vyšly na kladné straně, ale intervaly nevylučují nulu — nelze tvrdit, že to funguje.</div><div class="mut" style="margin-top:6px">H1 <span class="fail">NEPROŠLO</span> · H2 <span class="fail">NEPROŠLO</span> · H3 (sekundární) <span class="fail">NEPROŠLO</span></div></div>
+<p>Otázka: kdyby sis na začátku každého měsíce od ledna 2024 koupil to, co screener řadil nahoru podle Potenciálu, porazilo by to BTC? Každý řádek je spočítaný tak, jak by ho screener ukázal tehdy: revenue uříznutá k datu formace, stejné funkce z collector.py, market cap = dnešní oběžná zásoba × tehdejší cena. Hypotézy a prahy byly zapsány a zahashovány před prvním během.</p>
+<h2>Primární hypotézy</h2>
+<div class="tw"><table><tr><th class="l">Hypotéza</th><th>Odhad</th><th>90% CI</th><th>Práh</th><th>Formací</th><th>Výsledek</th></tr>
+<tr><td class="l"><b>H1</b> — průměrná měsíční Spearmanova korelace (IC) Potenciálu s výnosem vs BTC za 3 měsíce, jen prověřené řádky</td><td>0,017</td><td>[−0,020; 0,051]</td><td>IC ≥ 0,05 a dolní mez &gt; 0</td><td>30</td><td><span class="fail">NEPROŠLO</span></td></tr>
+<tr><td class="l"><b>H2</b> — horní kvintil Potenciálu: podíl řádků s ≥ 3× za 6 měsíců vůči všem prověřeným (lift)</td><td>1,49</td><td>[0,00; 1,88]</td><td>lift ≥ 1,5 a dolní mez &gt; 1</td><td>27</td><td><span class="fail">NEPROŠLO</span></td></tr>
+</table></div>
+<p>H1: 1709 řádků-formací, bootstrap v blocích po 3 formacích (B = 5 000). H2: horní kvintil 8 z 327 trefilo ≥ 3× (2,4 %), všichni prověření 26 z 1586 (1,6 %); bloky po 6 formacích. Zásahů ≥ 3× je tak málo, že část převzorkování nemá v horním kvintilu žádný (lift 0) — proto tak široký interval.</p>
+<p>Obě primární hypotézy mají odhad na kladné straně, ale pod předregistrovaným prahem (IC 0,017 &lt; 0,05; lift 1,49 &lt; 1,5) a oba intervaly zasahují nulový efekt.</p>
+<h2>H3 (sekundární) — rekonstruovatelné brány „Pro degena“</h2>
+<p>Brány v čase t: rev30d ≥ $100K; prověřený; Potenciál ≥ 2,5×; Test 30× na velikost (30 × mcap nesmí přerůst největšího jiného tokenu stejné kategorie DeFiLlamy; lídr kategorie = „bez srovnání“ = neprošel, protože záložní koš tématu nejde zpětně sestavit); byznys (fáze není Pokles/Stagnace a Růst 6M &gt; 0); téma (řádek patří do jednoho z 11 témat). <b>Bránu likvidity ani tier tématu v čase t rekonstruovat nejde</b> — nejsou použity.</p>
+<div class="tw"><table><tr><th class="l">Varianta</th><th>Prošlo řádků (různých tokenů)</th><th>Medián prošlých</th><th>Medián ostatních</th><th>Rozdíl mediánů (log)</th><th>90% CI</th><th>Výsledek</th></tr>
+<tr><td class="l">s bránou tématu (H3)</td><td>41 (17)</td><td>−53,5 %</td><td>−41,3 %</td><td>−0,232</td><td>[−0,615; −0,115]</td><td><span class="fail">NEPROŠLO</span></td></tr>
+<tr><td class="l">bez brány tématu</td><td>52 (21)</td><td>−52,9 %</td><td>−41,3 %</td><td>−0,219</td><td>[−0,332; −0,085]</td><td><span class="fail">NEPROŠLO</span></td></tr>
+</table></div><p class="mut">Výnos = výnos vs BTC za 6 měsíců, mediány převedené na %. Ostatní = všechny ostatní hodnotitelné řádky téže formace. Formací s aspoň jedním prošlým: 17.</p>
+<h2>Base rates — jak často coin za 6 měsíců udělá násobek</h2>
+<div class="tw"><table><tr><th class="l">Skupina</th><th>n</th><th>P(≥ 3×)</th><th>90% CI</th><th>P(≥ 5×)</th><th>90% CI</th><th>P(≥ 10×)</th><th>90% CI</th></tr>
+<tr><td class="l">Celý vesmír (rev30d ≥ $100K, cena v t; i bez dnešního mcap)</td><td>2829</td>
+<td>1,5 % <span class="mut">(43)</span></td><td>[1,2 %; 1,9 %]</td>
+<td>0,4 % <span class="mut">(11)</span></td><td>[0,2 %; 0,6 %]</td>
+<td>0,1 % <span class="mut">(2)</span></td><td>[0,0 %; 0,2 %]</td>
+</tr>
+<tr><td class="l">Prověřené řádky s Potenciálem</td><td>1586</td>
+<td>1,6 % <span class="mut">(26)</span></td><td>[1,2 %; 2,3 %]</td>
+<td>0,4 % <span class="mut">(6)</span></td><td>[0,2 %; 0,7 %]</td>
+<td>0,0 % <span class="mut">(0)</span></td><td>[0,0 %; 0,2 %]</td>
+</tr>
+</table></div><p class="mut">Sloučeno přes formace; sousední 6M okna se z 5/6 překrývají, takže Wilsonovy intervaly (předpokládají nezávislé řádky) jsou příliš úzké.</p>
+<h2>Popisné signály (bez verdiktu)</h2>
+<div class="tw"><table><tr><th class="l">Signál</th><th>IC 3M</th><th>90% CI</th><th>form.</th><th>IC 6M</th><th>90% CI</th><th>Q5 − Q1 (3M)</th><th>90% CI</th></tr>
+<tr><td class="l">Potenciál (všechny hodnotitelné řádky)</td><td>−0,027</td><td>[−0,065; 0,013]</td><td>30</td><td>−0,050</td><td>[−0,092; 0,023]</td><td>−2,6 %</td><td>[−6,4 %; +0,9 %]</td></tr>
+<tr><td class="l">Potenciál (prověřené = H1)</td><td>0,017</td><td>[−0,020; 0,051]</td><td>30</td><td>−0,038</td><td>[−0,086; 0,028]</td><td>−0,8 %</td><td>[−5,1 %; +3,3 %]</td></tr>
+<tr><td class="l">Síla 6M</td><td>0,009</td><td>[−0,064; 0,054]</td><td>30</td><td>−0,101</td><td>[−0,165; −0,079]</td><td>+1,7 %</td><td>[−4,0 %; +5,5 %]</td></tr>
+<tr><td class="l">Růst 6M</td><td>−0,040</td><td>[−0,096; 0,014]</td><td>30</td><td>−0,057</td><td>[−0,135; −0,028]</td><td>−1,4 %</td><td>[−8,2 %; +5,1 %]</td></tr>
+<tr><td class="l">Velikost ln(mcap), čeká se záporné znaménko</td><td>0,054</td><td>[0,004; 0,105]</td><td>30</td><td>0,130</td><td>[0,052; 0,216]</td><td>+4,5 %</td><td>[+0,5 %; +7,8 %]</td></tr>
+<tr><td class="l">Cenová hybnost 3M vs BTC do t</td><td>0,001</td><td>[−0,067; 0,063]</td><td>30</td><td>0,089</td><td>[0,045; 0,116]</td><td>+2,8 %</td><td>[−2,7 %; +9,7 %]</td></tr>
+</table></div><p class="mut">IC = Spearmanova korelace signálu s výnosem vs BTC, průměr přes formace. Q5 − Q1 = medián relativního výnosu (vs BTC) horního kvintilu minus dolního, průměr přes formace. Podíl pro držitele (holders_share) přeskočen — historie dailyHoldersRevenue se nestahovala.</p>
+<h2>Zvláštní případ: formace 1. 10. 2024 → 31. 12. 2024 (poslední skutečná altová rally)</h2>
+<p>Medián 3M násobku: top 15 prověřených podle Potenciálu <b>1,16×</b>, celý vesmír <b>1,16×</b>. Největší vítěz Q4 2024 THENA (6,7×) byl 9. z 70 podle Potenciálu, mezi prověřenými 5. z 34.</p>
+<h3>Top 15 prověřených podle Potenciálu</h3>
+<div class="tw"><table><tr><th>#</th><th class="l">Projekt</th><th class="l">Kategorie</th><th>Potenciál</th><th>mcap(t)</th><th>3M násobek</th><th>vs BTC</th></tr>
+<tr><td>1</td><td class="l">Lynex</td><td class="l">Dexs</td><td>39,6×</td><td>$6,3 mil.</td><td>1,34×</td><td>−8,2 %</td></tr>
+<tr><td>2</td><td class="l">Metronome</td><td class="l">Synthetics</td><td>36,9×</td><td>$3,2 mil.</td><td>1,16×</td><td>−20,8 %</td></tr>
+<tr><td>3</td><td class="l">Gamma</td><td class="l">Liquidity Manager</td><td>14,8×</td><td>$7,0 mil.</td><td>0,51×</td><td>−65,2 %</td></tr>
+<tr><td>4</td><td class="l">DEXTools</td><td class="l">Coins Tracker</td><td>10,8×</td><td>$45,9 mil.</td><td>0,73×</td><td>−50,4 %</td></tr>
+<tr><td>5</td><td class="l">THENA</td><td class="l">Dexs</td><td>8,3×</td><td>$30,3 mil.</td><td>6,70×</td><td>+358,1 %</td></tr>
+<tr><td>6</td><td class="l">Aerodrome</td><td class="l">Dexs</td><td>6,7×</td><td>$1,1 mld.</td><td>1,25×</td><td>−14,7 %</td></tr>
+<tr><td>7</td><td class="l">Magpie Ecosystem</td><td class="l">Yield</td><td>6,5×</td><td>$40,2 mil.</td><td>1,89×</td><td>+29,4 %</td></tr>
+<tr><td>8</td><td class="l">Beefy</td><td class="l">Yield Aggregator</td><td>5,6×</td><td>$23,7 mil.</td><td>1,17×</td><td>−20,2 %</td></tr>
+<tr><td>9</td><td class="l">Houdini Swap</td><td class="l">DEX Aggregator</td><td>4,8×</td><td>$19,5 mil.</td><td>1,13×</td><td>−22,5 %</td></tr>
+<tr><td>10</td><td class="l">Gains Network</td><td class="l">Derivatives</td><td>4,5×</td><td>$51,1 mil.</td><td>0,85×</td><td>−41,8 %</td></tr>
+<tr><td>11</td><td class="l">Extra Finance</td><td class="l">Leveraged Farming</td><td>3,7×</td><td>$35,7 mil.</td><td>0,96×</td><td>−34,1 %</td></tr>
+<tr><td>12</td><td class="l">Railgun</td><td class="l">Privacy</td><td>2,9×</td><td>$56,4 mil.</td><td>1,16×</td><td>−21,0 %</td></tr>
+<tr><td>13</td><td class="l">Tokenlon</td><td class="l">Dexs</td><td>2,4×</td><td>$108,7 mil.</td><td>0,91×</td><td>−37,8 %</td></tr>
+<tr><td>14</td><td class="l">PancakeSwap</td><td class="l">Dexs</td><td>2,2×</td><td>$643,9 mil.</td><td>1,25×</td><td>−14,7 %</td></tr>
+<tr><td>15</td><td class="l">Convex Finance</td><td class="l">Yield</td><td>1,9×</td><td>$193,7 mil.</td><td>2,27×</td><td>+55,1 %</td></tr>
+</table></div>
+<h3>10 největších vítězů celého vesmíru za to čtvrtletí</h3>
+<div class="tw"><table><tr><th class="l">Projekt</th><th>3M násobek</th><th>vs BTC</th><th>Pořadí podle Potenciálu</th><th>Potenciál</th><th class="l">Status v t</th></tr>
+<tr><td class="l">THENA</td><td>6,70×</td><td>+358,1 %</td><td>9. z 70 (prověř. 5. z 34)</td><td>8,3×</td><td class="l">prověřený</td></tr>
+<tr><td class="l">Fluid</td><td>5,38×</td><td>+267,7 %</td><td>36. z 70</td><td>1,0×</td><td class="l">neprověřený: klesá</td></tr>
+<tr><td class="l">Ethervista</td><td>4,92×</td><td>+236,6 %</td><td>4. z 70</td><td>24,4×</td><td class="l">neprověřený: krátká historie, bez trendu</td></tr>
+<tr><td class="l">Curve Finance</td><td>3,34×</td><td>+128,6 %</td><td>21. z 70</td><td>2,9×</td><td class="l">neprověřený: pod maximem, klesá</td></tr>
+<tr><td class="l">CoWSwap</td><td>3,27×</td><td>+123,8 %</td><td>29. z 70 (prověř. 18. z 34)</td><td>1,6×</td><td class="l">prověřený</td></tr>
+<tr><td class="l">Raydium</td><td>2,65×</td><td>+81,4 %</td><td>43. z 70</td><td>0,8×</td><td class="l">neprověřený: klesá</td></tr>
+<tr><td class="l">Convex Finance</td><td>2,27×</td><td>+55,1 %</td><td>26. z 70 (prověř. 15. z 34)</td><td>1,9×</td><td class="l">prověřený</td></tr>
+<tr><td class="l">Inverse Finance</td><td>2,10×</td><td>+43,8 %</td><td>17. z 70</td><td>4,5×</td><td class="l">neprověřený: klesá</td></tr>
+<tr><td class="l">Aave</td><td>2,05×</td><td>+40,4 %</td><td>44. z 70 (prověř. 28. z 34)</td><td>0,8×</td><td class="l">prověřený</td></tr>
+<tr><td class="l">Drift</td><td>1,90×</td><td>+29,9 %</td><td>49. z 70</td><td>0,6×</td><td class="l">neprověřený: krátká historie, klesá</td></tr>
+</table></div>
+<h2>Citlivostní varianty</h2>
+<div class="tw"><table><tr><th class="l">Varianta</th><th>H1 IC</th><th>90% CI</th><th>H2 lift</th><th>90% CI</th><th>H3 rozdíl</th><th>90% CI</th><th>Verdikt</th></tr>
+<tr><td class="l">Primární (jen projekty, které DeFiLlama v t znala)</td><td>0,017</td><td>[−0,020; 0,051]</td><td>1,49</td><td>[0,00; 1,88]</td><td>−0,232</td><td>[−0,615; −0,115]</td><td><b>NEPRŮKAZNÉ</b></td></tr>
+<tr><td class="l">Bez filtru listedAt</td><td>0,017</td><td>[−0,019; 0,049]</td><td>1,49</td><td>[0,00; 1,85]</td><td>−0,227</td><td>[−0,590; −0,042]</td><td><b>NEPRŮKAZNÉ</b></td></tr>
+<tr><td class="l">Bez řádků, jejichž cena po t zmizela (−100 %)</td><td>0,017</td><td>[−0,020; 0,051]</td><td>1,49</td><td>[0,00; 1,88]</td><td>—</td><td>—</td><td><b>NEPRŮKAZNÉ</b></td></tr>
+<tr><td class="l">Ceny očištěné themes.clean_row</td><td>0,017</td><td>[−0,020; 0,051]</td><td>1,49</td><td>[0,00; 1,88]</td><td>—</td><td>—</td><td><b>NEPRŮKAZNÉ</b></td></tr>
+</table></div><p class="mut">Žádný řádek neztratil po t cenu úplně (0 „mrtvých“ ze 2829 6M výsledků), proto je varianta bez nich totožná s primární. 32 výsledků použilo poslední týdenní cenu v okně (max. 15 týdnů před koncem). Coin stažený uprostřed okna si tak drží poslední cenu místo nuly, což nejhorší řádky spíš nadhodnocuje. Očištění cen (27 anomálií) výsledky H1/H2 nezměnilo.</p>
+<h2>Po formacích (primární vesmír)</h2>
+<div class="tw"><table><tr><th>Formace</th><th>Kandidátů</th><th>Vesmír</th><th>Bez dnešního mcap</th><th>listedAt neznámé</th><th>Prověřených</th><th class="l">Benchmark (P/S)</th><th>IC 3M</th><th>Top kvintil ≥ 3× (6M)</th><th>Prošlo H3</th><th>BTC 3M</th></tr>
+<tr><td>1/2024</td><td>75</td><td>55</td><td>5</td><td>18</td><td>38</td><td class="l">medián 30,0</td><td>−0,121</td><td>1/8</td><td>2</td><td>+68,7 %</td></tr>
+<tr><td>2/2024</td><td>77</td><td>55</td><td>4</td><td>16</td><td>40</td><td class="l">medián 21,3</td><td>0,288</td><td>2/8</td><td>1</td><td>+37,0 %</td></tr>
+<tr><td>3/2024</td><td>78</td><td>54</td><td>3</td><td>16</td><td>45</td><td class="l">medián 24,3</td><td>0,033</td><td>0/9</td><td>2</td><td>+11,7 %</td></tr>
+<tr><td>4/2024</td><td>101</td><td>71</td><td>5</td><td>19</td><td>59</td><td class="l">medián 43,2</td><td>−0,051</td><td>0/12</td><td>2</td><td>−12,1 %</td></tr>
+<tr><td>5/2024</td><td>99</td><td>73</td><td>6</td><td>20</td><td>52</td><td class="l">medián 22,3</td><td>−0,055</td><td>0/11</td><td>3</td><td>+9,3 %</td></tr>
+<tr><td>6/2024</td><td>99</td><td>75</td><td>8</td><td>19</td><td>52</td><td class="l">medián 23,0</td><td>0,071</td><td>1/11</td><td>1</td><td>−12,4 %</td></tr>
+<tr><td>7/2024</td><td>103</td><td>82</td><td>10</td><td>20</td><td>49</td><td class="l">medián 20,5</td><td>0,110</td><td>1/10</td><td>0</td><td>+4,7 %</td></tr>
+<tr><td>8/2024</td><td>107</td><td>81</td><td>9</td><td>21</td><td>40</td><td class="l">medián 21,3</td><td>0,186</td><td>0/8</td><td>2</td><td>+12,0 %</td></tr>
+<tr><td>9/2024</td><td>108</td><td>82</td><td>8</td><td>21</td><td>31</td><td class="l">medián 20,5</td><td>−0,048</td><td>0/7</td><td>0</td><td>+63,6 %</td></tr>
+<tr><td>10/2024</td><td>99</td><td>77</td><td>7</td><td>23</td><td>34</td><td class="l">medián 37,4</td><td>−0,150</td><td>0/7</td><td>0</td><td>+46,3 %</td></tr>
+<tr><td>11/2024</td><td>114</td><td>89</td><td>9</td><td>23</td><td>46</td><td class="l">medián 27,7</td><td>−0,132</td><td>0/10</td><td>0</td><td>+49,2 %</td></tr>
+<tr><td>12/2024</td><td>146</td><td>112</td><td>15</td><td>28</td><td>68</td><td class="l">medián 30,7</td><td>0,019</td><td>0/14</td><td>3</td><td>−10,8 %</td></tr>
+<tr><td>1/2025</td><td>157</td><td>125</td><td>15</td><td>31</td><td>81</td><td class="l">Hyperliquid 12,0</td><td>0,138</td><td>0/17</td><td>2</td><td>−8,9 %</td></tr>
+<tr><td>2/2025</td><td>152</td><td>126</td><td>14</td><td>32</td><td>81</td><td class="l">Hyperliquid 10,8</td><td>0,113</td><td>0/17</td><td>1</td><td>−5,4 %</td></tr>
+<tr><td>3/2025</td><td>156</td><td>122</td><td>10</td><td>31</td><td>73</td><td class="l">Hyperliquid 7,9</td><td>0,010</td><td>0/15</td><td>0</td><td>+23,3 %</td></tr>
+<tr><td>4/2025</td><td>137</td><td>108</td><td>8</td><td>27</td><td>65</td><td class="l">Hyperliquid 6,5</td><td>0,014</td><td>0/13</td><td>0</td><td>+29,8 %</td></tr>
+<tr><td>5/2025</td><td>141</td><td>111</td><td>5</td><td>30</td><td>32</td><td class="l">Hyperliquid 8,9</td><td>−0,198</td><td>0/7</td><td>0</td><td>+25,1 %</td></tr>
+<tr><td>6/2025</td><td>147</td><td>120</td><td>7</td><td>32</td><td>39</td><td class="l">Hyperliquid 14,9</td><td>0,049</td><td>0/8</td><td>2</td><td>+3,9 %</td></tr>
+<tr><td>7/2025</td><td>144</td><td>114</td><td>6</td><td>31</td><td>45</td><td class="l">Hyperliquid 12,8</td><td>0,050</td><td>0/9</td><td>1</td><td>+6,8 %</td></tr>
+<tr><td>8/2025</td><td>157</td><td>132</td><td>7</td><td>36</td><td>81</td><td class="l">Hyperliquid 11,0</td><td>0,186</td><td>0/17</td><td>2</td><td>−6,4 %</td></tr>
+<tr><td>9/2025</td><td>179</td><td>150</td><td>6</td><td>39</td><td>98</td><td class="l">Hyperliquid 9,3</td><td>0,120</td><td>0/20</td><td>5</td><td>−16,5 %</td></tr>
+<tr><td>10/2025</td><td>175</td><td>146</td><td>4</td><td>36</td><td>103</td><td class="l">Hyperliquid 9,7</td><td>−0,001</td><td>0/21</td><td>5</td><td>−22,5 %</td></tr>
+<tr><td>11/2025</td><td>182</td><td>153</td><td>5</td><td>37</td><td>102</td><td class="l">Hyperliquid 8,8</td><td>−0,049</td><td>0/21</td><td>4</td><td>−23,2 %</td></tr>
+<tr><td>12/2025</td><td>161</td><td>138</td><td>3</td><td>36</td><td>90</td><td class="l">Hyperliquid 7,3</td><td>−0,093</td><td>0/18</td><td>3</td><td>−27,3 %</td></tr>
+<tr><td>1/2026</td><td>135</td><td>115</td><td>4</td><td>32</td><td>53</td><td class="l">Hyperliquid 10,0</td><td>−0,122</td><td>1/11</td><td>0</td><td>−22,2 %</td></tr>
+<tr><td>2/2026</td><td>149</td><td>135</td><td>4</td><td>38</td><td>45</td><td class="l">Hyperliquid 9,7</td><td>0,033</td><td>1/9</td><td>0</td><td>+0,0 %</td></tr>
+<tr><td>3/2026</td><td>137</td><td>128</td><td>3</td><td>39</td><td>44</td><td class="l">Hyperliquid 10,5</td><td>−0,093</td><td>1/9</td><td>0</td><td>+10,1 %</td></tr>
+<tr><td>4/2026</td><td>109</td><td>100</td><td>3</td><td>30</td><td>34</td><td class="l">Hyperliquid 13,6</td><td>0,064</td><td>—</td><td>1</td><td>−14,2 %</td></tr>
+<tr><td>5/2026</td><td>112</td><td>106</td><td>3</td><td>32</td><td>43</td><td class="l">Hyperliquid 17,3</td><td>0,118</td><td>—</td><td>1</td><td>−15,2 %</td></tr>
+<tr><td>6/2026</td><td>118</td><td>113</td><td>1</td><td>35</td><td>46</td><td class="l">Hyperliquid 28,9</td><td>0,016</td><td>—</td><td>3</td><td>+5,6 %</td></tr>
+</table></div>
+<h2>Výhrady — čtěte před jakýmkoli závěrem</h2><ol>
+<li><b>Market cap je proxy s konstantní nabídkou.</b> mcap(t) = dnešní oběžná zásoba × cena v t. Token, který od t ředil (unlocky, emise), měl v t ve skutečnosti <i>menší</i> oběžnou zásobu, takže proxy jeho tehdejší mcap <i>nadhodnocuje</i> — v backtestu vypadá dražší (nižší Potenciál), než ho screener tehdy ukázal. Tokeny se zpětnými odkupy/pálením naopak vypadají levnější. Protože ředící tokeny mívají slabší výnosy, tahle chyba spíš <i>pomáhá</i> H1/H2 (ředící slabochy tlačí dolů v žebříčku). Zadání uvádělo opačný směr — viz odchylky.</li>
+<li><b>Revenue DeFiLlamy se zpětně doplňuje a přepočítává.</b> Adaptéry přidané později dostávají historii zpětně, metodiky se mění. Filtr listedAt (datum zalistování protokolu na DeFiLlamě, ne datum vzniku fee adaptéru) to řeší jen částečně.</li>
+<li><b>Dnešní kategorie a mapování na CoinGecko.</b> Kategorie, rodičovské skupiny i gecko_id jsou z dneška. Projekt, který token v t ještě neměl, vypadne díky požadavku na cenu v t; jiné přejmenování či překategorizování ale backtest nevidí.</li>
+<li><b>Jen jedna skutečná altová rally</b> (Q4 2024), takže pro tento režim je n ≈ 1. Výsledek o „altseason“ je anekdota, ne statistika.</li>
+<li><b>Překrývající se okna.</b> 3M okna sousedních formací sdílejí 2/3 doby, 6M okna 5/6. Blokový bootstrap to zčásti bere v úvahu; Wilsonovy intervaly u base rates ne (jsou příliš úzké).</li>
+<li><b>Brána likvidity a tier tématu v čase t nejdou rekonstruovat</b>; H3 je bez nich a lídr kategorie v Testu 30× neprošel (záložní koš tématu nejde sestavit zpětně).</li>
+<li><b>Mrtvé tokeny bez dnešního mcap</b> nejdou ohodnotit (nelze odvodit zásobu), do žebříčků nevstupují, jen do base rates. Celkem 197 řádků-formací (medián 6 na formaci). Protože jde o tokeny, které spíš umřely, jejich vyřazení z žebříčků výsledky H1/H2 spíš <i>zlepšuje</i>.</li>
+<li><b>Revenue k datu t včetně bodu ts = t</b> (podle zadání): denní bod s časem 00:00 dne t pokrývá den t, tj. jeden den dopředu. U 91/182denních horizontů zanedbatelné.</li>
+<li><b>Ceny v týdenní mřížce.</b> Když koncová cena chybí, bere se poslední týdenní cena v okně (až o 6 dní dřív) a BTC ke stejnému dni. Body Síly 6M jsou nejbližší týdenní ceny (≤ 2,33 dne od přesného data, tolerance funkce strength je 3 dny).</li>
+<li><b>Seznam protokolů je dnešní.</b> Obsahuje i mrtvé adaptéry (proto group_apps s prahem 0), ale protokoly, které DeFiLlama úplně smazala, v datech nejsou.</li>
+<li><b>Benchmark se mění.</b> Revenue Hyperliquidu má DeFiLlama až od 23. 12. 2024 (token od 29. 11. 2024), takže formace před 1/2025 mají benchmark medián P/S vesmíru, od ní dál P/S Hyperliquidu. Pořadí uvnitř formace (H1, H2) to neovlivní, práh brány Potenciál ≥ 2,5 v H3 ano.</li>
+</ol>
+<h2>Odchylky od zadání</h2><p class="mut">Body 1 a 3–7 jsou zapsané v PREREG před prvním během; bod 2 je oprava textu zadání, bod 8 provozní událost.</p><ol>
+<li>Řádek v čase t dostal navíc <code>primary = 'rev'</code>. Collector ho nastavuje každé appce a <code>is_young</code> ho čte; bez něj by se „nový“ nikdy nerozsvítil a prověřené = jen spolehlivé.</li>
+<li>Směr zkreslení proxy mcap je opačný, než uvádělo zadání: ředící tokeny vypadají v minulosti <i>dražší</i>, ne levnější (viz výhrada 1).</li>
+<li>Práh rev30d ≥ $100K se měří v kalendářním okně (t − 30 d, t], ne jako rev30d z app_measures (to se měří od posledního bodu řady) — jinak by mrtvý adaptér prošel se svým posledním dobrým měsícem.</li>
+<li>Ceny: themes.fetch_grid umí jen týdenní mřížku, proto je mřížka ukotvená v t (t ± 26 týdnů): 91 a 182 dní padnou přesně na razítko, „poslední dostupná cena v okně“ je týdenní.</li>
+<li>Test 30×: srovnávací řádky = hodnotitelné řádky téhož vesmíru (rev30d ≥ $100K); živý screener srovnává se všemi appkami nad $10K/30d.</li>
+<li>Doplněná rozhodnutí: min. 10 řádků na formaci pro IC a kvintily; kvintil = ceil(n/5); H3 bootstrap v blocích po 6; jeden token = jeden řádek (sloučení podle gecko_id, dopad 0); Q5 − Q1 v relativním výnosu, aby −100 % nebylo −∞; navíc citlivostní varianta s očištěnými cenami.</li>
+<li>holders_share přeskočen (historie dailyHoldersRevenue se nestahovala).</li>
+<li>První běh spadl až při psaní reportu (chyba formátování znaku %); opraveno a přepočteno z cache — výpočet je deterministický, PREREG se neměnil.</li>
+</ol>
+<h2>Původ dat a běh</h2><ul>
+<li>Skupin s tokenem z group_apps(ctx, 0): 684 (bez tokenu vyřazeno 1059, double-counted 251); bez jakékoli revenue historie 0.</li>
+<li>listedAt: známé u 536 skupin, neznámé u 148 (zahrnuty a označeny).</li>
+<li>Duplicitní tokeny (víc skupin → jedno gecko_id) sloučeny: 0 řádků-formací.</li>
+<li>Cenové anomálie (týdenní pohyb &gt; ln 20, themes.clean_row): 27 (3 spike, 24 break).</li>
+<li>HTTP: v cache je 1090 odpovědí DeFiLlamy a coins.llama.fi — tolik úspěšných síťových volání stál stahovací běh a kontrolní dotazy (opakování po 429 se nepočítají); CoinGecko: dávky po 200 id, 2. Tento běh: 0 skutečných požadavků, 1087 odpovědí z cache, doba běhu 12 s. Historie běhů: <code>backtest_cache\runs.jsonl</code>.</li>
+<li>PREREG sha256 b66df547009433b9; collector.py e9e214f42dc3d481; themes.py d1f4233f7c8bf678.</li>
+<li>Všechny řádky primárního vesmíru: <code>backtest_cache\rows_primary.json.gz</code>.</li></ul>
+<details><summary>Předregistrace (PREREG) — plné znění</summary><pre>{
+  &quot;id&quot;: &quot;gem-screener-potencial-backtest-v1&quot;,
+  &quot;registered_utc&quot;: &quot;2026-09-22&quot;,
+  &quot;data_end_utc&quot;: &quot;2026-09-22&quot;,
+  &quot;formations&quot;: {
+    &quot;rule&quot;: &quot;first day of each month, 00:00 UTC&quot;,
+    &quot;first&quot;: &quot;2024-01-01&quot;,
+    &quot;last&quot;: &quot;2026-06-01&quot;
+  },
+  &quot;horizons_days&quot;: {
+    &quot;3M&quot;: 91,
+    &quot;6M&quot;: 182
+  },
+  &quot;horizon_rule&quot;: &quot;a formation participates in a horizon only if t + horizon &lt;= data_end&quot;,
+  &quot;universe&quot;: {
+    &quot;source&quot;: &quot;collector.group_apps(ctx, 0): tokenized fee adapters grouped by parentProtocol, double-counted adapters dropped&quot;,
+    &quot;rev30d_t&quot;: &quot;sum of daily revenue with t - 30 d &lt; ts &lt;= t on the full untruncated series (calendar window ending at t)&quot;,
+    &quot;min_rev30d_usd&quot;: 100000,
+    &quot;price_at_t&quot;: &quot;a coins.llama.fi price at the stamp t (searchWidth 12h) must exist&quot;,
+    &quot;listed_filter_primary&quot;: &quot;listedAt &lt;= t. Leaf group: the /protocols entry with id == defillamaId. Parent group: min listedAt over its fee-adapter members found in /protocols, else over the /protocols entries whose parentProtocol == group key. Unknown listedAt: included and flagged.&quot;,
+    &quot;listed_filter_sensitivity&quot;: &quot;the same universe without the listedAt filter&quot;,
+    &quot;dedupe&quot;: &quot;groups resolving to one gecko_id in one formation: keep the one with the largest rev30d_t (ties: smallest key); the count is reported&quot;,
+    &quot;rankable&quot;: &quot;a current CoinGecko market cap &gt; 0 and current price &gt; 0. Other rows enter base rates via their price path, not rankings; counted per formation&quot;
+  },
+  &quot;row_at_t&quot;: {
+    &quot;series&quot;: &quot;full daily revenue series cut to ts &lt;= t, then its last collector.MAX_SERIES_DAYS (400) points, as the live screener stores it&quot;,
+    &quot;fields&quot;: &quot;name, key, category, gecko_id, rev_series, mcap = mcap_t, total30d = rev30d_t, holders30d = 0, holders_leaves = 0, primary = &#x27;rev&#x27;&quot;,
+    &quot;primary_rev&quot;: &quot;score_entity sets primary = &#x27;rev&#x27; on every app; is_young reads it (without it young never fires and trusted == reliable)&quot;,
+    &quot;measures&quot;: &quot;collector.app_measures(e, t); e[&#x27;traj&#x27;] = collector.trajectory(cut, &#x27;sum&#x27;); e[&#x27;sila6m&#x27;] = collector.strength(cut, price points &lt;= t, end=t, measure=&#x27;runrate&#x27;); collector.apply_valuation(universe_t, bench_t, t)&quot;,
+    &quot;mcap_t&quot;: &quot;supply_now * p(t), supply_now = CoinGecko /coins/markets market_cap / current_price (constant-supply proxy)&quot;,
+    &quot;holders_share&quot;: &quot;skipped: dailyHoldersRevenue history not fetched&quot;
+  },
+  &quot;prices&quot;: {
+    &quot;fetch&quot;: &quot;themes.fetch_grid on a weekly lattice anchored at t: t - 26 w .. t + 26 w, stamps after data_end dropped&quot;,
+    &quot;why&quot;: &quot;91 d = 13 w and 182 d = 26 w exactly; strength()&#x27;s points t - k * 30.33 d land within 2.33 d of a stamp (its tolerance is 3 d)&quot;,
+    &quot;btc&quot;: &quot;themes.btc_row on the same lattice&quot;,
+    &quot;cleaning_primary&quot;: &quot;none, raw prices; weekly moves &gt; ln 20 are counted with themes.clean_row&quot;
+  },
+  &quot;benchmark&quot;: &quot;Hyperliquid&#x27;s ps at t if a row named &#x27;hyperliquid&#x27; is in the universe with ps &gt; 0, else the median ps of the universe rows with ps &gt; 0&quot;,
+  &quot;trusted&quot;: &quot;reliable or young, as apply_valuation marks them&quot;,
+  &quot;outcome&quot;: {
+    &quot;end_price&quot;: &quot;price at the stamp t + horizon; if missing, the last available weekly price inside (t, t + horizon]&quot;,
+    &quot;excess&quot;: &quot;ln(p_end / p_t) - ln(btc_end / btc_t), BTC taken at the same stamp as p_end&quot;,
+    &quot;multiple&quot;: &quot;p_end / p_t&quot;,
+    &quot;dead&quot;: &quot;no price after t inside the window: multiple 0, excess -inf (ranks lowest, enters medians as -inf)&quot;,
+    &quot;dead_sensitivity&quot;: &quot;the tests rerun with those rows excluded&quot;
+  },
+  &quot;stats&quot;: {
+    &quot;spearman&quot;: &quot;Pearson correlation of average ranks (ties averaged)&quot;,
+    &quot;min_rows_per_formation&quot;: 10,
+    &quot;quintile&quot;: &quot;within a formation rows sorted by potential_raw descending (ties by key); top quintile = the ceil(n / 5) highest, bottom = the ceil(n / 5) lowest&quot;,
+    &quot;bootstrap&quot;: &quot;moving-block over the participating formations in date order: ceil(n / L) blocks, starts uniform on [0, n - L], concatenated, cut to n; B = 5000; a fresh random.Random(20260922) per statistic; CI90 = 5th / 95th percentile (linear interpolation); resamples with an undefined or non-finite statistic are dropped and counted&quot;,
+    &quot;wilson&quot;: &quot;Wilson score interval, z = 1.6448536 (90 %)&quot;
+  },
+  &quot;H1&quot;: {
+    &quot;role&quot;: &quot;primary&quot;,
+    &quot;signal&quot;: &quot;potential_raw&quot;,
+    &quot;rows&quot;: &quot;trusted rows with potential_raw and a 3M outcome&quot;,
+    &quot;stat&quot;: &quot;mean over formations of the Spearman IC of potential_raw vs 3M excess&quot;,
+    &quot;block&quot;: 3,
+    &quot;pass&quot;: &quot;mean IC &gt;= 0.05 and CI90 lower bound &gt; 0&quot;
+  },
+  &quot;H2&quot;: {
+    &quot;role&quot;: &quot;primary&quot;,
+    &quot;rows&quot;: &quot;trusted rows with potential_raw and a 6M outcome&quot;,
+    &quot;stat&quot;: &quot;lift = P(multiple &gt;= 3 | top quintile) / P(multiple &gt;= 3 | all these rows), both pooled over formations&quot;,
+    &quot;block&quot;: 6,
+    &quot;pass&quot;: &quot;lift &gt;= 1.5 and CI90 lower bound &gt; 1&quot;
+  },
+  &quot;H3&quot;: {
+    &quot;role&quot;: &quot;secondary&quot;,
+    &quot;rows&quot;: &quot;rankable rows with a 6M outcome&quot;,
+    &quot;gates&quot;: [
+      &quot;rev30d_t &gt;= 100000 (every universe row)&quot;,
+      &quot;trusted&quot;,
+      &quot;potential &gt;= 2.5&quot;,
+      &quot;Test 30x size: 30 * mcap_t &lt;= mcap_t of the biggest other-token rankable row of the same DeFiLlama category in the same universe at t; a category leader (&#x27;bez srovnani&#x27;) fails&quot;,
+      &quot;business: traj phase not in {Pokles, Stagnace} and growth6m.g &gt; 0&quot;,
+      &quot;theme: themes.theme_of_app(row) is not None&quot;
+    ],
+    &quot;not_reconstructable&quot;: [
+      &quot;liquidity gate&quot;,
+      &quot;theme tier at t&quot;,
+      &quot;theme-basket fallback of Test 30x&quot;
+    ],
+    &quot;stat&quot;: &quot;median 6M excess of gate passers - median 6M excess of the other rows, pooled&quot;,
+    &quot;block&quot;: 6,
+    &quot;pass&quot;: &quot;CI90 lower bound &gt; 0&quot;,
+    &quot;variants&quot;: &quot;reported with the theme gate; without it as a variant&quot;
+  },
+  &quot;verdict&quot;: {
+    &quot;FUNGUJE&quot;: &quot;H1 and H2 pass&quot;,
+    &quot;NEFUNGUJE&quot;: &quot;a point estimate on or below the null: mean IC &lt;= 0 or lift &lt;= 1&quot;,
+    &quot;NEPRUKAZNE&quot;: &quot;everything else: positive estimates with a CI reaching the null, positive estimates under the threshold, or an undefined statistic&quot;
+  },
+  &quot;descriptive&quot;: {
+    &quot;signals&quot;: [
+      &quot;potential_raw on all rankable rows&quot;,
+      &quot;sila6m.ratio&quot;,
+      &quot;growth6m.g&quot;,
+      &quot;ln(mcap_t), expected sign negative&quot;,
+      &quot;momentum: 3M excess return up to t (ln p_t/p_t-91 - ln btc_t/btc_t-91)&quot;
+    ],
+    &quot;rows&quot;: &quot;H1 rows (3M) / H2 rows (6M) with the signal not None&quot;,
+    &quot;stats&quot;: &quot;mean IC 3M (block 3) and 6M (block 6) with CI90; Q5 - Q1: mean over formations of (median relative return of the top quintile - that of the bottom quintile), relative return = exp(excess) - 1 (dead = -1), CI90 block 3&quot;
+  },
+  &quot;q4_2024&quot;: &quot;formation 2024-10-01, 3M horizon, primary universe: top 15 trusted rows by potential_raw with their 3M multiple; the 10 largest 3M multiples of the whole universe with their Potencial rank among rankable rows and trust status; medians of the multiple for both&quot;,
+  &quot;base_rates&quot;: &quot;6M multiple &gt;= 3, &gt;= 5, &gt;= 10, pooled over formations, primary universe: all rows (rankable or not) and the H2 rows; Wilson 90 %&quot;,
+  &quot;sensitivity&quot;: [
+    &quot;no listedAt filter: H1, H2, H3, verdict&quot;,
+    &quot;dead-outcome rows excluded: H1, H2, verdict&quot;,
+    &quot;prices cleaned with themes.clean_row: H1, H2, verdict&quot;
+  ]
+}</pre></details>
+</main></body></html>

@@ -1,0 +1,22 @@
+# Never published: the Cymetica scanner holds an API key in agentic_scan/data/
+agentic_scan/
+.claude/
+
+# local builds and runtime output
+build/
+dist/
+site/
+__pycache__/
+*.pyc
+*.log
+*.tmp
+
+# rebuilt by every run (CI keeps them in actions/cache between runs)
+snapshot.json
+gem_screener.html
+dex_cache.json
+unlocks_cache.json
+
+# the backtest's raw download cache; the lock proves the pre-registration
+backtest_cache/*
+!backtest_cache/prereg.lock

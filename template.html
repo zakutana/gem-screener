@@ -1,0 +1,3336 @@
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Gem Screener</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600;700&display=swap">
+
+<style>
+/* Warm near-black terminal palette — blue/coral/gold triad, no green.
+   Validated with the dataviz palette checker: accent+copper and accent+warn
+   both clear CVD separation + contrast-vs-surface in both modes. */
+:root{
+  --paper:#EDE6D6; --surface:#F7F2E6; --surface-2:#FBF8EF; --surface-sunk:#E2D9C4;
+  --ink:#1E1913; --ink-2:#4E453A; --muted:#8B8071;
+  --rule:#D9CFB8; --rule-soft:#E6DFCC;
+  --accent:#3A5A96; --accent-soft:rgba(58,90,150,.12); --accent-ink:#2C477A;
+  --copper:#A8432F; --copper-soft:rgba(168,67,47,.12);
+  --good:#3A5A96; --good-soft:rgba(58,90,150,.12);
+  --warn:#9C7625; --warn-soft:rgba(156,118,37,.12);
+  --bad:#A8432F; --bad-soft:rgba(168,67,47,.12);
+  --gem:#0F7D5C; --gem-rgb:15,125,92;
+  --shadow:0 1px 2px rgba(30,25,19,.07), 0 12px 32px -16px rgba(30,25,19,.30);
+  --focus:#3A5A96;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --paper:#131110; --surface:#1B1816; --surface-2:#211D1A; --surface-sunk:#0E0C0B;
+    --ink:#F3EEE5; --ink-2:#C2B9AC; --muted:#8C8175;
+    --rule:#2C2723; --rule-soft:#221E1B;
+    --accent:#5C82C4; --accent-soft:rgba(92,130,196,.17); --accent-ink:#8FB0E6;
+    --copper:#D97158; --copper-soft:rgba(217,113,88,.17);
+    --good:#5C82C4; --good-soft:rgba(92,130,196,.17);
+    --warn:#B98A34; --warn-soft:rgba(185,138,52,.17);
+    --bad:#D97158; --bad-soft:rgba(217,113,88,.17);
+    --gem:#3FA37E; --gem-rgb:63,163,126;
+    --shadow:0 1px 2px rgba(0,0,0,.5), 0 14px 36px -18px rgba(0,0,0,.8);
+    --focus:#8FB0E6;
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#131110; --surface:#1B1816; --surface-2:#211D1A; --surface-sunk:#0E0C0B;
+  --ink:#F3EEE5; --ink-2:#C2B9AC; --muted:#8C8175;
+  --rule:#2C2723; --rule-soft:#221E1B;
+  --accent:#5C82C4; --accent-soft:rgba(92,130,196,.17); --accent-ink:#8FB0E6;
+  --copper:#D97158; --copper-soft:rgba(217,113,88,.17);
+  --good:#5C82C4; --good-soft:rgba(92,130,196,.17);
+  --warn:#B98A34; --warn-soft:rgba(185,138,52,.17);
+  --bad:#D97158; --bad-soft:rgba(217,113,88,.17);
+  --gem:#3FA37E; --gem-rgb:63,163,126;
+  --shadow:0 1px 2px rgba(0,0,0,.5), 0 14px 36px -18px rgba(0,0,0,.8);
+  --focus:#8FB0E6;
+}
+
+*{box-sizing:border-box}
+html, body{height:100%}
+
+/* One measure for the whole app. Bands (header, controls) stay full-bleed so
+   their backgrounds and rules run edge to edge, but their CONTENT is pinned to
+   the same centred column — otherwise on an ultrawide monitor the name column
+   swallows ~1100px of dead space. */
+:root{ --gutter:clamp(14px,3vw,32px); --maxw:1400px; }
+.measure{ padding-inline:max(var(--gutter), calc((100% - var(--maxw)) / 2)); }
+body{
+  margin:0; background:var(--paper); color:var(--ink);
+  font-family:"IBM Plex Sans",system-ui,-apple-system,"Segoe UI",sans-serif;
+  font-size:15px; line-height:1.48;
+  -webkit-font-smoothing:antialiased;
+}
+a{color:var(--accent)}
+button{font-family:inherit}
+:focus-visible{outline:2px solid var(--focus); outline-offset:2px; border-radius:3px}
+::selection{background:var(--accent-soft)}
+
+/* ============ shell ============ */
+.shell{display:flex; flex-direction:column; min-height:100vh}
+
+/* Header + tabs + window/floor controls stick together as one unit, so the
+   time filter never scrolls out of reach. A shadow only appears once the page
+   has actually scrolled under it — cheap and avoids a hardcoded shadow on load. */
+.stickytop{position:sticky; top:0; z-index:20}
+.stickytop::after{
+  content:""; position:absolute; left:0; right:0; top:100%; height:10px; pointer-events:none;
+  background:linear-gradient(rgba(0,0,0,.10), transparent); opacity:0;
+  transition:opacity .15s;
+}
+.stickytop.scrolled::after{opacity:1}
+
+header.top{
+  padding-block:18px 0; border-bottom:1px solid var(--rule);
+  background:var(--surface);
+}
+.top-row{display:flex; align-items:baseline; justify-content:space-between; gap:16px; flex-wrap:wrap; padding-bottom:14px}
+.brand{display:flex; align-items:baseline; gap:10px}
+.brand h1{
+  font-family:"IBM Plex Mono",monospace; font-size:1.2rem; font-weight:700; margin:0; letter-spacing:-.01em;
+}
+.brand h1 .br{color:var(--accent); font-weight:500}
+.brand .tag{
+  font-family:"IBM Plex Mono",monospace; font-size:10px; letter-spacing:.13em; text-transform:uppercase;
+  color:var(--muted); background:var(--surface-sunk); padding:3px 8px; border-radius:3px;
+}
+.meta{
+  font-family:"IBM Plex Mono",monospace; font-size:11px; color:var(--muted); letter-spacing:.02em;
+  display:flex; gap:14px; flex-wrap:wrap;
+}
+.meta b{color:var(--ink-2); font-weight:600}
+
+/* The `hidden` attribute has to beat every display rule: .refreshbtn below sets
+   inline-flex, which outranks the browser's own [hidden]{display:none} and left
+   Refresh/Ukončit visible (and dead) on the static artifact. */
+[hidden]{display:none !important}
+
+/* Refresh — shown only when app.py is serving the page. The static artifact has
+   no server to refresh against, so the buttons stay hidden there. */
+.refreshbtn{
+  appearance:none; cursor:pointer; font-family:"IBM Plex Mono",monospace; font-size:11px;
+  font-weight:600; letter-spacing:.02em; color:var(--accent-ink);
+  background:var(--surface-sunk); border:1px solid var(--rule); border-radius:5px;
+  padding:4px 10px; display:inline-flex; align-items:center; gap:7px;
+}
+:root[data-theme="dark"] .refreshbtn, :root:not([data-theme="light"]) .refreshbtn{color:var(--accent)}
+.refreshbtn:hover:not(:disabled){border-color:var(--accent); color:var(--accent)}
+.refreshbtn:disabled{cursor:default; opacity:.75}
+.refreshbtn.stale{border-color:var(--warn); color:var(--warn)}
+.refreshbtn .rdot{
+  width:6px; height:6px; border-radius:50%; background:currentColor; flex:none; opacity:.55;
+}
+.refreshbtn.busy .rdot{animation:rpulse 1s ease-in-out infinite}
+@keyframes rpulse{0%, 100%{opacity:.25}50%{opacity:1}}
+.refreshbtn .rprog{color:var(--muted); font-weight:400}
+.warnchip{
+  font-family:"IBM Plex Mono",monospace; font-size:11px; font-weight:600; color:var(--warn);
+  background:var(--warn-soft); border:1px solid var(--warn); border-radius:5px; padding:3px 9px;
+  cursor:help; white-space:nowrap;
+}
+/* Quitting needs to be possible without the Task Manager: --noconsole means
+   there is no window to close and no Ctrl-C to press. */
+.refreshbtn.quit{color:var(--muted)}
+.refreshbtn.quit:hover{border-color:var(--copper); color:var(--copper)}
+.deadnote{
+  max-width:520px; margin:18vh auto; text-align:center; color:var(--ink-2);
+  font-size:14px; line-height:1.7;
+}
+.deadnote h2{font-size:1.2rem; color:var(--ink); margin:0 0 10px; font-weight:700}
+.deadnote code{
+  font-family:"IBM Plex Mono",monospace; font-size:12.5px; background:var(--surface-sunk);
+  padding:2px 6px; border-radius:3px; color:var(--ink);
+}
+
+nav.tabs{display:flex; gap:2px}
+.tabs button{
+  appearance:none; border:none; background:none; cursor:pointer;
+  font-size:13.5px; font-weight:600; color:var(--muted);
+  padding:9px 4px 12px; border-bottom:2px solid transparent; margin-right:22px;
+  letter-spacing:.01em;
+}
+.tabs button:hover{color:var(--ink)}
+.tabs button.active{color:var(--ink); border-bottom-color:var(--accent)}
+
+/* ============ controls ============ */
+.controls{
+  display:flex; align-items:center; gap:10px; flex-wrap:wrap;
+  padding-block:14px; background:var(--surface-2); border-bottom:1px solid var(--rule);
+}
+
+.search{position:relative}
+.search input{
+  width:220px; padding:7px 12px 7px 30px; border-radius:6px; border:1px solid var(--rule);
+  background:var(--surface); color:var(--ink); font-size:13px; font-family:inherit;
+}
+.search input::placeholder{color:var(--muted)}
+.search svg{position:absolute; left:9px; top:50%; transform:translateY(-50%); pointer-events:none; opacity:.55}
+
+.floorctl{display:flex; align-items:center; gap:9px; margin-left:auto}
+.floorctl label{font-size:11.5px; color:var(--muted); font-family:"IBM Plex Mono",monospace; letter-spacing:.03em; white-space:nowrap}
+.floorctl input[type=range]{width:130px; accent-color:var(--accent)}
+.floorctl .val{
+  font-family:"IBM Plex Mono",monospace; font-size:12px; font-weight:600; color:var(--ink);
+  min-width:64px; text-align:right; font-variant-numeric:tabular-nums;
+}
+.count-badge{
+  font-family:"IBM Plex Mono",monospace; font-size:11px; color:var(--muted);
+  background:var(--surface-sunk); padding:5px 10px; border-radius:5px; white-space:nowrap;
+}
+.count-badge b{color:var(--ink)}
+
+/* ============ leaderboard: podium + hero chart ============ */
+.eyebrow{
+  font-family:"IBM Plex Mono",monospace; font-size:10.5px; letter-spacing:.18em;
+  text-transform:uppercase; color:var(--muted); display:block; margin-bottom:7px;
+}
+.leaderboard{margin-bottom:34px}
+.lb-head{display:flex; align-items:flex-start; justify-content:space-between; gap:16px; margin-bottom:20px}
+.lb-title{
+  font-size:clamp(1.35rem,2.6vw,1.85rem); font-weight:700; margin:0;
+  letter-spacing:-.022em; line-height:1.1;
+}
+.info-btn.lg{width:20px; height:20px; font-size:11px}
+
+/* --- hero chart --- */
+.herochart{background:var(--surface); border:1px solid var(--rule); border-radius:12px; padding:20px 22px 16px}
+.hc-head{margin-bottom:14px}
+.hc-sub{font-family:"IBM Plex Mono",monospace; font-size:12px; color:var(--muted); margin:0; letter-spacing:.02em}
+.hc-body{display:grid; grid-template-columns:minmax(0,1fr) 246px; gap:22px; align-items:start}
+.ranklist-wrap{border:1px solid var(--rule-soft); border-radius:8px; overflow:hidden}
+.ranklist-head{
+  display:grid; grid-template-columns:18px 1fr auto; align-items:center; gap:9px;
+  padding:6px 11px; background:var(--surface); border-bottom:1px solid var(--rule-soft);
+  font-family:"IBM Plex Mono",monospace; font-size:9px; letter-spacing:.1em; text-transform:uppercase;
+  color:var(--muted);
+}
+.ral{text-align:right}
+.ranklist{list-style:none; margin:0; padding:0; display:flex; flex-direction:column; gap:1px; background:var(--rule-soft)}
+.rank-row{
+  display:grid; grid-template-columns:18px 1fr auto; align-items:center; gap:9px;
+  padding:7px 11px; background:var(--surface-2); cursor:pointer; transition:background .1s;
+}
+.rank-row:hover, .rank-row.on{background:var(--accent-soft)}
+.rank-row .rk{width:9px; height:9px; border-radius:2px; flex:none}
+.rank-row .nmw{display:flex; align-items:center; gap:7px; min-width:0}
+.rank-row .lbl{font-size:12.5px; font-weight:600; color:var(--ink); white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+.rank-row .val{font-family:"IBM Plex Mono",monospace; font-size:12px; font-weight:700; font-variant-numeric:tabular-nums; white-space:nowrap}
+.rank-row .val.up{color:var(--gem)} .rank-row .val.down{color:var(--copper)}
+
+@media (max-width:900px){
+  .hc-body{grid-template-columns:1fr}
+  .ranklist{max-height:none}
+}
+
+/* ============ main / table ============ */
+main{flex:1; padding-block:18px 56px}
+.view{display:none}
+.view.active{display:block}
+
+.tablewrap{
+  border:1px solid var(--rule); border-radius:8px; overflow:auto; background:var(--surface);
+  max-height:calc(100vh - 230px);
+}
+table{border-collapse:collapse; width:100%; min-width:820px; font-size:14px}
+thead th{
+  position:sticky; top:0; z-index:5; background:var(--surface-2);
+  font-family:"IBM Plex Mono",monospace; font-size:10.5px; font-weight:600; letter-spacing:.07em;
+  text-transform:uppercase; color:var(--muted); text-align:right; padding:10px 12px;
+  border-bottom:1px solid var(--rule); white-space:nowrap; cursor:pointer; user-select:none;
+}
+/* Numeric/short columns shrink to their content so the slack collects in the
+   name column instead of being spread as huge gaps across every column. */
+thead th.tight, td.tight{width:1%; white-space:nowrap}
+thead th.left{text-align:left}
+thead th:hover{color:var(--ink)}
+thead th .arrow{opacity:0; margin-left:4px; font-size:9px}
+thead th.sorted .arrow{opacity:1; color:var(--accent)}
+thead th .info-btn{margin-left:5px; cursor:pointer}
+/* Row tint = how cheap the project is against its own revenue. --heat is set
+   per row from the P/S multiple; greener means more revenue per $ of market cap. */
+/* color-mix, not rgba(var(--list), calc(...)) — the latter resolves once and
+   then keeps the old theme's green when the palette switches. */
+/* Row tint by upside tier. Five hard steps, not a continuous ramp — a smooth
+   ramp made 1.5x and 10x look like the same shade of nothing. */
+tbody tr{cursor:pointer; transition:background .08s; background:transparent}
+tbody tr[data-tier="5"]{background:color-mix(in srgb, var(--gem) 26%, transparent)}
+tbody tr[data-tier="4"]{background:color-mix(in srgb, var(--gem) 14%, transparent)}
+tbody tr[data-tier="3"]{background:color-mix(in srgb, var(--gem) 6%, transparent)}
+tbody tr:hover{background:var(--accent-soft)}
+tbody tr.selected{background:var(--accent-soft)}
+td{padding:9px 12px; border-bottom:1px solid var(--rule-soft); vertical-align:middle; color:var(--ink-2); text-align:right}
+td.left{text-align:left}
+tbody tr:last-child td{border-bottom:0}
+
+.rank{font-family:"IBM Plex Mono",monospace; color:var(--muted); font-size:12.5px; width:1%}
+.namecell{display:flex; align-items:center; gap:10px; min-width:210px}
+.ico{border-radius:50%; flex:none; background:var(--surface-sunk); object-fit:cover; display:block}
+.ico-fb{
+  display:inline-flex; align-items:center; justify-content:center; border-radius:50%;
+  font-family:"IBM Plex Mono",monospace; font-size:9.5px; font-weight:700; color:var(--accent-ink);
+  background:var(--surface-sunk); flex:none;
+}
+.namecell .ico{width:26px; height:26px}
+.rank-row .nmw .ico{width:18px; height:18px}
+.panel-ico .ico{width:40px; height:40px}
+.namecell .txt{display:flex; flex-direction:column; gap:1px; min-width:0}
+.namecell .nm{font-weight:600; color:var(--ink); font-size:14px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis; max-width:220px}
+.namecell .sym{font-family:"IBM Plex Mono",monospace; font-size:11px; color:var(--muted)}
+
+/* category chip + share on the first line, the row's theme under it */
+.catcell{display:inline-flex; flex-direction:column; align-items:flex-start; gap:4px}
+.catrow{display:inline-flex; align-items:center; gap:8px; white-space:nowrap}
+/* The theme a row belongs to — the join Sektory never made. Same colour logic as
+   the Sektory table: green = strong amplifier (tier 5), blue = already leading
+   or fundament rising, muted = no tailwind. Outlined, so it never competes with
+   the potential multiple for attention. */
+.themechip{
+  appearance:none; cursor:pointer; font-family:inherit; font-size:10.5px; line-height:1.5;
+  padding:0 7px; border-radius:99px; border:1px solid var(--rule); background:transparent;
+  color:var(--muted); white-space:nowrap;
+}
+.themechip.strong{border-color:var(--gem); color:var(--gem)}
+.themechip.lead{border-color:var(--accent); color:var(--accent)}
+.themechip:hover{background:var(--accent-soft)}
+/* Potential after full unlock, printed only when the coin dilutes more than the
+   benchmark: outlined coral, the "number is sound, the token may not benefit"
+   language of Bez podílu. */
+.potsub{
+  display:block; margin-top:3px; font-family:"IBM Plex Mono",monospace; font-size:10.5px;
+  color:var(--copper); white-space:nowrap;
+}
+.catchip{
+  display:inline-block; font-size:11px; padding:2px 8px; border-radius:99px;
+  background:var(--surface-sunk); color:var(--ink-2); white-space:nowrap;
+  border:1px solid transparent;
+}
+/* One shared 5-step heat scale, used for both the upside multiple and the
+   sector chip, so "hot" looks the same wherever it appears. */
+.t5{background:var(--gem); color:var(--surface-sunk); font-weight:700; border-color:var(--gem)}
+.t4{background:color-mix(in srgb, var(--gem) 26%, transparent); color:var(--gem); font-weight:700;
+    border-color:color-mix(in srgb, var(--gem) 55%, transparent)}
+.t3{background:color-mix(in srgb, var(--gem) 12%, transparent); color:var(--gem); font-weight:600}
+.t2{color:var(--ink-2)}
+.t1{color:var(--muted); opacity:.72}
+
+/* Dominance: what slice of its own sector the project holds. */
+.sharebadge{
+  font-family:"IBM Plex Mono",monospace; font-size:11px; color:var(--muted);
+  font-variant-numeric:tabular-nums; display:inline-flex; align-items:center; gap:5px;
+}
+.sharebadge .sbar{width:26px; height:4px; border-radius:2px; background:var(--surface-sunk); overflow:hidden; flex:none}
+.sharebadge .sbar i{display:block; height:100%; background:var(--muted); border-radius:2px}
+.sharebadge.big{color:var(--accent); font-weight:700}
+.sharebadge.big .sbar i{background:var(--accent)}
+
+/* Upside multiple — headroom to the arena's benchmark valuation. */
+.upside{
+  font-family:"IBM Plex Mono",monospace; font-variant-numeric:tabular-nums; font-size:13px;
+  padding:3px 9px; border-radius:5px; border:1px solid transparent; display:inline-block; min-width:56px;
+}
+.benchchip{
+  font-family:"IBM Plex Mono",monospace; font-size:11px; color:var(--muted);
+  background:var(--surface-sunk); padding:5px 10px; border-radius:5px; white-space:nowrap;
+}
+.benchchip b{color:var(--ink); font-weight:600}
+
+.num{font-family:"IBM Plex Mono",monospace; font-variant-numeric:tabular-nums; white-space:nowrap}
+.gwrap{display:inline-flex; align-items:center; gap:6px; justify-content:flex-end}
+.gval{font-weight:600}
+.gval.pos{color:var(--good)} .gval.neg{color:var(--copper)} .gval.flat{color:var(--muted)}
+.qdot{width:6px; height:6px; border-radius:50%; flex:none}
+.qdot.q-strong{background:var(--good)}
+.qdot.q-weak{background:var(--warn); opacity:.8}
+.qdot.q-noise{background:var(--muted); opacity:.5}
+
+/* ---- trajectory cell: 4-period glyph + phase chip ---- */
+.trajcell{display:inline-flex; align-items:center; gap:10px; justify-content:flex-end; min-width:186px}
+.trajglyph{display:block; flex:none}
+.trajglyph .up{fill:var(--accent)}
+.trajglyph .down{fill:var(--copper)}
+.trajglyph .nil{fill:var(--rule)}
+.trajglyph .axis{stroke:var(--rule)}
+.phase{
+  font-family:"IBM Plex Mono",monospace; font-size:10.5px; font-weight:600; letter-spacing:.05em;
+  padding:3px 8px; border-radius:99px; white-space:nowrap; text-transform:uppercase;
+  border:1px solid transparent;
+}
+.phase.p-zazeh{background:var(--accent); color:var(--surface); font-weight:700}
+.phase.p-akcelerace{background:var(--accent-soft); color:var(--accent); border-color:var(--accent)}
+.phase.p-setrvaly{background:var(--accent-soft); color:var(--accent)}
+.phase.p-zpomaluje{background:var(--warn-soft); color:var(--warn)}
+.phase.p-stagnace{background:var(--surface-sunk); color:var(--muted)}
+.phase.p-pokles{background:var(--copper-soft); color:var(--copper)}
+.phase.p-novy{background:transparent; color:var(--muted); border-color:var(--rule)}
+.hsnum{font-family:"IBM Plex Mono",monospace; font-size:12.5px; font-weight:700; color:var(--ink); width:24px; text-align:right}
+
+/* ---- trajectory block inside the detail panel ---- */
+.trajpanel{background:var(--surface-2); border:1px solid var(--rule); border-radius:8px; padding:16px 18px}
+.trajpanel-top{display:flex; align-items:center; gap:12px; flex-wrap:wrap; margin-bottom:10px}
+.trajpanel .trajglyph{transform:scale(1.35); transform-origin:left center; margin-right:10px}
+.peakinfo{font-size:12.5px; color:var(--muted)}
+.peakinfo b{color:var(--ink-2); font-family:"IBM Plex Mono",monospace}
+.trajwhy{font-size:13px; color:var(--ink-2); margin:0 0 12px; line-height:1.55; max-width:62ch}
+.trajwhy b{color:var(--ink); font-family:"IBM Plex Mono",monospace}
+.trajpanel .growthtable{margin-top:4px}
+
+.empty{padding:60px 20px; text-align:center; color:var(--muted)}
+.empty b{color:var(--ink-2)}
+
+/* ============ v11: monthly sparkline in the row ============ */
+.sparkcell{padding-block:4px}
+.msparkline{display:block}
+.msparkline .mb{fill:var(--accent); opacity:.85}
+/* the running month is always short — lighter, not a cliff */
+.msparkline .mb.partial{opacity:.34}
+tbody tr:hover .msparkline .mb{opacity:1}
+tbody tr:hover .msparkline .mb.partial{opacity:.45}
+
+/* ============ v11: strength ============ */
+.sila{font-family:"IBM Plex Mono",monospace; font-variant-numeric:tabular-nums;
+      font-size:13px; font-weight:600; white-space:nowrap}
+.sila.strong{color:var(--gem)}
+.sila.up{color:var(--accent)}
+.sila.flat{color:var(--muted)}
+.sila.down{color:var(--copper)}
+.sub{font-size:10.5px; color:var(--muted); font-weight:400}
+.muted{color:var(--muted)}
+
+/* The trust filter. Two modes, because ONE ordering cannot answer both "what
+   should I look at" and "what has the biggest number" — the first needs the
+   doubtful rows gone, the second needs them ranked straight and labelled. */
+.switch{display:inline-flex; background:var(--surface-sunk); border-radius:6px; padding:2px; gap:2px}
+.switch button{
+  appearance:none; border:none; background:none; cursor:pointer; padding:6px 12px; border-radius:5px;
+  font-family:"IBM Plex Mono",monospace; font-size:11.5px; font-weight:600; color:var(--muted);
+  letter-spacing:.02em; white-space:nowrap;
+}
+.switch button.active{background:var(--surface); color:var(--accent-ink); box-shadow:var(--shadow)}
+:root[data-theme="dark"] .switch button.active, :root:not([data-theme="light"]) .switch button.active{color:var(--accent)}
+
+/* Status tags. Gold = new and unproven; filled coral = a concrete reason not to
+   trust the multiple (the row leaves "Jen prověřené"). OUTLINED coral = the number
+   is sound but the token may not get paid from it ("Bez podílu") — a concern that
+   stays in view and never filters. Every tag names WHAT is wrong. */
+.tag{
+  font-family:"IBM Plex Mono",monospace; font-size:9px; font-weight:700; letter-spacing:.06em;
+  text-transform:uppercase; border-radius:3px; padding:1px 5px; margin-left:6px;
+  white-space:nowrap; vertical-align:1px; border:1px solid transparent;
+}
+.tag.warn{color:var(--warn); background:var(--warn-soft); border-color:var(--warn)}
+.tag.bad{color:var(--copper); background:var(--copper-soft); border-color:var(--copper)}
+.tag.accrual{color:var(--copper); background:transparent; border-color:var(--copper)}
+.tag.good{color:var(--gem); background:color-mix(in srgb, var(--gem) 12%, transparent); border-color:var(--gem)}
+.nmrow{display:flex; align-items:center; flex-wrap:wrap; row-gap:3px; min-width:0}
+.tag.info{color:var(--accent); background:var(--accent-soft); border-color:var(--accent)}
+
+/* ============ v12: Sektory = themes ============ */
+.logostack{display:inline-flex; flex:none}
+.logostack .ico, .logostack .ico-fb{border:2px solid var(--surface); box-sizing:content-box}
+.logostack > * + *{margin-left:-9px}
+.namecell .logostack .ico, .namecell .logostack .ico-fb{width:22px; height:22px}
+.panel-ico .logostack .ico, .panel-ico .logostack .ico-fb{width:30px; height:30px}
+
+/* the altseason strip: the one number that sets the context for the tab */
+.altstrip{
+  display:grid; grid-template-columns:minmax(260px,1.5fr) minmax(200px,1fr) auto auto; gap:26px;
+  align-items:center; background:var(--surface); border:1px solid var(--rule); border-radius:12px;
+  padding:18px 22px; margin-bottom:26px;
+}
+.alt-main{display:flex; align-items:center; gap:16px}
+.alt-num{font-family:"IBM Plex Mono",monospace; font-size:2.6rem; font-weight:700; line-height:1;
+  letter-spacing:-.03em; font-variant-numeric:tabular-nums; white-space:nowrap; flex:none}
+.alt-num.pos{color:var(--gem)} .alt-num.neg{color:var(--copper)} .alt-num.flat{color:var(--warn)}
+.alt-lbl{font-size:13px; color:var(--ink-2); line-height:1.5}
+.alt-lbl b{color:var(--ink)}
+.alt-track{position:relative; height:10px; border-radius:5px; background:var(--surface-sunk); overflow:visible}
+.alt-track i{position:absolute; left:0; top:0; bottom:0; border-radius:5px; background:var(--warn)}
+.alt-track .mk{position:absolute; top:-4px; bottom:-4px; width:2px; background:var(--muted); opacity:.6}
+.alt-ticks{display:flex; justify-content:space-between; font-family:"IBM Plex Mono",monospace;
+  font-size:9.5px; letter-spacing:.08em; text-transform:uppercase; color:var(--muted); margin-top:7px}
+.alt-hist{color:var(--warn); text-align:right}
+.alt-hist .sub{color:var(--muted)}
+.alt-spark{display:block}
+.alt-btc{font-family:"IBM Plex Mono",monospace; font-size:12px; color:var(--ink-2); line-height:1.7}
+.alt-btc b.pos{color:var(--gem)} .alt-btc b.neg{color:var(--copper)}
+.alt-note{grid-column:1 / -1; margin:0; font-size:12.5px; color:var(--muted); line-height:1.55;
+  border-top:1px solid var(--rule-soft); padding-top:12px}
+@media (max-width:900px){ .altstrip{grid-template-columns:1fr 1fr} }
+
+.scatter .pt, .scatter .plabel{cursor:pointer}
+.scatter .pt:hover circle{fill-opacity:.4}
+/* a halo so a label crossing a whisker or gridline stays legible */
+.scatter .plabel{paint-order:stroke; stroke:var(--surface); stroke-width:3px; stroke-linejoin:round}
+.scatter .quad{font-family:"IBM Plex Mono",monospace; letter-spacing:.08em; text-transform:uppercase}
+
+/* 11 columns: 3px less side padding per cell is what fits it on a 1366px
+   laptop without a horizontal scrollbar (it overflowed by 12px) */
+#tbl-themes th, #tbl-themes td{padding-left:9px; padding-right:9px}
+
+.memwrap{max-height:none}
+.memtable{min-width:0; font-size:13px}
+.memtable td, .memtable th{padding:7px 10px}
+.memtable .namecell{min-width:0}
+
+/* A young row is unproven, not doubtful — it keeps full-strength text. */
+tbody tr[data-young] .namecell .nm{color:var(--ink)}
+
+.upside.t0{color:var(--muted); opacity:.6}
+/* an unreliable row keeps its number but loses its confidence */
+.upside.untrusted{opacity:.62; border-style:dashed}
+tbody tr[data-untrusted] .namecell .nm{color:var(--ink-2)}
+
+/* ============ v13: Start — the degen view ============ */
+.start-lead{font-size:14px; color:var(--ink-2); margin:-8px 0 20px; line-height:1.6; max-width:78ch}
+.start-lead b{color:var(--ink)}
+.start-themes{display:grid; grid-template-columns:repeat(auto-fit, minmax(240px, 1fr)); gap:10px; margin:0 0 6px}
+.thcard{
+  appearance:none; text-align:left; font-family:inherit; cursor:pointer; color:var(--ink-2);
+  background:var(--surface); border:1px solid var(--rule); border-radius:10px; padding:11px 14px;
+  display:flex; flex-direction:column; gap:4px; font-size:12.5px; line-height:1.45;
+}
+.thcard:hover{border-color:var(--accent)}
+.thcard .thn{font-size:14px; font-weight:700; color:var(--ink)}
+.thcard .thb{font-family:"IBM Plex Mono",monospace; color:var(--gem); font-weight:700}
+.startgrid{display:grid; grid-template-columns:repeat(auto-fill, minmax(300px, 1fr)); gap:14px; margin:18px 0 22px}
+.dcard{
+  background:var(--surface); border:1px solid var(--rule); border-radius:12px; padding:16px 18px;
+  cursor:pointer; display:flex; flex-direction:column; gap:9px; transition:border-color .12s; min-width:0;
+}
+.dcard:hover{border-color:var(--accent)}
+.dc-head{display:flex; align-items:center; gap:10px; min-width:0}
+.dc-head .ico{width:30px; height:30px}
+.dc-name{display:flex; flex-direction:column; min-width:0; flex:1}
+.dc-name b{font-size:15px; color:var(--ink); white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+.dc-pot{display:flex; align-items:baseline; gap:10px; flex-wrap:wrap}
+.dc-big{font-family:"IBM Plex Mono",monospace; font-size:2rem; font-weight:700; color:var(--gem); line-height:1}
+.dc-money{font-size:12px; color:var(--muted)}
+.dc-fdv{font-family:"IBM Plex Mono",monospace; font-size:11.5px; color:var(--muted)}
+.dc-fdv.warn{color:var(--copper)}
+.dc-why{display:flex; flex-wrap:wrap; gap:5px}
+.why{font-size:11.5px; padding:2px 9px; border-radius:99px; background:var(--accent-soft); color:var(--accent-ink)}
+:root[data-theme="dark"] .why, :root:not([data-theme="light"]) .why{color:var(--accent)}
+.dc-risk{display:flex; flex-wrap:wrap; gap:5px}
+.dc-risk .tag{margin-left:0}
+.dc-rows{margin:0; display:flex; flex-direction:column; gap:5px; border-top:1px solid var(--rule-soft); padding-top:10px}
+.dc-rows div{display:flex; justify-content:space-between; gap:12px; font-size:12.5px}
+.dc-rows dt{color:var(--muted); white-space:nowrap}
+.dc-rows dd{margin:0; text-align:right; font-family:"IBM Plex Mono",monospace; font-size:12px; color:var(--ink-2)}
+.dc-rows dd.ok{color:var(--accent)} .dc-rows dd.bad{color:var(--copper)}
+.dc-exit{font-size:12px; color:var(--warn)}
+.gate-grey{color:var(--muted)}
+/* the backtest verdict sits ABOVE the cards: it qualifies every one of them */
+.relnote.btverdict{margin:0 0 22px; border-color:var(--warn); background:var(--warn-soft)}
+.relnote.btverdict .reltitle{color:var(--warn)}
+.start-cols{display:grid; grid-template-columns:repeat(auto-fit, minmax(300px, 1fr)); gap:14px; margin:14px 0}
+.start-cols .relnote{margin-top:0}
+@media (max-width:560px){ .altstrip{grid-template-columns:1fr} .dc-big{font-size:1.7rem} }
+
+/* ============ v11: panel ============ */
+.relnote{
+  margin-top:14px; font-size:12.5px; padding:10px 14px; border-radius:6px;
+  background:var(--surface-2); border:1px solid var(--rule); line-height:1.6;
+}
+.reltitle{font-weight:700; font-size:13px; margin-bottom:8px}
+.relok{color:var(--gem)}
+.relbad{color:var(--copper)}
+.relnew{color:var(--warn)}
+.rellist{margin:0 0 10px; padding-left:20px; display:flex; flex-direction:column; gap:7px}
+.rellist li{font-size:12.5px; color:var(--ink-2); line-height:1.55}
+.rellist b{color:var(--ink); font-family:"IBM Plex Mono",monospace; font-size:11.5px;
+  text-transform:uppercase; letter-spacing:.04em}
+.relbasis{
+  margin-top:10px; padding-top:9px; border-top:1px solid var(--rule-soft);
+  font-size:12px; color:var(--muted); line-height:1.55;
+}
+.relbasis b{color:var(--ink-2); font-family:"IBM Plex Mono",monospace}
+.mchart-label{
+  font-family:"IBM Plex Mono",monospace; font-size:11px; color:var(--muted);
+  margin-bottom:8px; letter-spacing:.02em;
+}
+.bigbar{fill:var(--accent); opacity:.85}
+.bigbar.partial{fill:url(#hatch); opacity:.5}
+
+/* --- sector list: growth, size{display:flex; flex-direction:column; gap:1px; background:var(--rule-soft);
+  border:1px solid var(--rule-soft); border-radius:8px; overflow:hidden}
+@media (max-width:760px){
+}
+.chartbox{overflow-x:auto}
+svg{display:block; max-width:100%}
+svg text{font-family:"IBM Plex Mono",ui-monospace,monospace; font-variant-numeric:tabular-nums}
+
+/* ============ detail panel ============ */
+.scrim{
+  position:fixed; inset:0; background:rgba(6,14,17,.42); backdrop-filter:blur(1px);
+  opacity:0; pointer-events:none; transition:opacity .18s; z-index:40;
+}
+.scrim.open{opacity:1; pointer-events:auto}
+.panel{
+  position:fixed; top:0; right:0; height:100%; width:min(840px,96vw);
+  background:var(--surface); border-left:1px solid var(--rule); box-shadow:var(--shadow);
+  transform:translateX(100%); transition:transform .22s cubic-bezier(.2,.8,.3,1); z-index:41;
+  display:flex; flex-direction:column;
+}
+.panel.open{transform:translateX(0)}
+.panel-head{padding:24px 28px 20px; border-bottom:1px solid var(--rule); flex:none}
+.panel-close{
+  position:absolute; top:18px; right:22px; appearance:none; border:none; background:var(--surface-sunk);
+  color:var(--muted); width:32px; height:32px; border-radius:7px; cursor:pointer; font-size:16px; line-height:1;
+}
+.panel-close:hover{color:var(--ink)}
+.panel-top{display:flex; align-items:center; gap:14px; padding-right:44px}
+.panel-ico{
+  width:50px; height:50px; border-radius:10px; background:var(--surface-sunk); color:var(--accent-ink);
+  display:flex; align-items:center; justify-content:center; font-family:"IBM Plex Mono",monospace;
+  font-size:17px; font-weight:700; flex:none;
+}
+.panel-title{min-width:0}
+.panel-title h2{margin:0; font-size:1.45rem; font-weight:700; letter-spacing:-.015em; white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+.panel-title .sub{font-family:"IBM Plex Mono",monospace; font-size:12.5px; color:var(--muted); margin-top:3px}
+.panel-desc{font-size:14px; color:var(--ink-2); margin:16px 0 0; line-height:1.6; max-width:64ch}
+.panel-tags{display:flex; gap:6px; flex-wrap:wrap; margin-top:14px}
+.panel-body{flex:1; overflow-y:auto; padding:22px 28px 36px}
+
+.statgrid{display:grid; grid-template-columns:repeat(3,1fr); gap:1px; background:var(--rule); border:1px solid var(--rule); border-radius:8px; overflow:hidden; margin-bottom:26px}
+.statgrid .statcell:nth-child(n+4){grid-column:span 1}
+.statcell{background:var(--surface-2); padding:14px 16px; position:relative}
+.statcell .k{font-family:"IBM Plex Mono",monospace; font-size:10px; letter-spacing:.1em; text-transform:uppercase; color:var(--muted); display:flex; align-items:center; gap:5px}
+.statcell .v{font-family:"IBM Plex Mono",monospace; font-size:1.25rem; font-weight:700; margin-top:4px; font-variant-numeric:tabular-nums}
+.statcell .v.pos{color:var(--good)} .statcell .v.neg{color:var(--copper)}
+
+.panel-body h4{
+  font-size:12.5px; text-transform:uppercase; letter-spacing:.08em; color:var(--muted); margin:0 0 12px;
+  font-weight:600; display:flex; align-items:center; gap:6px;
+}
+
+.growthtable{width:100%; border-collapse:collapse; font-size:13px; margin-top:8px}
+.growthtable th{text-align:right; font-family:"IBM Plex Mono",monospace; font-size:10.5px; color:var(--muted); font-weight:600; padding:8px 10px; border-bottom:1px solid var(--rule)}
+.growthtable th:first-child{text-align:left}
+.growthtable td{text-align:right; padding:9px 10px; border-bottom:1px solid var(--rule-soft); font-family:"IBM Plex Mono",monospace}
+.growthtable td:first-child{text-align:left; color:var(--ink); font-weight:600; font-family:"IBM Plex Sans",sans-serif}
+
+/* ---- info popover (Gem Score explainer etc.) ---- */
+.info-btn{
+  appearance:none; border:1px solid var(--rule); background:var(--surface); color:var(--muted);
+  width:15px; height:15px; border-radius:50%; font-size:9.5px; line-height:1; cursor:pointer;
+  display:inline-flex; align-items:center; justify-content:center; font-weight:700; flex:none;
+  font-family:"IBM Plex Mono",monospace; padding:0;
+}
+.info-btn:hover{color:var(--accent); border-color:var(--accent)}
+.popover{
+  position:fixed; z-index:70; width:290px; background:var(--ink); color:var(--paper);
+  border-radius:8px; padding:14px 16px; font-size:12.5px; line-height:1.55; box-shadow:var(--shadow);
+  opacity:0; pointer-events:none; transform:translateY(4px); transition:opacity .12s, transform .12s;
+}
+.popover.open{opacity:1; pointer-events:auto; transform:translateY(0)}
+.popover b{color:var(--paper)}
+.popover .pk{color:var(--muted); display:block; margin-top:8px; font-family:"IBM Plex Mono",monospace; font-size:11px}
+
+/* ---- mini charts (revenue / adoption, own scale each) ---- */
+.minichart-wrap{display:flex; flex-direction:column; gap:14px}
+.minichart{background:var(--surface-2); border:1px solid var(--rule); border-radius:8px; padding:14px 16px 10px}
+
+/* ---- exclusion / provenance footnotes ---- */
+.excludenote{
+  font-size:12px; color:var(--muted); padding:10px 14px; margin-top:4px; background:var(--surface-sunk);
+  border-radius:6px; line-height:1.6;
+}
+.excludenote b{color:var(--ink-2)}
+.sector-caption{font-size:12.5px; color:var(--muted); margin:-8px 0 16px; line-height:1.5; max-width:70ch}
+
+#tip{
+  position:fixed; pointer-events:none; opacity:0; transition:opacity .1s;
+  background:var(--ink); color:var(--paper); padding:8px 11px; border-radius:5px;
+  font-family:"IBM Plex Mono",monospace; font-size:11.5px; line-height:1.55; z-index:60;
+  box-shadow:var(--shadow); max-width:250px;
+}
+#tip b{color:var(--paper); font-weight:700}
+#tip .t2{color:var(--muted)}
+
+.footnote{
+  margin-top:26px; padding-top:14px; border-top:1px solid var(--rule);
+  font-family:"IBM Plex Mono",monospace; font-size:11px; color:var(--muted);
+  display:flex; gap:20px; flex-wrap:wrap;
+}
+
+@media (max-width:720px){
+  body{font-size:14px}
+  .controls{gap:8px}
+  .floorctl{margin-left:0; width:100%; order:5}
+  .search input{width:100%}
+  .statgrid{grid-template-columns:repeat(2,1fr)}
+}
+@media (prefers-reduced-motion:reduce){ *{transition:none !important; animation:none !important} }
+</style>
+
+<div class="shell">
+ <div class="stickytop">
+  <header class="top">
+    <div class="top-row measure">
+      <div class="brand">
+        <h1><span class="br">[</span>Gem Screener<span class="br">]</span></h1>
+        <span class="tag">DeFiLlama</span>
+      </div>
+      <div class="meta">
+        <span>aktualizováno <b id="metaTime">—</b></span>
+        <span>sběr od <b id="metaFloor">—</b> / 30 d</span>
+        <span><b id="metaApps">—</b> apps · <b id="metaChains">—</b> chains</span>
+        <button class="refreshbtn" id="refreshBtn" type="button" hidden>
+          <span class="rdot"></span><span id="refreshLabel">Aktualizovat data</span>
+        </button>
+        <button class="refreshbtn quit" id="quitBtn" type="button" hidden
+                title="Ukončí program běžící na pozadí. Bez toho se sám vypne po 30 minutách nečinnosti.">Ukončit</button>
+      </div>
+    </div>
+    <nav class="tabs measure">
+      <button data-view="start" class="active">Start</button>
+      <button data-view="apps">Apps</button>
+      <button data-view="chains">Chains</button>
+      <button data-view="sectors">Sektory</button>
+    </nav>
+  </header>
+
+  <div class="controls measure" id="listControls">
+    <div class="switch" id="trustSwitch">
+      <button data-mode="reliable" class="active">Jen prověřené</button>
+      <button data-mode="degen" id="degenBtn">Pro degena</button>
+      <button data-mode="all">Vše podle potenciálu</button>
+    </div>
+    <div class="search">
+      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.3-4.3"/></svg>
+      <input id="searchInput" type="text" placeholder="hledat jméno, symbol, kategorii…">
+    </div>
+    <span class="count-badge"><b id="rowCount">0</b> projektů<span id="countNote"></span></span>
+    <span class="benchchip" id="benchChip">—</span>
+    <div class="floorctl" id="floorWrap">
+      <label for="floorRange">min. revenue / 30d</label>
+      <input id="floorRange" type="range" min="0" max="8" step="1" value="4">
+      <span class="val" id="floorVal">$100K</span>
+    </div>
+  </div>
+ </div>
+
+  <main class="measure">
+    <!-- Start: the answer for someone who will not read tables. Everything on it
+         is computed by the collector (degen gates, Test 30×, liquidity, risks);
+         this view only lays it out. -->
+    <section class="view active" id="view-start">
+      <div class="lb-head">
+        <div>
+          <span class="eyebrow">Pro degena · kandidáti na altseason</span>
+          <h2 class="lb-title" id="startTitle">—</h2>
+        </div>
+        <button class="info-btn lg" data-info="start" type="button">i</button>
+      </div>
+      <p class="start-lead" id="startLead"></p>
+      <div class="relnote btverdict" id="startVerdict"></div>
+      <div class="altstrip" id="startAlt"></div>
+      <div class="start-themes" id="startThemes"></div>
+      <div class="startgrid" id="startCards"></div>
+      <div class="relnote" id="startNear"></div>
+      <div class="start-cols">
+        <div class="relnote" id="startSell"></div>
+        <div class="relnote" id="startBlind"></div>
+      </div>
+      <div class="excludenote" id="startProof"></div>
+    </section>
+    <section class="view" id="view-apps">
+      <div class="leaderboard">
+        <div class="lb-head">
+          <div>
+            <span class="eyebrow">Rok v grafu</span>
+            <h2 class="lb-title">Top 10 podle potenciálu — jak jim šel rok</h2>
+          </div>
+          <button class="info-btn lg" data-info="rank" type="button">i</button>
+        </div>
+        <div class="herochart">
+          <div class="hc-head">
+            <p class="hc-sub" id="hcSubApps">—</p>
+          </div>
+          <div class="hc-body">
+            <div class="chartbox"><div id="heroChartApps"></div></div>
+            <div class="ranklist-wrap">
+              <div class="ranklist-head"><span></span><span>Projekt</span><span class="ral">za rok</span></div>
+              <ol class="ranklist" id="rankListApps"></ol>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="tablewrap"><table id="tbl-apps"><thead></thead><tbody></tbody></table></div>
+      <div class="excludenote" id="excludeAppsNote"></div>
+    </section>
+    <section class="view" id="view-chains">
+      <div class="leaderboard">
+        <div class="lb-head">
+          <div>
+            <span class="eyebrow">Rok v grafu</span>
+            <h2 class="lb-title">Top 10 podle potenciálu — jak jim šel rok</h2>
+          </div>
+          <button class="info-btn lg" data-info="rank" type="button">i</button>
+        </div>
+        <div class="herochart">
+          <div class="hc-head">
+            <p class="hc-sub" id="hcSubChains">—</p>
+          </div>
+          <div class="hc-body">
+            <div class="chartbox"><div id="heroChartChains"></div></div>
+            <div class="ranklist-wrap">
+              <div class="ranklist-head"><span></span><span>Chain</span><span class="ral">za rok</span></div>
+              <ol class="ranklist" id="rankListChains"></ol>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="tablewrap"><table id="tbl-chains"><thead></thead><tbody></tbody></table></div>
+      <div class="excludenote" id="excludeChainsNote"></div>
+    </section>
+    <section class="view" id="view-sectors">
+      <!-- the one number that gives this whole tab its context -->
+      <div class="altstrip" id="altStrip"></div>
+
+      <div class="leaderboard">
+        <div class="lb-head">
+          <div>
+            <span class="eyebrow">Kdyby teď začala altseason</span>
+            <h2 class="lb-title">Co zesiluje trh a co už běží</h2>
+          </div>
+          <button class="info-btn lg" data-info="scatter" type="button">i</button>
+        </div>
+        <div class="herochart">
+          <div class="hc-head"><p class="hc-sub" id="scatterSub">—</p></div>
+          <div class="chartbox"><div id="themeScatter"></div></div>
+        </div>
+      </div>
+
+      <div class="tablewrap"><table id="tbl-themes"><thead></thead><tbody></tbody></table></div>
+      <div class="excludenote" id="themesNote"></div>
+    </section>
+
+    <div class="footnote">
+      <span>Apps se hodnotí podle revenue, chainy podle adopce (stablecoiny × DEX objem).</span>
+      <span>Jedna pevná perspektiva: 30 dní, 12 měsíců, 6měsíční trend, roční trajektorie.</span>
+      <span>Bez tokenu = mimo seznam, ale započítáno do sektorů.</span>
+    </div>
+  </main>
+</div>
+
+<div class="scrim" id="scrim"></div>
+<aside class="panel" id="panel">
+  <div class="panel-head">
+    <button class="panel-close" id="panelClose" aria-label="Zavřít">✕</button>
+    <div class="panel-top">
+      <div class="panel-ico" id="pIco">—</div>
+      <div class="panel-title">
+        <h2 id="pName">—</h2>
+        <div class="sub" id="pSub">—</div>
+      </div>
+    </div>
+    <p class="panel-desc" id="pDesc"></p>
+    <div class="panel-tags" id="pTags"></div>
+  </div>
+  <!-- A theme is not a project: it gets its own panel body instead of forcing
+       basket members into a layout built for one protocol's revenue. -->
+  <div class="panel-body" id="themeBody" hidden></div>
+  <div class="panel-body" id="entityBody">
+    <div class="statgrid" id="pStats"></div>
+    <div class="relnote" id="pReliable"></div>
+    <div class="relnote" id="pBuy"></div>
+
+    <h4 style="margin-top:26px" id="chartHeading">Revenue po měsících</h4>
+    <div class="minichart-wrap">
+      <div class="minichart" id="mcPrimary"></div>
+      <div class="minichart" id="mcSecondaryWrap"><div id="mcSecondary"></div></div>
+    </div>
+
+    <h4 style="margin-top:28px">Potenciál v čase</h4>
+    <p class="sector-caption" style="margin-top:-6px">Sedm měsíčních bodů. Měřítko drží na místě, takže se čára hýbe jen tehdy, když se pohne projekt — buď mu roste to, co vydělává, nebo mu klesá cena.</p>
+    <div class="minichart"><div id="mcPotential"></div></div>
+
+    <h4 style="margin-top:28px">Trajektorie</h4>
+    <div id="trajBlock"></div>
+
+    <h4 style="margin-top:28px">Růst podle okna (překrývající se)</h4>
+    <p class="sector-caption" style="margin-top:-6px">Jediné místo v aplikaci, kde zůstala časová okna — jako referenční tabulka, ne jako ovládání.</p>
+    <table class="growthtable" id="growthTable"></table>
+  </div>
+</aside>
+
+<div id="tip"></div>
+<div class="popover" id="popover"></div>
+
+<script>window.GEM_SERVED = /*__SERVED__*/false;</script>
+<script id="snapshot-data" type="application/json">/*__SNAPSHOT_JSON__*/</script>
+<script>
+(function(){
+"use strict";
+
+/* ================= data =================
+   Everything below reads numbers the collector already computed. Nothing here
+   re-derives a metric from UI state — that split is exactly what let the table
+   and the year chart disagree in v10, and there is no UI state left to derive
+   from anyway: v11 has one fixed lens, no time-window switch. */
+var DATA = JSON.parse(document.getElementById('snapshot-data').textContent);
+var APPS = DATA.apps || [];
+var CHAINS = DATA.chains || [];
+var BENCH = DATA.bench || {};
+var BENCH_CHAINS = DATA.bench_chains || {};
+var SECTORS = (DATA.sectors || {}).apps || [];
+var WINDOWS = DATA.windows || [30, 90, 180, 365];
+var WLABEL = {30: '1M', 90: '3M', 180: '6M', 365: '1R'};
+
+var state = {
+  view: 'start',
+  sortKey: 'potential',
+  sortDir: -1,
+  search: '',
+  floorIdx: 4,
+  trustMode: 'reliable',      // reliable | degen | all — the switch above the table
+  selectedId: null,
+  selectedTheme: null
+};
+
+/* Why a given row's multiple should not be taken at face value. Keyed by the
+   collector's own reason strings so there is one vocabulary, and written to
+   answer "why" with the project's actual numbers — "klesající trend" on its own
+   tells you nothing. */
+var TRUST_REASONS = {
+  'market cap pod $3M': {
+    tag: 'Mikro',
+    why: function(e){
+      return 'Market cap je jen ' + fmtUsd(e.mcap) + '. U takhle malého projektu ' +
+        'stačí jeden větší obchod a cena — a s ní celý násobek — se pohne o desítky procent. ' +
+        'Číslo není špatně spočítané, jen z něj nejde nic usoudit.';
+    }
+  },
+  // On chains every rule below measures ADOPTION (stablecoins and DEX volume),
+  // not revenue — the first wording told Starknet "Revenue mu klesá".
+  'krátká historie': {
+    tag: 'Nový',
+    cls: 'warn',
+    why: function(e){
+      return isChainsView()
+        ? 'Má jen ' + (e.hist_days || 0) + ' dní dat o stablecoinech. Na to, aby se poznalo, ' +
+          'jestli kapitál na chainu vydrží, je potřeba aspoň půl roku.'
+        : 'Má jen ' + (e.hist_days || 0) + ' dní dat. Na to, aby se poznalo, jestli ' +
+          'výdělek vydrží, je potřeba aspoň půl roku — tady prostě není co posoudit.';
+    }
+  },
+  'hluboko pod svým maximem': {
+    tag: 'Po propadu',
+    why: function(e){
+      var pct = Math.round(((e.traj || {}).level_vs_peak || 0) * 100);
+      return isChainsView()
+        ? 'Adopce (stablecoiny a objem DEX) je v posledním čtvrtletí na ' + pct + ' % svého ' +
+          'nejlepšího čtvrtletí — kapitál z chainu odešel. Potenciál se počítá z dnešních ' +
+          'stablecoinů, a kdyby odliv pokračoval, příští měsíc bude menší.'
+        : 'Poslední čtvrtletí je na ' + pct + ' % toho, co projekt ' +
+          'vydělával ve svém nejlepším čtvrtletí. Vysoký potenciál u takového projektu obvykle ' +
+          'znamená, že spadla cena — ne že je levný. Aby vyrostl zpátky, musel by nejdřív ' +
+          'získat zpátky ten výdělek.';
+    }
+  },
+  'klesající trend': {
+    tag: 'Klesá',
+    why: function(e){
+      var g = czNum(Math.abs((e.growth6m || {}).g || 0).toFixed(1));
+      return (isChainsView()
+        ? 'Adopce (stablecoiny a objem DEX) za poslední půlrok klesá o ' + g + ' % měsíčně. ' +
+          'Potenciál se počítá z dnešního kapitálu'
+        : 'Revenue mu za poslední půlrok klesá o ' + g + ' % měsíčně. ' +
+          'Potenciál se počítá z toho, co vydělává dnes') +
+        ' — a ten základ se každý měsíc zmenšuje, takže ' +
+        'násobek bude příští měsíc jiný, i kdyby se cena vůbec nehnula.';
+    }
+  },
+  'trend nejde změřit': {
+    tag: 'Bez trendu',
+    why: function(e){
+      return 'Za poslední půlrok z dat nejde spočítat trend — ' +
+        (isChainsView() ? 'adopce' : 'revenue') + ' chodí nárazově nebo v řadě chybí týdny. ' +
+        'Nevíme, jestli roste, nebo klesá, a potenciál z dnešního čísla pak nemá o co se opřít.';
+    }
+  },
+  'bez dat o stablecoinech': {
+    tag: 'Bez dat',
+    why: function(e){
+      return 'DeFiLlama u tohoto chainu stablecoiny nesleduje, takže adopci ani potenciál ' +
+        'nejde změřit. ' + feeCheckText(e);
+    }
+  },
+  'stará data': {
+    tag: 'Stará data',
+    why: function(e){
+      return 'Poslední údaj' + (isChainsView() ? ' o stablecoinech' : '') + ' je ' +
+        czNum((e.lag_days || 0).toFixed(0)) + ' dní starý. ' +
+        'DeFiLlama u tohoto projektu přestala dostávat data, takže „posledních 30 dní" ' +
+        've skutečnosti měří i tu mezeru.';
+    }
+  }
+};
+
+/* The chain's own fee take — a second opinion on the adoption multiple, never
+   ranked on. The wording matters: DeFiLlama's chain "revenue" is what the chain
+   keeps or burns, not what the apps on it earn (Hyperliquid L1 makes a few
+   million a year as a chain; Hyperliquid the app, the benchmark, ~$700M). */
+function feeCheckText(e){
+  // a snapshot from before the check has no fee benchmark: say nothing rather
+  // than "DeFiLlama poplatky neuvádí", which would blame them for our old file
+  if (!BENCH_CHAINS.fee_mult) return '';
+  var rr = (e.fee_runrate || {}).value;
+  if (!rr || !e.ps_fees) return 'Kontrola podle poplatků: DeFiLlama u tohoto chainu poplatky neuvádí.';
+  var raw = e.potential_fees_raw || 0;
+  return 'Kontrola podle poplatků: chain si ročně nechá nebo spálí ' + fmtUsd(rr) +
+    ' (nejsou to výdělky appek, které na něm běží). Market cap je ' + fmtMult(e.ps_fees) +
+    ' tolik, medián chainů ' + fmtMult(BENCH_CHAINS.fee_mult) + ' → podle poplatků ' +
+    (raw >= UPSIDE_CAP ? '>' : '') + fmtMult(Math.min(raw, UPSIDE_CAP)) + '.';
+}
+
+/* Plain Czech for the run-rate basis. "med3" meant nothing to anyone. */
+var BASIS_LABEL = {
+  '30d': 'posledních 30 dní × 12',
+  '90d': 'posledních 90 dní × 4',
+  '90d-sparse': 'posledních 90 dní × 4 (účtuje nárazově, takže 30denní okno by lhalo)',
+  'med3': 'medián tří posledních měsíců × 12 (nejopatrnější ze tří odhadů)'
+};
+
+/* Value accrual — pillar 4 of the original framework. Rendered for EVERY row,
+   trusted or not: a clean, well-documented protocol whose token receives
+   nothing is exactly the case the trust gate cannot see. */
+function accrualWhy(e){
+  return 'Z revenue ' + fmtUsd(e.total30d) + ' za 30 dní jde držitelům tokenu jen ' +
+    czNum((100 * e.holders_share).toFixed(0)) + ' % (zpětné odkupy, pálení, výplaty stakerům). ' +
+    'Hyperliquid, se kterým se potenciál porovnává, vrací držitelům skoro všechno — proto ho ' +
+    'trh oceňuje tak vysoko. Token, kterému z výdělku nic neplyne, takový násobek dostat ' +
+    'nemusí: potenciál tu měří příjem, který ti jako držiteli nic nepřinese.';
+}
+function accrualTag(e){
+  var s = e.holders_share;
+  if (isChainsView() || s === null || s === undefined || s >= 0.05) return '';
+  return '<span class="tag accrual" title="' + esc(accrualWhy(e)) + '">Bez podílu</span>';
+}
+
+/* ================= buy side: float, unlocks, liquidity =================
+   The collector decides which risks apply (e.risks) — one truth for the table,
+   the Start cards and the audit. Every tag is OUTLINED coral, the Bez podílu
+   language: the number is sound, but you may not get in, or others may be
+   about to sell. None of them hides a row or changes its rank (Adam,
+   2026-09-22); liquidity becomes a gate only in the degen selection. */
+var RULES = DATA.risk_rules || {};
+var UNLOCK_CAT = {insiders: 'insideři (tým a investoři)', privateSale: 'soukromý prodej',
+  publicSale: 'veřejný prodej', airdrop: 'airdrop', farming: 'odměny za farming',
+  ecosystem: 'ekosystém', liquidity: 'likvidita', noncirculating: 'pokladna'};
+
+function fmtDate(ts, short){
+  var d = new Date(ts * 1000);
+  return d.getUTCDate() + '. ' + (d.getUTCMonth() + 1) + '.' + (short ? '' : ' ' + d.getUTCFullYear());
+}
+
+function liqText(e){
+  var l = e.liq;
+  if (!l || l.source === 'none') {
+    return 'Likvidita neznámá — token nemá adresu na chainu, který DexScreener sleduje, a CoinGecko ' +
+      'neuvádí obrat.';
+  }
+  var t = '$' + String(l.ticket || 10000).replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
+  var pool = l.pair_liq_usd
+    ? 'Nákup za ' + t + ' ≈ ' + czNum(l.impact_pct < 10 ? l.impact_pct.toFixed(1) : l.impact_pct.toFixed(0)) +
+      ' % skluz v hlavním poolu ' + (l.dex || '') + ' (' + (l.chain || '') + ', ' + fmtUsd(l.pair_liq_usd) +
+      ' likvidity' + (l.stale ? ', data z ' + fmtDate(l.as_of) : '') + ').'
+    : 'Na DEX žádný pool proti stablecoinu nebo hlavní měně chainu.';
+  var vol = l.vol24h !== null && l.vol24h !== undefined
+    ? ' Obrat 24 h ' + fmtUsd(l.vol24h) + ' (burzy i DEX dohromady).' : '';
+  if (l.source === 'volume' && l.ok) {
+    return pool + vol + ' Stačí to: ' + t + ' je ' + czNum((100 * (l.ticket || 10000) / l.vol24h).toFixed(1)) +
+      ' % denního obratu. Pozor, obrat na burzách umí být nafouknutý.';
+  }
+  return pool + vol + (l.ok === false ? ' Na vstup a hlavně výstup je to málo.' : '');
+}
+
+function unlockLines(e){
+  var out = [];
+  var c = circPct(e);
+  if (c !== null) {
+    out.push('V oběhu je ' + czNum(c.toFixed(0)) + ' % tokenů (FDV ' + fmtUsd(e.fdv) + ' = ' +
+      czNum((e.fdv / e.mcap).toFixed(1)) + '× market capu).');
+  }
+  var u = e.unlock;
+  if (!u) {
+    out.push('<span class="muted">DeFiLlama odemykání u tohoto projektu neeviduje.</span>');
+    return out;
+  }
+  if (u.unlock90_pct !== null && u.unlock90_pct !== undefined) {
+    out.push(u.unlock90_pct > 0.05
+      ? 'Do 90 dní přibude ' + fmtPct(u.unlock90_pct, u.unlock90_pct < 10 ? 1 : 0) + ' odemčené nabídky' +
+        (u.insider90_share !== null && u.insider90_share !== undefined
+          ? ', z toho insiderům ' + czNum((100 * u.insider90_share).toFixed(0)) + ' %' : '') + '.'
+      : 'Do 90 dní se podle DeFiLlamy nic neodemyká.');
+  }
+  var n = u.next_cliff;
+  if (n) {
+    out.push('Nejbližší jednorázové odemčení: ' + fmtDate(n.ts) + ' (za ' + Math.round(n.days) + ' dní), ' +
+      (n.pct_of_circ !== null && n.pct_of_circ !== undefined ? '+' + czNum(n.pct_of_circ.toFixed(1)) + ' % nabídky, ' : '') +
+      'hlavně ' + (UNLOCK_CAT[n.category] || n.category) + '.');
+  }
+  if (u.tbd_pct) {
+    out.push(czNum(u.tbd_pct.toFixed(0)) + ' % zásoby nemá u DeFiLlamy žádný harmonogram — kdy a komu se ' +
+      'odemkne, nikdo neví.');
+  }
+  return out;
+}
+
+function priceLine(e){
+  var g = e.cg || {};
+  var part = function(v, lbl){ return v === null || v === undefined ? null : lbl + ' ' + fmtPct(v, 0); };
+  var bits = [part(g.chg7d, '7 d'), part(g.chg30d, '30 d'), part(g.chg1y, '1 rok')].filter(Boolean);
+  if (g.ath_chg_pct !== null && g.ath_chg_pct !== undefined) {
+    bits.push('od historického maxima ' + fmtPct(g.ath_chg_pct, 0));
+  }
+  return bits.length ? 'Cena: ' + bits.join(' · ') + '.' : '';
+}
+
+var RISK_TAGS = {
+  float: {tag: function(e){ return 'Odemčeno ' + czNum(circPct(e).toFixed(0)) + ' %'; },
+    why: function(e){ return unlockLines(e).join(' ').replace(/<[^>]+>/g, '') +
+      ' Až se zbytek odemkne, výdělek se bude dělit mezi víc tokenů — proto u projektu vidíš i Potenciál ' +
+      '„po plném odemčení".'; }},
+  cliff: {tag: function(e){ var n = e.unlock.next_cliff;
+      return 'Cliff ' + fmtDate(n.ts, true) + ' +' + czNum(n.pct_of_circ.toFixed(0)) + ' %'; },
+    why: function(e){ return unlockLines(e).join(' ').replace(/<[^>]+>/g, '') +
+      ' Jednorázové odemčení velkého balíku obvykle tlačí na cenu — příjemci ho často prodávají.'; }},
+  unlock90: {tag: function(e){ return '+' + czNum(e.unlock.unlock90_pct.toFixed(0)) + ' % do 90 dní'; },
+    why: function(e){ return unlockLines(e).join(' ').replace(/<[^>]+>/g, '') +
+      ' Nové tokeny na trhu obvykle tlačí na cenu.'; }},
+  thin: {tag: function(){ return 'Mělká likvidita'; },
+    why: function(e){ return liqText(e); }}
+};
+
+/* where: 'table' leaves float to the "FDV x×" line under Potenciál; the Start
+   cards show every risk */
+function riskTags(e, where){
+  return (e.risks || []).filter(function(r){ return where !== 'table' || r !== 'float'; })
+    .map(function(r){
+      var d = RISK_TAGS[r];
+      return d ? '<span class="tag accrual" title="' + esc(d.why(e)) + '">' + esc(d.tag(e)) + '</span>' : '';
+    }).join('');
+}
+
+function buyBlock(e){
+  var items = ['<li><b>Likvidita</b> — ' + esc(liqText(e)) +
+    (e.liq && e.liq.pair_url ? ' <a href="' + esc(e.liq.pair_url) + '" target="_blank" rel="noopener">pool ↗</a>' : '') +
+    '</li>'];
+  var ul = unlockLines(e);
+  if (ul.length) items.push('<li><b>Odemykání</b> — ' + ul.join(' ') + '</li>');
+  var pl = priceLine(e);
+  if (pl) items.push('<li><b>Cena</b> — ' + esc(pl) + '</li>');
+  return '<div class="reltitle">Koupit a držet <button class="info-btn" data-info="buy" type="button">i</button></div>' +
+    '<ul class="rellist">' + items.join('') + '</ul>';
+}
+
+function trustTags(e){
+  if (e.reliable) return '';
+  var out = '';
+  (e.reliable_fail || []).forEach(function(r){
+    var def = TRUST_REASONS[r];
+    if (!def) return;
+    out += '<span class="tag ' + (def.cls || 'bad') + '" title="' + esc(def.why(e)) + '">' +
+      esc(def.tag) + '</span>';
+  });
+  return out;
+}
+
+var FLOOR_STEPS = [0, 10000, 25000, 50000, 100000, 250000, 500000, 1000000, 5000000];
+var UPSIDE_CAP = 50;
+var YR_DAYS = 365;
+var SECTOR_SMALL = 1e6;
+
+/* ================= formatting ================= */
+function czNum(s){ return String(s).replace('.', ','); }
+
+function fmtUsd(v){
+  if (v === null || v === undefined || isNaN(v)) return '—';
+  var a = Math.abs(v), sign = v < 0 ? '−' : '';
+  if (a >= 1e9) return sign + '$' + czNum((a / 1e9).toFixed(1)) + 'mld';
+  if (a >= 1e6) return sign + '$' + czNum((a / 1e6).toFixed(1)) + 'M';
+  if (a >= 1e3) return sign + '$' + czNum((a / 1e3).toFixed(0)) + 'K';
+  return sign + '$' + a.toFixed(0);
+}
+function fmtPct(v, digits){
+  if (v === null || v === undefined || isNaN(v)) return '—';
+  var d = digits === undefined ? 1 : digits;
+  var s = Math.abs(v).toFixed(d);
+  return (v < 0 ? '−' : '+') + czNum(s) + ' %';
+}
+
+function fmtMult(v){
+  if (v === null || v === undefined || isNaN(v)) return '—';
+  if (v === 0) return '0×';
+  // Czech thousands space (non-breaking): "12 377×", not "12377×"
+  var r = Math.round(v);
+  if (r >= 1000) return String(r).replace(/\B(?=(\d{3})+(?!\d))/g, ' ') + '×';
+  // decimals by the ROUNDED size, so 9,96 reads "10×" not "10,0×"; two decimals
+  // under 0,1, because "0,0×" read as zero for Injective and Near
+  return czNum(v.toFixed(v >= 9.95 ? 0 : (v >= 0.095 ? 1 : 2))) + '×';
+}
+
+/* Token prices span $90 000 to $0,000001: two decimals from $1 up, three
+   significant digits below, never an exponent. */
+function fmtPrice(v){
+  if (v === null || v === undefined || isNaN(v)) return '—';
+  if (v >= 1000) return '$' + String(Math.round(v)).replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
+  if (v >= 1) return '$' + czNum(v.toFixed(2));
+  var s = v.toPrecision(3);
+  if (s.indexOf('e') >= 0) s = v.toFixed(12).replace(/0+$/, '');
+  return '$' + czNum(s);
+}
+
+/* Share of all tokens that already circulate, from CoinGecko's mcap and FDV. */
+function circPct(e){
+  return e.fdv && e.mcap ? Math.min(100, 100 * e.mcap / e.fdv) : null;
+}
+
+function esc(s){
+  return String(s === null || s === undefined ? '' : s)
+    .replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+}
+
+function qClass(r2){
+  if (r2 === null || r2 === undefined) return 'q-noise';
+  return r2 >= 0.5 ? 'q-strong' : (r2 >= 0.25 ? 'q-weak' : 'q-noise');
+}
+function qLabel(r2){
+  if (r2 === null || r2 === undefined) return 'bez trendu';
+  return r2 >= 0.5 ? 'čistý trend' : (r2 >= 0.25 ? 'rozkolísaný' : 'šum');
+}
+
+/* ================= pools & filters ================= */
+function entities(){ return state.view === 'chains' ? CHAINS : APPS; }
+function isChainsView(){ return state.view === 'chains'; }
+function floorValue(){ return FLOOR_STEPS[state.floorIdx]; }
+
+function passesFloor(e){
+  if (isChainsView()) return true;           // the floor is a revenue idea only
+  return (e.rev30d || 0) >= floorValue();
+}
+
+function passesFilter(e){
+  if (state.trustMode === 'degen') {
+    // exactly the Start selection: the collector's seven gates, floor included
+    if (e.degen_ok !== true) return false;
+  } else {
+    if (!passesFloor(e)) return false;
+    // "Jen prověřené" keeps the young ones: they are unproven, not doubtful, and
+    // they carry their own gold tag.
+    if (state.trustMode === 'reliable' && !(e.reliable || e.young)) return false;
+  }
+  var q = state.search.trim().toLowerCase();
+  if (!q) return true;
+  return ((e.name || '') + ' ' + (e.symbol || '') + ' ' + (e.category || ''))
+    .toLowerCase().indexOf(q) >= 0;
+}
+
+/* ================= sorting =================
+   Reliability outranks everything. Without the 1e6 term an untrusted 50x sits
+   in tier 3 next to a trusted 4.9x and wins the tie on raw multiple — which is
+   the opposite of what the tier cap was for. Nulls sink in BOTH directions, so
+   they are handled in the comparator rather than as a sentinel value. */
+function sortValue(e, key){
+  switch (key) {
+    case 'mcap':      return e.mcap;
+    case 'rev':       return e.rev30d;
+    case 'stables':   return e.stables_now;
+    /* Straight by the multiple, nothing else. Ranking bands were the wrong tool:
+       they buried a 50x row in the middle of the table where it looked like a
+       bug. Trust is a FILTER (the switch above the table) plus a TAG on the row,
+       not a hidden term in the sort key. */
+    // the UNCAPPED multiple: eleven apps sat on the 50x display cap and tied,
+    // ordering themselves at random although their real multiples ran 70x-662x
+    case 'potential': return e.potential === null || e.potential === undefined ? null
+                             : Math.min(e.potential_raw || e.potential, 1e6);
+    case 'sila':      return (e.sila6m || {}).ratio;
+    case 'growth':    return (e.growth6m || {}).g;
+    case 'category':  return (e.share || {})['30'];
+    case 'traj':      var t = e.traj || {};
+                      return t.hs === null || t.hs === undefined ? null
+                             : (PHASE_RANK[t.phase] || 0) * 1000 + t.hs;
+    case 'monthly':   return (e.growth6m || {}).g;
+    default:          return null;
+  }
+}
+
+var PHASE_RANK = {'Zážeh': 6, 'Akcelerace': 5, 'Setrvalý': 4, 'Zpomaluje': 3,
+                  'Stagnace': 2, 'Pokles': 1, 'Nový': 0};
+
+function compareWith(valueOf, key, dir){
+  return function(a, b){
+    var x = valueOf(a, key), y = valueOf(b, key);
+    var xn = (x === null || x === undefined || isNaN(x));
+    var yn = (y === null || y === undefined || isNaN(y));
+    if (xn && yn) return 0;
+    if (xn) return 1;              // missing data always last, both directions
+    if (yn) return -1;
+    return (x - y) * dir;
+  };
+}
+function compareBy(key, dir){ return compareWith(sortValue, key, dir); }
+
+/* ================= columns ================= */
+var COLS_APPS = [
+  {key: 'rank',      label: '#',                 tight: true,  sortable: false},
+  {key: 'name',      label: 'Projekt',           left: true,   sortable: false},
+  {key: 'category',  label: 'Kategorie · podíl', left: true, tight: true, sortable: true, info: 'share'},
+  {key: 'mcap',      label: 'Market Cap',        tight: true,  sortable: true},
+  {key: 'rev',       label: 'Revenue 30d',       tight: true,  sortable: true},
+  {key: 'monthly',   label: '12 měsíců',         tight: true,  sortable: true, info: 'monthly'},
+  {key: 'potential', label: 'Potenciál',         tight: true,  sortable: true, info: 'potential'},
+  {key: 'sila',      label: 'Síla 6M',           tight: true,  sortable: true, info: 'sila'},
+  {key: 'growth',    label: 'Růst 6M',           tight: true,  sortable: true, info: 'growth'},
+  {key: 'traj',      label: 'Trajektorie',       sortable: true, info: 'traj'}
+];
+
+var COLS_CHAINS = [
+  {key: 'rank',      label: '#',                 tight: true,  sortable: false},
+  {key: 'name',      label: 'Chain',             left: true,   sortable: false},
+  {key: 'category',  label: 'Vrstva · podíl',    left: true, tight: true, sortable: true, info: 'share'},
+  {key: 'mcap',      label: 'Market Cap',        tight: true,  sortable: true},
+  {key: 'stables',   label: 'Stablecoiny',       tight: true,  sortable: true, info: 'adoption'},
+  {key: 'monthly',   label: '12 měsíců',         tight: true,  sortable: true, info: 'monthly'},
+  {key: 'potential', label: 'Potenciál',         tight: true,  sortable: true, info: 'potential'},
+  {key: 'sila',      label: 'Síla 6M',           tight: true,  sortable: true, info: 'sila'},
+  {key: 'growth',    label: 'Růst adopce 6M',    tight: true,  sortable: true, info: 'growth'},
+  {key: 'traj',      label: 'Trajektorie',       sortable: true, info: 'traj'}
+];
+
+function cols(){ return isChainsView() ? COLS_CHAINS : COLS_APPS; }
+
+/* ================= cells ================= */
+function logoImg(data, name, size){
+  var s = size || 26;
+  if (data) {
+    return '<img class="ico" src="' + esc(data) + '" alt="" width="' + s + '" height="' + s + '">';
+  }
+  var init = (name || '?').replace(/[^A-Za-z0-9]/g, '').slice(0, 2).toUpperCase() || '?';
+  return '<span class="ico-fb" style="width:' + s + 'px;height:' + s + 'px">' + esc(init) + '</span>';
+}
+
+function nameCell(e){
+  // tags sit OUTSIDE .nm: .nm ellipsizes long names at 220px, and with the
+  // tags inside it a second tag got cut to "FUND…"
+  return '<span class="namecell">' + logoImg(e.logo_data, e.name, 26) +
+    '<span class="txt"><span class="nmrow"><span class="nm">' + esc(e.name) + '</span>' + trustTags(e) +
+    accrualTag(e) + riskTags(e, 'table') + '</span><span class="sym">' + esc(e.symbol || '') + '</span></span></span>';
+}
+
+function shareBadge(e){
+  var v = (e.share || {})['30'];
+  if (v === null || v === undefined) return '';
+  var big = v >= 25;
+  var w = Math.max(2, Math.min(100, v));
+  // Apps: the share among TRADEABLE projects of the category — projects with no
+  // token are not in the denominator. The label used to claim "of the category"
+  // and overstated leaders (Hyperliquid 85 % here vs 76 % of the whole sector).
+  var arena = isChainsView() ? 'na stablecoinech všech chainů'
+    : 'mezi obchodovatelnými projekty kategorie (projekty bez tokenu se nepočítají)';
+  // Ethereum holds ~74 % of all stablecoin capital, so everyone else lands under
+  // 1 % — rounding those to "0%" would read as "none" rather than "small".
+  var txt = v >= 1 ? czNum(v.toFixed(0)) + '%' : (v >= 0.05 ? czNum(v.toFixed(1)) + '%' : '<1%');
+  return '<span class="sharebadge' + (big ? ' big' : '') + '" title="' +
+    esc('Podíl ' + arena + ' za 30 dní: ' + czNum(v.toFixed(2)) + ' %') + '">' +
+    '<span class="sbar"><i style="width:' + w + '%"></i></span>' + txt + '</span>';
+}
+
+function categoryCell(e){
+  var hs = SECTOR_HEAT[e.category] || {};
+  var tip = hs.g === null || hs.g === undefined ? 'Sektor bez měřitelného trendu'
+    : 'Sektor ' + e.category + ': revenue ' + fmtUsd(hs.rev30d) + '/30 d, růst ' +
+      fmtPct(hs.g) + '/měsíc, podíl na trhu ' + fmtPct(hs.share_d6m_pp, 2).replace(' %', ' p.b.') + ' za 6 M';
+  return '<span class="catcell"><span class="catrow"><span class="catchip t' + (hs.tier === undefined ? 2 : hs.tier) +
+    '" title="' + esc(tip) + '">' + esc(e.category || '—') + '</span>' + shareBadge(e) + '</span>' +
+    themeChip(e) + '</span>';
+}
+
+/* The row's theme from Sektory — "does this ride the altseason wave?" answered
+   on the row itself. A click opens the theme, with every app that belongs to it. */
+function themeChip(e, always){
+  var t = e.theme;
+  // "RWA" under "RWA" (or "L2" under "L2 / rollup") read as a bug; the theme is
+  // still one click away in Sektory. A Start card has no category chip, so it
+  // always shows the theme.
+  var tn = (t && t.name || '').toLowerCase(), cn = (e.category || '').toLowerCase();
+  if (!t || !tn || (!always && cn && (cn.indexOf(tn) === 0 || tn.indexOf(cn) === 0))) return '';
+  var tags = t.tags || [];
+  var cls = t.tier === 5 ? ' strong'
+    : ((tags.indexOf('leads') >= 0 || tags.indexOf('fund_up') >= 0) ? ' lead' : '');
+  var labels = tags.map(function(k){ return (THEME_TAGS[k] || {}).label; }).filter(Boolean);
+  var tip = 'Téma ' + t.name + (t.beta !== null && t.beta !== undefined ? ': ' + betaWord(t.beta) : '') +
+    (labels.length ? '. ' + labels.join(', ') : '') + (t.stale ? '. Z minulého běhu.' : '.') +
+    ' Klikni pro celé téma.';
+  return '<button type="button" class="themechip' + cls + '" data-theme="' + esc(t.key) + '" title="' +
+    esc(tip) + '">' + esc(t.name) + '</button>';
+}
+
+/* 13 monthly bars — the shape of the year at a glance, which is what replaced
+   flipping between 1M/3M/6M/1R. The newest month is normally incomplete, so it
+   is drawn hatched instead of as a cliff. */
+function monthlyCell(e){
+  var m = isChainsView() ? (e.monthly_stables || []) : (e.monthly || []);
+  if (!m.length) return '<span class="muted">—</span>';
+  var W = 96, H = 26, n = m.length, gap = 1.5;
+  var bw = (W - gap * (n - 1)) / n;
+  var max = 0;
+  for (var i = 0; i < n; i++) if (m[i].v > max) max = m[i].v;
+  if (max <= 0) return '<span class="muted">—</span>';
+  var bars = '';
+  for (i = 0; i < n; i++) {
+    var h = Math.max(1, (m[i].v / max) * (H - 2));
+    var x = i * (bw + gap);
+    var cls = m[i].partial ? 'mb partial' : 'mb';
+    bars += '<rect class="' + cls + '" x="' + x.toFixed(1) + '" y="' + (H - h).toFixed(1) +
+      '" width="' + bw.toFixed(1) + '" height="' + h.toFixed(1) + '" rx="1"><title>' +
+      esc(m[i].m + ': ' + fmtUsd(m[i].v) + (m[i].partial ? ' (neúplný měsíc)' : '')) +
+      '</title></rect>';
+  }
+  return '<svg class="msparkline" width="' + W + '" height="' + H + '" viewBox="0 0 ' + W + ' ' + H + '">' +
+    bars + '</svg>';
+}
+
+function potentialCell(e){
+  var u = e.potential;
+  if (u === null || u === undefined) {
+    var why = !isChainsView() ? 'Bez použitelného revenue nebo market capu'
+      : (e.adoption_metric && e.adoption_metric !== 'stablecoins'
+          ? 'DeFiLlama u tohoto chainu stablecoiny nesleduje — adopci nejde změřit.'
+          : 'Chain má pod $10M stablecoinů — násobek by dělil skoro nulou.');
+    if (isChainsView() && feeCheckText(e)) why += '\n' + feeCheckText(e);
+    return '<span class="upside t0" title="' + esc(why) + '">—</span>';
+  }
+  var capped = u >= UPSIDE_CAP;
+  var tier = e.tier || 0;
+  var bench = isChainsView() ? BENCH_CHAINS : BENCH;
+  var tip = 'Kolikrát by projekt povyrostl, kdyby ho trh ocenil jako ' + (bench.label || '—') +
+    ' (' + fmtMult(bench.mult) + '), při nezměněném ' + (isChainsView() ? 'kapitálu' : 'revenue') + '.' +
+    '\nVlastní násobek: ' + fmtMult(e.ps) +
+    (capped && e.potential_raw ? ' (bez stropu ' + fmtMult(e.potential_raw) + ')' : '');
+  // the multiple in money: what "39×" means, so it is not read as a price target
+  if (e.mcap_at_bench) {
+    var gt = e.bench_capped ? '>' : '';
+    tip += '\nV penězích: market cap ' + fmtUsd(e.mcap) + ' → ' + gt + fmtUsd(e.mcap_at_bench) +
+      (e.price_at_bench ? ', cena ' + fmtPrice(e.price) + ' → ' + gt + fmtPrice(e.price_at_bench) : '') +
+      '. Strop ocenění, ne předpověď ceny.';
+  }
+  if (isChainsView()) {
+    if (feeCheckText(e)) tip += '\n' + feeCheckText(e);
+  } else {
+    tip += e.holders_share === null || e.holders_share === undefined
+      ? '\nKolik revenue jde držitelům tokenu: DeFiLlama to u tohoto projektu neuvádí.'
+      : '\nDržitelům tokenu jde ' + czNum((100 * e.holders_share).toFixed(0)) + ' % revenue' +
+        (e.holders_share < 0.05 ? ' — násobek měří příjem, ze kterého token nic nemá.' : '.');
+  }
+  if (e.fdv && e.mcap && e.fdv > 1.05 * e.mcap) {
+    tip += '\nFDV ' + fmtUsd(e.fdv) + ' = ' + czNum((e.fdv / e.mcap).toFixed(1)) + '× market capu — ' +
+      'v oběhu je jen ' + czNum((100 * e.mcap / e.fdv).toFixed(0)) + ' % tokenů.';
+  }
+  if (!isChainsView() && e.potential_fdv_shown !== null && e.potential_fdv_shown !== undefined) {
+    tip += '\n' + fdvPotText(e);
+  }
+  tip += e.reliable ? ''
+    : e.young ? '\nZatím neprověřeno: jen ' + (e.hist_days || 0) + ' dní dat.'
+              : '\nNeprověřené: ' + (e.reliable_fail || []).join(', ') +
+                ' — proto je zastropováno na 3. stupeň a v režimu „Jen prověřené" je skryté.';
+  return '<span class="upside t' + tier + (e.reliable || e.young ? '' : ' untrusted') +
+    '" title="' + esc(tip) + '">' +
+    (capped ? '&gt;' : '') + fmtMult(Math.min(u, UPSIDE_CAP)) + '</span>' +
+    // compact on purpose: "po plném odemčení u obou 7,6×" widened the table by
+    // 90 px and put a scrollbar under it even on a 1920 px screen; the full
+    // sentence is in the tooltip, and the Start cards have room for it
+    (!isChainsView() && fdvLower(e)
+      ? '<span class="potsub" title="' + esc(fdvPotText(e)) + '">FDV ' +
+        fmtMult(e.potential_fdv_shown) + '</span>'
+      : '');
+}
+
+/* The dilution warning is worth a line only when it changes the printed number:
+   HumidiFi circulates 23 % against Hyperliquid's 23,3 % and read "2,7× … 2,7×". */
+function fdvLower(e){
+  return !!e.float_worse && e.potential_fdv_shown !== null && e.potential_fdv_shown !== undefined &&
+    fmtMult(e.potential_fdv_shown) !== fmtMult(Math.min(e.potential, UPSIDE_CAP));
+}
+
+/* Potential on the fully diluted basis of BOTH sides. Hyperliquid itself has an
+   FDV several times its mcap, so a coin's FDV is set against HL's FDV — FDV
+   against HL's circulating value made the benchmark look overpriced against
+   itself. The shown figure can only be lower than Potenciál, never higher. */
+function fdvPotText(e){
+  var hlRatio = BENCH.fdv && BENCH.mcap ? BENCH.fdv / BENCH.mcap : null;
+  var c = circPct(e);
+  var base = 'Po plném odemčení u obou ' + fmtMult(e.potential_fdv_shown) +
+    (c !== null ? ' (v oběhu ' + czNum(c.toFixed(0)) + ' % tokenů' +
+      (hlRatio ? ', u ' + (BENCH.label || 'měřítka') + ' ' + czNum((100 / hlRatio).toFixed(0)) + ' %' : '') + ')' : '') + '.';
+  return e.float_worse
+    ? base + ' Projekt se bude ředit víc než ' + (BENCH.label || 'měřítko') +
+      ', takže z Potenciálu zbude méně.'
+    : base + ' V oběhu má stejně nebo víc tokenů než ' + (BENCH.label || 'měřítko') +
+      ' — ředění Potenciál nesnižuje.';
+}
+
+/* Strength = revenue growth / price growth. Above 1 the business is outrunning
+   its own token — the market has not repriced it yet. */
+function silaCell(e){
+  var s = e.sila6m || {};
+  var r = s.ratio;
+  if (r === null || r === undefined) {
+    return '<span class="muted" title="' + esc('Chybí cenová historie nebo dost dlouhá řada (potřeba 3+ měsíční body).') + '">—</span>';
+  }
+  var cls = r >= 1.5 ? 'sila strong' : (r >= 1.1 ? 'sila up' : (r >= 0.9 ? 'sila flat' : 'sila down'));
+  var arrow = r >= 1.1 ? '↑' : (r >= 0.9 ? '→' : '↓');
+  var label = isChainsView() ? 'kapitál' : 'revenue';
+  var months = s.k ? (s.k === 6 ? '6 M' : s.k + ' M') : '';
+  var tip = label + ' ×' + czNum((s.rev_factor || 0).toFixed(2)) +
+    ' / cena ×' + czNum((s.price_factor || 0).toFixed(2)) + ' za ' + months +
+    '\n> 1 = ' + label + ' roste rychleji než cena, trh to ještě nepřecenil.';
+  return '<span class="' + cls + '" title="' + esc(tip) + '">' + arrow + ' ' +
+    czNum(Math.min(20, Math.max(0.05, r)).toFixed(2)) + '×' +
+    (s.k && s.k < 6 ? '<span class="sub"> (' + s.k + 'M)</span>' : '') + '</span>';
+}
+
+function growthCell(e){
+  var g = e.growth6m || {};
+  if (g.g === null || g.g === undefined) return '<span class="muted">—</span>';
+  var cls = g.g > 3 ? 'pos' : (g.g < -3 ? 'neg' : 'flat');
+  var tip = 'Log-OLS na týdenních součtech za ' + (g.days || 0) + ' dní, ' + qLabel(g.r2) +
+    ' (r² ' + czNum((g.r2 === null ? 0 : g.r2).toFixed(2)) + ')';
+  return '<span class="gwrap" title="' + esc(tip) + '"><span class="gval ' + cls + '">' +
+    fmtPct(g.g) + '</span><span class="qdot ' + qClass(g.r2) + '"></span>' +
+    (g.label !== '6M' ? '<span class="sub">' + esc(g.label) + '</span>' : '') + '</span>';
+}
+
+function trajGlyph(traj){
+  var W = 44, H = 20, keys = ['p1', 'p2', 'p3', 'p4'], CLAMP = 60;
+  var bw = 8, gap = 4, mid = H / 2, bars = '';
+  for (var i = 0; i < 4; i++) {
+    var p = (traj.periods || {})[keys[i]] || {};
+    var g = p.g;
+    var x = i * (bw + gap);
+    if (g === null || g === undefined) {
+      bars += '<rect class="nil" x="' + x + '" y="' + (mid - 1) + '" width="' + bw + '" height="2" rx="1"/>';
+      continue;
+    }
+    var v = Math.max(-CLAMP, Math.min(CLAMP, g)) / CLAMP;
+    var h = Math.max(1.5, Math.abs(v) * (mid - 1));
+    var y = v >= 0 ? mid - h : mid;
+    bars += '<rect class="' + (v >= 0 ? 'up' : 'down') + '" x="' + x + '" y="' + y.toFixed(1) +
+      '" width="' + bw + '" height="' + h.toFixed(1) + '" rx="1"/>';
+  }
+  return '<svg class="trajglyph" width="' + W + '" height="' + H + '" viewBox="0 0 ' + W + ' ' + H + '">' +
+    '<line class="axis" x1="0" y1="' + mid + '" x2="' + W + '" y2="' + mid + '" stroke-width="1"/>' + bars + '</svg>';
+}
+
+var PHASE_SLUG = {'Zážeh': 'zazeh', 'Akcelerace': 'akcelerace', 'Setrvalý': 'setrvaly',
+                  'Zpomaluje': 'zpomaluje', 'Stagnace': 'stagnace', 'Pokles': 'pokles', 'Nový': 'novy'};
+var PHASE_HELP = {
+  'Zážeh': 'Dlouho se skoro nehýbalo, teď to prudce vyletělo. Přesně ten hokejkový zlom.',
+  'Akcelerace': 'Roste a zrychluje — každé další čtvrtletí rychleji než předchozí.',
+  'Setrvalý': 'Roste rovnoměrně, bez zrychlení ani zpomalení.',
+  'Zpomaluje': 'Pořád roste, ale pomaleji než dřív. Hokejka se ohýbá zpátky.',
+  'Stagnace': 'Mrtvý bod — dřív se to hýbalo, teď stojí.',
+  'Pokles': 'Klesá.',
+  'Nový': 'Krátká historie, na trajektorii se zatím nedá nic poznat.'
+};
+
+function trajCell(traj){
+  if (!traj || traj.hs === null || traj.hs === undefined) {
+    return '<span class="trajcell"><span class="phase p-novy">Nový</span></span>';
+  }
+  var slug = PHASE_SLUG[traj.phase] || 'novy';
+  var tip = (PHASE_HELP[traj.phase] || '') + ' · skóre ' + traj.hs.toFixed(0) + '/100';
+  return '<span class="trajcell" title="' + esc(tip) + '">' + trajGlyph(traj) +
+    '<span class="phase p-' + slug + '">' + esc(traj.phase) + '</span>' +
+    '<span class="hsnum">' + traj.hs.toFixed(0) + '</span></span>';
+}
+
+/* ================= sector heat =================
+   The category chip is tinted by where that sector ranks on 6-month growth,
+   among sectors big enough to matter. Rank-based, not absolute thresholds —
+   under thresholds the second-hottest sector fell out of every band. */
+var SECTOR_HEAT = {};
+function buildSectorHeat(){
+  SECTOR_HEAT = {};
+  var ranked = SECTORS.filter(function(r){ return r.g6m !== null && r.g6m !== undefined && !r.small; })
+                      .sort(function(a, b){ return b.g6m - a.g6m; });
+  var n = ranked.length;
+  ranked.forEach(function(r, i){
+    var tier;
+    if (i < 3) tier = 5;
+    else if (i < Math.max(4, n * 0.25)) tier = 4;
+    else if (i >= n - Math.max(2, n * 0.25)) tier = 1;
+    else tier = 2;
+    SECTOR_HEAT[r.category] = {g: r.g6m, rev30d: r.rev30d, share_d6m_pp: r.share_d6m_pp,
+                               tier: tier, rank: i + 1, of: n};
+  });
+  SECTORS.forEach(function(r){
+    if (!SECTOR_HEAT[r.category]) {
+      SECTOR_HEAT[r.category] = {g: r.g6m, rev30d: r.rev30d, share_d6m_pp: r.share_d6m_pp, tier: 0};
+    }
+  });
+}
+
+/* ================= table ================= */
+/* One header renderer for every table. Each table passes its OWN sort state:
+   when Apps and Sektory shared state.sortKey, clicking "Zesílení" in Sektory
+   would have re-sorted Apps by a key it does not have. */
+function renderHead(tableId, colDefs, sort, onSort){
+  var thead = document.querySelector('#' + tableId + ' thead');
+  var html = '<tr>';
+  colDefs.forEach(function(c){
+    var sorted = c.sortable && sort.key === c.key;
+    html += '<th class="' + (c.left ? 'left ' : '') + (c.tight ? 'tight ' : '') +
+      (sorted ? 'sorted' : '') + '"' + (c.sortable ? ' data-key="' + c.key + '"' : '') + '>' +
+      esc(c.label) +
+      (c.info ? '<button class="info-btn" data-info="' + c.info + '" type="button">i</button>' : '') +
+      (c.sortable ? '<span class="arrow">' + (sorted && sort.dir === 1 ? '▲' : '▼') + '</span>' : '') +
+      '</th>';
+  });
+  thead.innerHTML = html + '</tr>';
+  thead.querySelectorAll('th[data-key]').forEach(function(th){
+    th.addEventListener('click', function(ev){
+      if (ev.target.classList.contains('info-btn')) return;
+      onSort(th.dataset.key);
+    });
+  });
+  thead.querySelectorAll('.info-btn').forEach(function(b){
+    b.addEventListener('click', function(ev){
+      ev.stopPropagation();
+      togglePopover(b, INFO_TEXT[b.dataset.info] ? INFO_TEXT[b.dataset.info]() : '');
+    });
+  });
+}
+
+function renderList(){
+  var isChains = isChainsView();
+  var tableId = isChains ? 'tbl-chains' : 'tbl-apps';
+  renderHead(tableId, cols(), {key: state.sortKey, dir: state.sortDir}, function(k){
+    if (state.sortKey === k) state.sortDir = -state.sortDir;
+    else { state.sortKey = k; state.sortDir = -1; }
+    renderList();
+  });
+  var list = entities().filter(passesFilter).slice().sort(compareBy(state.sortKey, state.sortDir));
+
+  var degenMode = state.trustMode === 'degen';
+  var hidden = (degenMode ? entities().length : entities().filter(passesFloor).length) - list.length;
+  document.getElementById('rowCount').textContent = list.length;
+  document.getElementById('countNote').innerHTML = hidden > 0 && state.trustMode !== 'all'
+    ? ' <span class="sub">(' + (degenMode ? 'nesplňuje podmínky: ' + hidden
+                                          : 'skryté neprověřené: ' + hidden) + ')</span>' : '';
+  var bench = isChains ? BENCH_CHAINS : BENCH;
+  document.getElementById('benchChip').innerHTML =
+    'měřítko: <b>' + esc(bench.label || '—') + '</b> ' + fmtMult(bench.mult) +
+    (isChains ? ' MC/stablecoiny' : ' MC/revenue');
+  // the degen selection has its own revenue floor, so the slider would lie there
+  document.getElementById('floorWrap').style.display = (isChains || degenMode) ? 'none' : '';
+
+  var tbody = document.querySelector('#' + tableId + ' tbody');
+  if (!list.length) {
+    tbody.innerHTML = '<tr><td colspan="10"><div class="empty"><b>Nic neprošlo filtrem.</b><br>' +
+      'Zkuste snížit minimální revenue nebo vymazat hledání.</div></td></tr>';
+    return;
+  }
+  var html = '';
+  list.forEach(function(e, i){
+    var id = e.key || e.slug;
+    html += '<tr data-id="' + esc(id) + '" data-tier="' + (e.tier || 0) + '"' +
+      (e.young ? ' data-young="1"' : '') +
+      (e.reliable || e.young ? '' : ' data-untrusted="1"') + '>' +
+      '<td class="rank">' + (i + 1) + '</td>' +
+      '<td class="left">' + nameCell(e) + '</td>' +
+      '<td class="left tight">' + categoryCell(e) + '</td>' +
+      '<td class="num tight">' + fmtUsd(e.mcap) + '</td>' +
+      '<td class="num tight">' + fmtUsd(isChains ? e.stables_now : e.rev30d) + '</td>' +
+      '<td class="tight sparkcell">' + monthlyCell(e) + '</td>' +
+      '<td class="tight">' + potentialCell(e) + '</td>' +
+      '<td class="num tight">' + silaCell(e) + '</td>' +
+      '<td class="num tight">' + growthCell(e) + '</td>' +
+      '<td>' + trajCell(e.traj) + '</td></tr>';
+  });
+  tbody.innerHTML = html;
+  tbody.querySelectorAll('tr[data-id]').forEach(function(tr){
+    tr.addEventListener('click', function(){ openPanel(tr.dataset.id); });
+  });
+  tbody.querySelectorAll('.themechip').forEach(function(b){
+    b.addEventListener('click', function(ev){ ev.stopPropagation(); openThemePanel(b.dataset.theme); });
+  });
+  if (state.selectedId) {
+    var sel = tbody.querySelector('tr[data-id="' + state.selectedId + '"]');
+    if (sel) sel.classList.add('selected');
+  }
+}
+
+/* ================= hero chart: the year, top 10 by potential ================= */
+function isDarkTheme(){
+  var attr = document.documentElement.getAttribute('data-theme');
+  if (attr) return attr === 'dark';
+  return window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+}
+var CHART_PALETTE_DARK  = ['#698CD3','#D25694','#30A66B','#CF6B4A','#9569D3','#799E2E','#CF5959','#A58627','#1F96AD','#CF59CF'];
+var CHART_PALETTE_LIGHT = ['#3968C6','#B93175','#218352','#B44F2D','#7439C6','#628321','#B63535','#93751A','#008C99','#B635B6'];
+function chartPalette(){ return isDarkTheme() ? CHART_PALETTE_DARK : CHART_PALETTE_LIGHT; }
+
+function weeklyBuckets(series, agg, days){
+  if (!series || !series.length) return [];
+  var end = series[series.length - 1][0], lo = end - days * 86400, bins = {};
+  series.forEach(function(pt){
+    if (pt[0] <= lo) return;
+    var b = Math.floor((end - pt[0]) / (7 * 86400));
+    (bins[b] = bins[b] || []).push(pt[1]);
+  });
+  var keys = Object.keys(bins).map(Number).sort(function(a, b){ return b - a; });
+  var out = [];
+  keys.forEach(function(b){
+    var xs = bins[b];
+    if (agg === 'sum' && xs.length < 7) return;
+    var v = 0;
+    xs.forEach(function(x){ v += x; });
+    out.push([end - b * 7 * 86400, agg === 'sum' ? v : v / xs.length]);
+  });
+  return out;
+}
+
+function chartSeries(e){
+  if (isChainsView()) return (e.adoption_index || {}).series || [];
+  return e.rev_series || [];
+}
+
+function yearTop10(){
+  var isChains = isChainsView();
+  var rows = [];
+  entities().forEach(function(e){
+    if (!e.reliable) return;                    // same gate the table uses
+    if (e.potential === null || e.potential === undefined) return;
+    var w = weeklyBuckets(chartSeries(e), isChains ? 'mean' : 'sum', YR_DAYS);
+    if (w.length < 30) return;
+    var vals = w.map(function(x){ return x[1]; }).slice().sort(function(a, b){ return a - b; });
+    var med = vals[Math.floor(vals.length / 2)];
+    var first4 = w.slice(0, 4).map(function(x){ return x[1]; }).sort(function(a, b){ return a - b; });
+    var base = first4[Math.floor(first4.length / 2)];
+    // Without this a chain whose stablecoin float was ~0 a year ago indexes to
+    // 95 billion and flattens every other line into the axis.
+    if (!(med > 0) || !(base > 0) || base < 0.15 * med) return;
+    rows.push({e: e, w: w, base: base, upside: e.potential});
+  });
+  rows.sort(function(a, b){ return b.upside - a.upside; });
+  return {rows: rows.slice(0, 10), total: rows.length};
+}
+
+var SVGNS = 'http://www.w3.org/2000/svg';
+function svgEl(n, a){
+  var el = document.createElementNS(SVGNS, n);
+  for (var k in a) if (a.hasOwnProperty(k)) el.setAttribute(k, a[k]);
+  return el;
+}
+function css(v){ return getComputedStyle(document.documentElement).getPropertyValue(v).trim(); }
+
+function renderHeroChart(chartId, listId, subId, res){
+  var host = document.getElementById(chartId);
+  var listEl = document.getElementById(listId);
+  var sub = document.getElementById(subId);
+  host.innerHTML = '';
+  listEl.innerHTML = '';
+  if (!res.rows.length) {
+    sub.textContent = 'Žádný projekt neprošel kontrolou spolehlivosti s dost dlouhou historií.';
+    return;
+  }
+  sub.textContent = (isChainsView() ? 'Adopce' : 'Revenue') +
+    ' za 12 měsíců, indexováno na 100 — top 10 podle potenciálu z ' + res.total +
+    ' spolehlivých. Nezávislé na filtrech níže.';
+
+  var W = Math.max(420, Math.min(900, host.clientWidth || 760)), H = 320;
+  var padT = 18, padB = 30, padL = 46, padR = 78;
+  var pal = chartPalette();
+  var lines = res.rows.map(function(r){
+    return r.w.map(function(pt){ return [pt[0], Math.max(1, (pt[1] / r.base) * 100)]; });
+  });
+  var minV = Infinity, maxV = -Infinity, t0 = Infinity, t1 = -Infinity;
+  lines.forEach(function(l){ l.forEach(function(p){
+    if (p[1] < minV) minV = p[1];
+    if (p[1] > maxV) maxV = p[1];
+    if (p[0] < t0) t0 = p[0];
+    if (p[0] > t1) t1 = p[0];
+  }); });
+  var lo = Math.min(100, minV) * 0.85, hi = Math.max(100, maxV) * 1.15;
+  var ly = function(v){
+    var f = (Math.log10(Math.max(v, 1e-6)) - Math.log10(lo)) / (Math.log10(hi) - Math.log10(lo));
+    return padT + (1 - f) * (H - padT - padB);
+  };
+  var lx = function(t){ return padL + ((t - t0) / Math.max(1, t1 - t0)) * (W - padL - padR); };
+
+  var svg = svgEl('svg', {width: W, height: H, viewBox: '0 0 ' + W + ' ' + H});
+  var decades = Math.log10(hi) - Math.log10(lo);
+  var mults = decades > 2 ? [1] : (decades > 1 ? [1, 3] : [1, 2, 5]);
+  var rule = css('--rule-soft') || '#ddd', muted = css('--muted') || '#888';
+  for (var d = Math.floor(Math.log10(lo)); d <= Math.ceil(Math.log10(hi)); d++) {
+    mults.forEach(function(m){
+      var v = m * Math.pow(10, d);
+      if (v < lo || v > hi) return;
+      svg.appendChild(svgEl('line', {x1: padL, x2: W - padR, y1: ly(v), y2: ly(v), stroke: rule}));
+      var tx = svgEl('text', {x: padL - 6, y: ly(v) + 3.5, 'text-anchor': 'end',
+                              fill: muted, 'font-size': 10});
+      tx.textContent = v >= 1000 ? (v / 1000) + 'k' : v;
+      svg.appendChild(tx);
+    });
+  }
+  var base = svgEl('line', {x1: padL, x2: W - padR, y1: ly(100), y2: ly(100),
+                            stroke: muted, 'stroke-dasharray': '3 3'});
+  svg.appendChild(base);
+
+  var paths = [];
+  lines.forEach(function(l, i){
+    var dd = l.map(function(p, j){ return (j ? 'L' : 'M') + lx(p[0]).toFixed(1) + ' ' + ly(p[1]).toFixed(1); }).join('');
+    var p = svgEl('path', {d: dd, fill: 'none', stroke: pal[i % pal.length],
+                           'stroke-width': 1.8, 'stroke-linejoin': 'round'});
+    svg.appendChild(p);
+    paths.push(p);
+    var last = l[l.length - 1];
+    svg.appendChild(svgEl('circle', {cx: lx(last[0]), cy: ly(last[1]), r: 2.6,
+                                     fill: pal[i % pal.length]}));
+  });
+  host.appendChild(svg);
+
+  function focus(idx){
+    paths.forEach(function(p, i){ p.setAttribute('opacity', idx === null || i === idx ? 1 : 0.06); });
+    listEl.querySelectorAll('.rank-row').forEach(function(r, i){ r.classList.toggle('on', i === idx); });
+  }
+  res.rows.forEach(function(r, i){
+    var l = lines[i], endIdx = l[l.length - 1][1];
+    var li = document.createElement('li');
+    li.className = 'rank-row';
+    li.dataset.id = r.e.key || r.e.slug;
+    var chg = endIdx - 100;
+    li.innerHTML = '<span class="rk" style="background:' + pal[i % pal.length] + '"></span>' +
+      '<span class="nmw">' + logoImg(r.e.logo_data, r.e.name, 18) +
+      '<span class="lbl">' + esc(r.e.name) + '</span></span>' +
+      '<span class="val ' + (chg >= 0 ? 'up' : 'down') + '">' + fmtPct(chg, 0) + '</span>';
+    li.title = 'Potenciál ' + fmtMult(r.upside) + ' · index ' + Math.round(endIdx);
+    li.addEventListener('mouseenter', function(){ focus(i); });
+    li.addEventListener('mouseleave', function(){ focus(null); });
+    li.addEventListener('click', function(){ openPanel(li.dataset.id); });
+    listEl.appendChild(li);
+  });
+}
+
+function renderLeaderboard(){
+  var isChains = isChainsView();
+  renderHeroChart(isChains ? 'heroChartChains' : 'heroChartApps',
+                  isChains ? 'rankListChains' : 'rankListApps',
+                  isChains ? 'hcSubChains' : 'hcSubApps',
+                  yearTop10());
+}
+
+/* ================= sectors = themes =================
+   Eleven themes instead of 70 revenue categories + 50 CoinGecko narratives.
+   Each row joins a price basket with a fundament, and the default order is
+   BETA TO BTC — the direct answer to "which theme gets hottest if altseason
+   starts". There is no composite score; the columns are the reasons. */
+var THEMES = DATA.themes || [];
+var ALT = DATA.altseason || {};
+var COIN = DATA.coin_meta || {};
+var UNMAPPED = DATA.unmapped || null;
+var themeSort = {key: 'beta', dir: -1};
+
+var COLS_THEMES = [
+  {key: 'rank',    label: '#',              tight: true, sortable: false},
+  {key: 'name',    label: 'Téma',           left: true,  sortable: false},
+  {key: 'beta',    label: 'Zesílení β',     tight: true, sortable: true, info: 'beta'},
+  {key: 'rho',     label: 'Korelace',       tight: true, sortable: true, info: 'rho'},
+  {key: 'breadth', label: 'Šíře',           tight: true, sortable: true, info: 'breadth'},
+  {key: 'rs1m',    label: 'vs BTC 1M',      tight: true, sortable: true, info: 'rs'},
+  {key: 'rs3m',    label: 'vs BTC 3M',      tight: true, sortable: true, info: 'rs'},
+  {key: 'fund',    label: 'Fundament 30d',  tight: true, sortable: true, info: 'fund'},
+  {key: 'monthly', label: '12 měsíců',      tight: true, sortable: false},
+  {key: 'fundg',   label: 'Růst 6M',        tight: true, sortable: true},
+  {key: 'mcap',    label: 'Mcap koše',      tight: true, sortable: true}
+];
+
+function themeSortValue(th, key){
+  var f = th.fundament || {};
+  switch (key) {
+    case 'beta':    return th.beta;
+    case 'rho':     return th.rho;
+    case 'breadth': return th.breadth;
+    case 'rs1m':    return th.rs1m;
+    case 'rs3m':    return th.rs3m;
+    // revenue and stablecoin levels are different units — chains sink here
+    case 'fund':    return f.kind === 'revenue' && !f.small ? f.rev30d : null;
+    case 'fundg':   return f.small ? null : f.g6m;
+    case 'mcap':    return th.mcap;
+    default:        return null;
+  }
+}
+
+function betaWord(b){
+  return b === null || b === undefined ? '—' : 'když BTC udělá +10 %, tohle téma historicky ' +
+    'udělalo ' + fmtPct(10 * b, 0);
+}
+
+/* Tags explain themselves with the theme's own numbers, same as the trust
+   tags in Apps — "Čeká na start" alone would be a slogan, not a reason. */
+var THEME_TAGS = {
+  leads: {label: 'Už vede', cls: 'good', why: function(th){
+    return 'Za poslední měsíc předběhl BTC o ' + fmtPct(100 * th.rs1m, 0) + ' a porazil i medián ' +
+      'altcoinů. Na jeho vlastní poměry je to výrazné — běžně se od BTC týdně odchyluje o ±' +
+      czNum((100 * (th.te_week || 0)).toFixed(1)) + ' %, tohle je ' +
+      czNum((th.z1 || 0).toFixed(1)) + '× víc, než by vysvětlil šum.';
+  }},
+  waiting: {label: 'Čeká na start', cls: 'warn', why: function(th){
+    return 'Patří mezi nejvíc zesilující témata (β ' + czNum(th.beta.toFixed(2)) + '), ale za ' +
+      'čtvrtletí se proti BTC skoro nepohnul (' + fmtPct(100 * (th.rs3m || 0), 0) + '). Kdyby ' +
+      'altseason začala, má nejvíc prostoru — zatím ale nic neukazuje, že začíná.';
+  }},
+  own_story: {label: 'Vlastní příběh', cls: 'info', why: function(th){
+    return 'Korelace s BTC je jen ' + czNum((th.rho || 0).toFixed(2)) + ' — téma se hýbe podle ' +
+      'vlastních zpráv, ne podle nálady trhu. Beta u něj proto altseason nepředpovídá: může ' +
+      'růst, když trh stojí, a stát, když trh letí.';
+  }},
+  fund_up: {label: 'Fundament roste', cls: 'good', why: function(th){
+    var f = th.fundament || {};
+    return 'Revenue ' + fmtUsd(f.rev30d) + ' za 30 dní roste o ' + fmtPct(f.g6m) + ' měsíčně ' +
+      'a trend je čistý (r² ' + czNum((f.r2 || 0).toFixed(2)) + '). Za cenou tedy stojí skutečné ' +
+      'používání, ne jen nálada.';
+  }}
+};
+
+function themeTags(th){
+  return (th.tags || []).map(function(t){
+    var d = THEME_TAGS[t];
+    return d ? '<span class="tag ' + d.cls + '" title="' + esc(d.why(th)) + '">' + esc(d.label) + '</span>' : '';
+  }).join('');
+}
+
+function logoStack(ids, size){
+  var s = size || 22;
+  return '<span class="logostack">' + (ids || []).slice(0, 3).map(function(g){
+    var m = COIN[g] || {};
+    return logoImg(m.logo, m.sym || g, s);
+  }).join('') + '</span>';
+}
+
+function themeNameCell(th){
+  var n = th.status === 'ok' ? th.n + ' coinů' : 'málo platných coinů';
+  return '<span class="namecell">' + logoStack(th.top3, 22) +
+    '<span class="txt"><span class="nmrow"><span class="nm">' + esc(th.name) + '</span>' + themeTags(th) +
+    '</span><span class="sym">' + esc(n) + '</span></span></span>';
+}
+
+function betaCell(th){
+  if (th.beta === null || th.beta === undefined) return '<span class="muted">—</span>';
+  var tip = betaWord(th.beta) + ' (±' + czNum((1.96 * (th.beta_se || 0) * 10).toFixed(0)) +
+    ' p.b.).\nChyba odhadu ±' + czNum((th.beta_se || 0).toFixed(2)) + ' z ' + (th.n_weeks || 0) +
+    ' týdnů — témata, která se liší o méně, jsou statisticky stejná.' +
+    (th.gamma !== null && th.gamma !== undefined ? '\nCitlivost na to, když alty předbíhají BTC: ' +
+      czNum(th.gamma.toFixed(2)) : '') +
+    (th.beta_up !== null && th.beta_up !== undefined ? '\nJen v týdnech, kdy BTC rostl: ' +
+      czNum(th.beta_up.toFixed(2)) : '');
+  return '<span class="upside t' + (th.tier || 0) + '" title="' + esc(tip) + '">' +
+    czNum(th.beta.toFixed(2)) + '</span>' +
+    '<span class="sub"> ±' + czNum((th.beta_se || 0).toFixed(2)) + '</span>';
+}
+
+function rhoCell(th){
+  var r = th.rho;
+  if (r === null || r === undefined) return '<span class="muted">—</span>';
+  var q = r >= 0.75 ? 'q-strong' : (r >= 0.5 ? 'q-weak' : 'q-noise');
+  return '<span class="gwrap" title="' + esc('Jak těsně téma sleduje BTC. Pod 0,5 se hýbe ' +
+    'hlavně podle vlastních zpráv.') + '"><span class="gval flat">' + czNum(r.toFixed(2)) +
+    '</span><span class="qdot ' + q + '"></span></span>';
+}
+
+function breadthCell(th){
+  var b = th.breadth;
+  if (b === null || b === undefined) return '<span class="muted">—</span>';
+  var cls = b >= 60 ? 'pos' : (b <= 35 ? 'neg' : 'flat');
+  return '<span class="gval ' + cls + '" title="' + esc(czNum(b.toFixed(0)) + ' % coinů v koši ' +
+    'za čtvrtletí překonalo BTC. Vysoké číslo = roste celé téma, ne jeden coin.') + '">' +
+    czNum(b.toFixed(0)) + ' %</span>';
+}
+
+function rsCell(v){
+  if (v === null || v === undefined) return '<span class="muted">—</span>';
+  var p = 100 * v;
+  var cls = p > 3 ? 'pos' : (p < -3 ? 'neg' : 'flat');
+  var arrow = p > 3 ? '↑ ' : (p < -3 ? '↓ ' : '→ ');
+  return '<span class="gval ' + cls + '">' + arrow + fmtPct(p, 0) + '</span>';
+}
+
+function fundCell(th){
+  var f = th.fundament || {};
+  if (f.kind === 'stables') {
+    return '<span class="num" title="' + esc('Stablecoiny na ' + (f.chains || 0) + ' chainech vrstvy ' +
+      th.name + '. ' + czNum((f.top2_share || 0).toFixed(0)) + ' % drží dva největší — ' +
+      (th.key === 'l1' ? 'růst tu hlavně kopíruje emisi USDT na Ethereu a Tronu.' :
+       'včetně chainů bez tokenu (Base, Robinhood Chain): ' + czNum((f.untokenized_share || 0).toFixed(0)) + ' %.')) +
+      '">' + fmtUsd(f.level) + '<span class="sub"> stab.</span></span>';
+  }
+  if (f.small || f.rev30d === null || f.rev30d === undefined) {
+    return '<span class="muted" title="' + esc('Pod $1M za 30 dní — příliš málo na trend. A není to ' +
+      'revenue coinů v koši, ale protokolů ze stejné kategorie DeFiLlamy.') + '">—</span>';
+  }
+  return '<span class="num" title="' + esc('Revenue kategorií DeFiLlamy: ' +
+    (f.categories || []).join(', ')) + '">' + fmtUsd(f.rev30d) + '</span>';
+}
+
+function renderThemes(){
+  renderHead('tbl-themes', COLS_THEMES, themeSort, function(k){
+    if (themeSort.key === k) themeSort.dir = -themeSort.dir;
+    else { themeSort.key = k; themeSort.dir = -1; }
+    renderThemes();
+  });
+  var list = THEMES.slice().sort(compareWith(themeSortValue, themeSort.key, themeSort.dir));
+  var tbody = document.querySelector('#tbl-themes tbody');
+  if (!list.length) {
+    tbody.innerHTML = '<tr><td colspan="11"><div class="empty"><b>Témata se nepodařilo spočítat.</b>' +
+      '<br>Zkus Aktualizovat data — CoinGecko občas odmítá požadavky.</div></td></tr>';
+    return;
+  }
+  tbody.innerHTML = list.map(function(th, i){
+    var f = th.fundament || {};
+    var g = {growth6m: {g: f.small ? null : f.g6m, r2: f.r2, days: 182, label: '6M'}};
+    return '<tr data-key="' + esc(th.key) + '" data-tier="' + (th.tier || 0) + '"' +
+      (th.status === 'ok' ? '' : ' data-untrusted="1"') + '>' +
+      '<td class="rank">' + (i + 1) + '</td>' +
+      '<td class="left">' + themeNameCell(th) + '</td>' +
+      '<td class="tight">' + betaCell(th) + '</td>' +
+      '<td class="num tight">' + rhoCell(th) + '</td>' +
+      '<td class="num tight">' + breadthCell(th) + '</td>' +
+      '<td class="num tight">' + rsCell(th.rs1m) + '</td>' +
+      '<td class="num tight">' + rsCell(th.rs3m) + '</td>' +
+      '<td class="num tight">' + fundCell(th) + '</td>' +
+      '<td class="tight sparkcell">' + monthlyCell({monthly: f.monthly || []}) + '</td>' +
+      '<td class="num tight">' + growthCell(g) + '</td>' +
+      '<td class="num tight">' + fmtUsd(th.mcap) + '</td></tr>';
+  }).join('');
+  tbody.querySelectorAll('tr[data-key]').forEach(function(tr){
+    tr.addEventListener('click', function(){ openThemePanel(tr.dataset.key); });
+  });
+}
+
+/* ---------- floating tooltip (#tip) ---------- */
+var tipEl = document.getElementById('tip');
+function showTip(ev, html){
+  tipEl.innerHTML = html;
+  tipEl.style.opacity = '1';
+  var w = tipEl.offsetWidth || 220, h = tipEl.offsetHeight || 60;
+  var x = ev.clientX + 14, y = ev.clientY + 14;
+  if (x + w > window.innerWidth - 8) x = ev.clientX - w - 14;
+  if (y + h > window.innerHeight - 8) y = ev.clientY - h - 14;
+  tipEl.style.left = x + 'px';
+  tipEl.style.top = y + 'px';
+}
+function hideTip(){ tipEl.style.opacity = '0'; }
+
+/* ---------- the altseason strip ---------- */
+function sparkline(vals, W, H, cls){
+  var pts = vals.filter(function(v){ return v !== null && v !== undefined; });
+  if (pts.length < 2) return '';
+  var lo = Math.min.apply(null, pts), hi = Math.max.apply(null, pts), span = (hi - lo) || 1;
+  var d = pts.map(function(v, i){
+    return (i ? 'L' : 'M') + (i / (pts.length - 1) * W).toFixed(1) + ' ' +
+      (H - 2 - (v - lo) / span * (H - 4)).toFixed(1);
+  }).join('');
+  return '<svg class="' + (cls || '') + '" width="' + W + '" height="' + H + '" viewBox="0 0 ' + W + ' ' + H + '">' +
+    '<path d="' + d + '" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>';
+}
+
+/* Shared by Sektory ('altStrip') and Start ('startAlt') — one number, one text. */
+function renderAltStrip(hostId){
+  var host = document.getElementById(hostId || 'altStrip');
+  var ix = ALT.index;
+  if (ix === null || ix === undefined) {
+    host.innerHTML = '<div class="sub">Altseason index se nepodařilo spočítat.</div>';
+    return;
+  }
+  var phase = ix >= 75 ? 'Altseason' : (ix <= 25 ? 'BTC season' : 'Mezi tím');
+  var cls = ix >= 75 ? 'pos' : (ix <= 25 ? 'neg' : 'flat');
+  var hist = (ALT.history || []).map(function(h){ return h[1]; });
+  var ago = ALT.three_months_ago;
+  var trend = (ago === null || ago === undefined) ? '' :
+    ' <span class="sub">(před 3 měsíci ' + czNum(ago.toFixed(0)) + ' %)</span>';
+  host.innerHTML =
+    '<div class="alt-main">' +
+      '<div class="alt-num ' + cls + '">' + czNum(ix.toFixed(0)) + ' %</div>' +
+      '<div class="alt-lbl"><b>Altseason index</b> · ' + esc(phase) + trend +
+        '<div class="sub">Podíl top‑50 altcoinů, které za ~90 dní překonaly BTC. ' +
+        'Od 75 % se mluví o altseasonu, pod 25 % o BTC season.</div></div>' +
+    '</div>' +
+    '<div class="alt-gauge"><div class="alt-track"><i style="width:' + Math.max(1, Math.min(100, ix)) + '%"></i>' +
+      '<span class="mk" style="left:25%"></span><span class="mk" style="left:75%"></span></div>' +
+      '<div class="alt-ticks"><span>BTC season</span><span>altseason</span></div></div>' +
+    '<div class="alt-hist">' + sparkline(hist, 150, 34, 'alt-spark') +
+      '<div class="sub">posledních ' + hist.length + ' týdnů</div></div>' +
+    '<div class="alt-btc"><div class="sub">BTC</div>' +
+      '<div>1M <b class="' + (ALT.btc_1m >= 0 ? 'pos' : 'neg') + '">' + fmtPct(100 * (ALT.btc_1m || 0), 0) + '</b></div>' +
+      '<div>3M <b class="' + (ALT.btc_3m >= 0 ? 'pos' : 'neg') + '">' + fmtPct(100 * (ALT.btc_3m || 0), 0) + '</b></div></div>' +
+    '<p class="alt-note">Poslední rok altseason neměl — nejsilnější šestitýdenní úsek, kdy alty předběhly ' +
+      'BTC, byl jen o +5 %. Proto tu není „jak si témata vedla minule": zesílení je změřené na ' +
+      'běžném trhu a říká, jak téma historicky reaguje na pohyb BTC.</p>';
+}
+
+/* ---------- hero: beta x momentum ---------- */
+function renderThemeScatter(){
+  var host = document.getElementById('themeScatter');
+  var sub = document.getElementById('scatterSub');
+  var pts = THEMES.filter(function(th){ return th.beta !== null && th.beta !== undefined && th.rs3m !== null && th.rs3m !== undefined; });
+  host.innerHTML = '';
+  if (pts.length < 2) { sub.textContent = 'Málo dat pro graf.'; return; }
+  sub.textContent = 'Vodorovně: jak téma zesiluje pohyb BTC. Svisle: kolik za čtvrtletí předběhlo BTC. ' +
+    'Vousy = nejistota bety; témata, jejichž vousy se překrývají, jsou statisticky stejná.';
+
+  var W = Math.max(420, Math.min(1000, host.clientWidth || 900)), H = 380;
+  var pL = 52, pR = 24, pT = 20, pB = 40;
+  var xs = [], ys = [];
+  pts.forEach(function(th){
+    xs.push(th.beta - 1.96 * (th.beta_se || 0), th.beta + 1.96 * (th.beta_se || 0));
+    ys.push(100 * th.rs3m);
+  });
+  var x0 = Math.min(0.5, Math.min.apply(null, xs) - 0.05), x1 = Math.max(1.9, Math.max.apply(null, xs) + 0.05);
+  var y0 = Math.min(-20, Math.min.apply(null, ys) - 10), y1 = Math.max(20, Math.max.apply(null, ys) + 10);
+  var X = function(v){ return pL + (v - x0) / (x1 - x0) * (W - pL - pR); };
+  var Y = function(v){ return pT + (1 - (v - y0) / (y1 - y0)) * (H - pT - pB); };
+  var muted = css('--muted') || '#888', rule = css('--rule') || '#ccc';
+  var col = {5: css('--gem') || '#3a9', 3: css('--accent') || '#36c', 1: css('--muted') || '#888', 0: css('--muted') || '#888'};
+
+  var svg = svgEl('svg', {width: W, height: H, viewBox: '0 0 ' + W + ' ' + H, 'class': 'scatter'});
+  // quadrants: beta 1 = moves with BTC; 0 = kept pace with BTC
+  [[x0, 1, 0, y1, 'Vlastní cesta'], [1, x1, 0, y1, 'Zesiluje a vede'],
+   [x0, 1, y0, 0, 'Defenzivní'], [1, x1, y0, 0, 'Zesiluje, čeká']].forEach(function(q){
+    var t = svgEl('text', {x: (X(q[0]) + X(q[1])) / 2, y: q[3] > 0 ? Y(q[3]) + 16 : Y(q[2]) - 8,
+      'text-anchor': 'middle', fill: muted, 'font-size': 11, 'class': 'quad'});
+    t.textContent = q[4];
+    svg.appendChild(t);
+  });
+  svg.appendChild(svgEl('line', {x1: X(1), x2: X(1), y1: pT, y2: H - pB, stroke: rule, 'stroke-dasharray': '4 4'}));
+  svg.appendChild(svgEl('line', {x1: pL, x2: W - pR, y1: Y(0), y2: Y(0), stroke: rule, 'stroke-dasharray': '4 4'}));
+  for (var b = Math.ceil(x0 * 4) / 4; b <= x1; b += 0.25) {
+    var tx = svgEl('text', {x: X(b), y: H - pB + 16, 'text-anchor': 'middle', fill: muted, 'font-size': 10});
+    tx.textContent = czNum(b.toFixed(2));
+    svg.appendChild(tx);
+  }
+  var xl = svgEl('text', {x: (pL + W - pR) / 2, y: H - 6, 'text-anchor': 'middle', fill: muted, 'font-size': 10.5});
+  xl.textContent = 'zesílení β →   (1 = hýbe se jako BTC)';
+  svg.appendChild(xl);
+  [y0, 0, y1].forEach(function(v){
+    var ty = svgEl('text', {x: pL - 8, y: Y(v) + 3, 'text-anchor': 'end', fill: muted, 'font-size': 10});
+    ty.textContent = fmtPct(v, 0);
+    svg.appendChild(ty);
+  });
+
+  // LOG size, not sqrt: the L1 basket (ETH, BNB, XRP…) is ~$730bn against
+  // tens of billions for the rest, and a sqrt bubble swallowed three neighbours.
+  var lm = pts.map(function(th){ return Math.log(Math.max(th.mcap || 1, 1)); });
+  var lmin = Math.min.apply(null, lm), lmax = Math.max.apply(null, lm);
+  var radius = function(th){
+    var v = Math.log(Math.max(th.mcap || 1, 1));
+    return 7 + 11 * (lmax > lmin ? (v - lmin) / (lmax - lmin) : 0.5);
+  };
+  // labels: try above, then below, then right, then left — first spot whose
+  // box clears every label already placed and every bubble
+  var placed = [];
+  var bubbles = pts.map(function(th){ return {x: X(th.beta), y: Y(100 * th.rs3m), r: radius(th)}; });
+  function collides(b){
+    for (var i = 0; i < placed.length; i++) {
+      var p = placed[i];
+      if (b.x0 < p.x1 && b.x1 > p.x0 && b.y0 < p.y1 && b.y1 > p.y0) return true;
+    }
+    for (var j = 0; j < bubbles.length; j++) {
+      var q = bubbles[j];
+      var nx = Math.max(b.x0, Math.min(q.x, b.x1)), ny = Math.max(b.y0, Math.min(q.y, b.y1));
+      if ((nx - q.x) * (nx - q.x) + (ny - q.y) * (ny - q.y) < (q.r - 1) * (q.r - 1)) return true;
+    }
+    return b.x0 < pL || b.x1 > W - pR || b.y0 < 2 || b.y1 > H - pB;
+  }
+  function spot(cx, cy, r, text){
+    var w = text.length * 6.6 + 4, h = 14;
+    var tries = [[cx, cy - r - 6, 'middle'], [cx, cy + r + 14, 'middle'],
+                 [cx + r + 6, cy + 4, 'start'], [cx - r - 6, cy + 4, 'end']];
+    for (var i = 0; i < tries.length; i++) {
+      var t = tries[i];
+      var x0 = t[2] === 'middle' ? t[0] - w / 2 : (t[2] === 'start' ? t[0] : t[0] - w);
+      var box = {x0: x0, x1: x0 + w, y0: t[1] - 11, y1: t[1] - 11 + h};
+      if (!collides(box) || i === tries.length - 1) { placed.push(box); return t; }
+    }
+  }
+
+  pts.sort(function(a, b){ return (b.mcap || 0) - (a.mcap || 0); });   // big bubbles underneath
+  var labelLayer = [];
+  pts.forEach(function(th){
+    var c = col[th.tier || 0];
+    var r = radius(th);
+    var cx = X(th.beta), cy = Y(100 * th.rs3m);
+    var g = svgEl('g', {'class': 'pt', 'data-key': th.key});
+    var se = 1.96 * (th.beta_se || 0);
+    // the uncertainty: honest, but it must not out-shout the points themselves
+    g.appendChild(svgEl('line', {x1: X(th.beta - se), x2: X(th.beta + se), y1: cy, y2: cy,
+      stroke: c, 'stroke-width': 1.2, opacity: 0.32}));
+    [th.beta - se, th.beta + se].forEach(function(v){
+      g.appendChild(svgEl('line', {x1: X(v), x2: X(v), y1: cy - 3, y2: cy + 3, stroke: c, 'stroke-width': 1.2, opacity: 0.32}));
+    });
+    g.appendChild(svgEl('circle', {cx: cx, cy: cy, r: r, fill: c, 'fill-opacity': 0.22,
+      stroke: c, 'stroke-width': 1.6}));
+    labelLayer.push({th: th, g: g, cx: cx, cy: cy, r: r});
+    g.addEventListener('click', function(){ openThemePanel(th.key); });
+    g.addEventListener('mousemove', function(ev){
+      showTip(ev, '<b>' + esc(th.name) + '</b><br>β ' + czNum(th.beta.toFixed(2)) + ' ±' +
+        czNum((th.beta_se || 0).toFixed(2)) + '<br>vs BTC 3M ' + fmtPct(100 * th.rs3m, 0) +
+        '<br><span class="t2">' + esc(betaWord(th.beta)) + '</span>');
+    });
+    g.addEventListener('mouseleave', hideTip);
+    svg.appendChild(g);
+  });
+  // labels last, on top, strongest themes first so they get the best spots
+  labelLayer.sort(function(a, b){ return (b.th.tier || 0) - (a.th.tier || 0) || (b.th.beta || 0) - (a.th.beta || 0); });
+  labelLayer.forEach(function(L){
+    var s = spot(L.cx, L.cy, L.r, L.th.name);
+    var lb = svgEl('text', {x: s[0], y: s[1], 'text-anchor': s[2], fill: css('--ink') || '#222',
+      'font-size': 11.5, 'font-weight': 600, 'class': 'plabel'});
+    lb.textContent = L.th.name;
+    lb.addEventListener('click', function(){ openThemePanel(L.th.key); });
+    svg.appendChild(lb);
+  });
+  host.appendChild(svg);
+}
+
+function renderThemesNote(){
+  var el = document.getElementById('themesNote');
+  var parts = [];
+  if (UNMAPPED && UNMAPPED.rev30d) {
+    parts.push('<b>Nezařazeno ' + fmtUsd(UNMAPPED.rev30d) + '/30 d (' + czNum((UNMAPPED.share_pct || 0).toFixed(1)) +
+      ' % revenue)</b> — kategorie, které nepatří žádnému tématu: ' + esc((UNMAPPED.top || []).join(', ')) +
+      '. V Apps je dál uvidíš u jednotlivých projektů.');
+  }
+  if (DATA.themes_stale) {
+    parts.push('<b>Témata jsou z minulého běhu</b> — tentokrát je nešlo spočítat.');
+  }
+  parts.push('Koše: top 15 coinů z kategorií CoinGecka, váhy podle odmocniny market capu (max 25 % ' +
+    'na coin), aby téma nebylo synonymem pro jeden coin. Relativní síla se počítá na koši, jak ' +
+    'vypadal na začátku období — jinak by zmizelé memecoiny nepočítaly a výnosy by vypadaly lépe.');
+  el.innerHTML = parts.join('<br>');
+}
+
+function renderSectorsView(){
+  renderAltStrip();
+  renderThemeScatter();
+  renderThemes();
+  renderThemesNote();
+}
+
+/* ---------- theme panel ---------- */
+function themeIndexChart(th){
+  var a = th.index || [], b = ALT.btc_index || [];
+  if (a.length < 4 || b.length !== a.length) return '<div class="empty">Bez dat</div>';
+  var W = 700, H = 170, pL = 40, pR = 60, pT = 12, pB = 22;
+  var all = a.concat(b).filter(function(v){ return v > 0; });
+  var lo = Math.min.apply(null, all) * 0.95, hi = Math.max.apply(null, all) * 1.05;
+  var X = function(i){ return pL + i / (a.length - 1) * (W - pL - pR); };
+  var Y = function(v){ return pT + (1 - (Math.log(v) - Math.log(lo)) / (Math.log(hi) - Math.log(lo))) * (H - pT - pB); };
+  var path = function(s){ return s.map(function(v, i){ return (i ? 'L' : 'M') + X(i).toFixed(1) + ' ' + Y(Math.max(v, lo)).toFixed(1); }).join(''); };
+  var acc = css('--accent') || '#36c', mut = css('--muted') || '#888';
+  return '<svg width="100%" viewBox="0 0 ' + W + ' ' + H + '" preserveAspectRatio="none">' +
+    '<line x1="' + pL + '" x2="' + (W - pR) + '" y1="' + Y(100) + '" y2="' + Y(100) + '" stroke="' + mut + '" stroke-dasharray="3 3"/>' +
+    '<path d="' + path(b) + '" fill="none" stroke="' + mut + '" stroke-width="1.6"/>' +
+    '<path d="' + path(a) + '" fill="none" stroke="' + acc + '" stroke-width="2.2"/>' +
+    '<text x="' + (W - pR + 6) + '" y="' + (Y(a[a.length - 1]) + 4) + '" font-size="11" fill="' + acc + '">' + esc(th.name) + '</text>' +
+    '<text x="' + (W - pR + 6) + '" y="' + (Y(b[b.length - 1]) + 4) + '" font-size="11" fill="' + mut + '">BTC</text>' +
+    '</svg>';
+}
+
+function openThemePanel(key){
+  var th = null;
+  THEMES.forEach(function(x){ if (x.key === key) th = x; });
+  if (!th) return;
+  state.selectedTheme = key;
+  document.getElementById('entityBody').hidden = true;
+  var body = document.getElementById('themeBody');
+  body.hidden = false;
+
+  document.getElementById('pIco').innerHTML = logoStack(th.top3, 30);
+  document.getElementById('pName').textContent = th.name;
+  var src = {cache: 'z cache', fresh: 'čerstvě', snapshot: 'z minulého běhu', seed: 'nouzový koš'}[th.basket_source] || '';
+  document.getElementById('pSub').textContent = (th.n || 0) + ' coinů · koš ' + src +
+    (th.basket_age_days !== null && th.basket_age_days !== undefined ? ' (' + czNum(th.basket_age_days.toFixed(0)) + ' dní)' : '');
+  document.getElementById('pDesc').textContent = th.blurb || '';
+  document.getElementById('pTags').innerHTML = themeTags(th);
+
+  var f = th.fundament || {};
+  var stats = statCell('Zesílení β', th.beta === null || th.beta === undefined ? '—' :
+      czNum(th.beta.toFixed(2)) + ' <span class="sub">±' + czNum((th.beta_se || 0).toFixed(2)) + '</span>',
+      th.tier === 5 ? 'pos' : '', 'beta') +
+    statCell('Korelace s BTC', th.rho === null || th.rho === undefined ? '—' : czNum(th.rho.toFixed(2)), '', 'rho') +
+    statCell('Šíře', th.breadth === null || th.breadth === undefined ? '—' : czNum(th.breadth.toFixed(0)) + ' %', '', 'breadth') +
+    statCell('vs BTC 1M', th.rs1m === null || th.rs1m === undefined ? '—' : fmtPct(100 * th.rs1m, 0), th.rs1m > 0 ? 'pos' : 'neg') +
+    statCell('vs BTC 3M', th.rs3m === null || th.rs3m === undefined ? '—' : fmtPct(100 * th.rs3m, 0), th.rs3m > 0 ? 'pos' : 'neg') +
+    statCell('Mcap koše', fmtUsd(th.mcap)) +
+    statCell(f.kind === 'stables' ? 'Stablecoiny' : 'Revenue 30d',
+      f.kind === 'stables' ? fmtUsd(f.level) : (f.small ? '—' : fmtUsd(f.rev30d)), '', 'fund') +
+    statCell('Růst fundamentu 6M', f.small || f.g6m === null || f.g6m === undefined ? '—' : fmtPct(f.g6m),
+      (f.g6m || 0) > 3 ? 'pos' : ((f.g6m || 0) < -3 ? 'neg' : '')) +
+    statCell('Citlivost na altseason', th.gamma === null || th.gamma === undefined ? '—' : czNum(th.gamma.toFixed(2)), '', 'gamma');
+
+  var why = (th.tags || []).map(function(t){
+    var d = THEME_TAGS[t];
+    return d ? '<li><b>' + esc(d.label) + '</b> — ' + esc(d.why(th)) + '</li>' : '';
+  }).join('');
+  var amp = th.beta === null || th.beta === undefined ? '' :
+    '<div class="reltitle relok">' + esc(betaWord(th.beta)) + '</div>';
+
+  var mem = (th.members || []).slice().sort(function(a, b){ return b.w - a.w; }).map(function(m){
+    var cm = COIN[m.id] || {};
+    return '<tr><td class="left"><span class="namecell">' + logoImg(cm.logo, m.sym, 20) +
+      '<span class="txt"><span class="nm">' + esc(m.sym || m.id) + '</span><span class="sym">' + esc(m.name || '') +
+      '</span></span></span></td><td>' + czNum((100 * m.w).toFixed(1)) + ' %</td><td>' + fmtUsd(m.mcap) +
+      '</td><td>' + rsCell(m.rs1m) + '</td><td>' + rsCell(m.rs3m) + '</td><td>' +
+      (m.beta === null || m.beta === undefined ? '—' : czNum(m.beta.toFixed(2))) + '</td></tr>';
+  }).join('');
+  var dropped = (th.dropped || []).slice(0, 12).map(function(d){
+    return '<li><b>' + esc(d.sym || d.id) + '</b> — ' + esc(d.reason) + '</li>';
+  }).join('');
+  var shared = (th.shared_with || []).map(function(s){ return esc(s.name) + ' (' + s.n + ')'; }).join(', ');
+
+  var fundBlock = '';
+  if (f.kind === 'revenue' && !f.small && (f.monthly || []).length) {
+    fundBlock = '<h4 style="margin-top:28px">Revenue po měsících</h4><div class="minichart"><div id="thMonthly"></div></div>' +
+      '<ul class="rellist">' + (f.by_category || []).map(function(c){
+        return '<li><b>' + esc(c.category) + '</b> — ' + fmtUsd(c.rev30d) + ' za 30 dní, ' + (c.n_all || 0) +
+          ' protokolů (' + (c.n_tok || 0) + ' s tokenem)</li>';
+      }).join('') + '</ul>';
+  } else if (f.kind === 'stables') {
+    fundBlock = '<h4 style="margin-top:28px">Stablecoiny po měsících</h4><div class="minichart"><div id="thMonthly"></div></div>' +
+      '<ul class="rellist">' + (f.top || []).map(function(c){
+        return '<li><b>' + esc(c.chain) + '</b> — ' + fmtUsd(c.stables) + ' (' + czNum(c.share_pct.toFixed(1)) +
+          ' %)' + (c.tokenized ? '' : ' · bez tokenu') + '</li>';
+      }).join('') + '</ul>';
+  } else {
+    fundBlock = '<p class="sector-caption" style="margin-top:22px">Revenue v kategoriích DeFiLlamy, které k ' +
+      'tématu patří, je pod $1M za 30 dní — na trend moc málo. A nejsou to výdělky coinů z koše, ' +
+      'ale jiných protokolů ze stejné kategorie.</p>';
+  }
+
+  body.innerHTML =
+    '<div class="statgrid">' + stats + '</div>' +
+    '<div class="relnote">' + amp + (why ? '<ul class="rellist">' + why + '</ul>' : '') +
+      '<div class="relbasis">Beta z ' + (th.n_weeks || 0) + ' týdenních výnosů. Poslední rok altseason neměl, ' +
+      'takže je změřená na běžném trhu.</div></div>' +
+    themeRowsBlock(th) +
+    '<h4 style="margin-top:26px">Koš vs BTC za rok</h4>' +
+    '<p class="sector-caption" style="margin-top:-6px">Obojí = 100 na začátku. Pozor: jsou to dnešní coiny ' +
+      'zpětně — ty, co za rok zmizely, v koši nejsou, takže roční výnos vypadá lépe, než skutečně byl.</p>' +
+    '<div class="minichart">' + themeIndexChart(th) + '</div>' +
+    fundBlock +
+    '<h4 style="margin-top:28px">Coiny v koši</h4>' +
+    '<div class="tablewrap memwrap"><table class="memtable"><thead><tr><th class="left">Coin</th><th>Váha</th>' +
+    '<th>Mcap</th><th>vs BTC 1M</th><th>vs BTC 3M</th><th>β</th></tr></thead><tbody>' + mem + '</tbody></table></div>' +
+    (shared ? '<p class="sub" style="margin-top:8px">Sdílí coiny s tématy: ' + shared + '</p>' : '') +
+    (dropped ? '<h4 style="margin-top:24px">Vyřazené z koše</h4><ul class="rellist">' + dropped + '</ul>' : '');
+
+  if (document.getElementById('thMonthly')) {
+    monthlyBars('thMonthly', f.monthly, f.kind === 'stables' ? 'Stablecoiny (průměr měsíce)' : 'Revenue (součet měsíce)');
+  }
+  // a project in the theme opens its own panel, in the tab it belongs to
+  body.querySelectorAll('tr[data-kind]').forEach(function(tr){
+    tr.addEventListener('click', function(){
+      var want = tr.dataset.kind === 'chains' ? 'chains' : 'apps';
+      if ((want === 'chains') !== isChainsView()) setView(want);
+      openPanel(tr.dataset.id);
+    });
+  });
+  document.getElementById('panel').classList.add('open');
+  document.getElementById('scrim').classList.add('open');
+  body.querySelectorAll('.info-btn').forEach(function(bn){
+    bn.addEventListener('click', function(ev){
+      ev.stopPropagation();
+      togglePopover(bn, INFO_TEXT[bn.dataset.info] ? INFO_TEXT[bn.dataset.info]() : '');
+    });
+  });
+}
+
+/* Every app (and chain) whose row carries this theme — the picks and shovels of
+   a narrative: Memecoiny -> Pump, Pons, o1.exchange. Trusted rows only, ranked
+   like the Apps table; the others are counted out loud, not silently dropped. */
+function themeRowsBlock(th){
+  var out = '';
+  [['apps', APPS, 'Appky v tématu', 'Apps'], ['chains', CHAINS, 'Chainy v tématu', 'Chains']].forEach(function(g){
+    var all = g[1].filter(function(e){ return (e.theme || {}).key === th.key; });
+    if (!all.length) return;
+    var shown = all.filter(function(e){ return e.reliable || e.young; }).sort(compareBy('potential', -1));
+    var hidden = all.length - shown.length;
+    var rows = shown.map(function(e){
+      var ph = (e.traj || {}).phase || 'Nový';
+      var pot = e.potential === null || e.potential === undefined ? '—'
+        : ((e.potential_raw || 0) >= UPSIDE_CAP ? '&gt;' : '') + fmtMult(Math.min(e.potential, UPSIDE_CAP));
+      return '<tr data-kind="' + g[0] + '" data-id="' + esc(e.key || e.slug) + '"><td class="left">' +
+        '<span class="namecell">' + logoImg(e.logo_data, e.name, 20) + '<span class="txt"><span class="nm">' +
+        esc(e.name) + '</span><span class="sym">' + esc(e.symbol || '') + '</span></span></span></td>' +
+        '<td><span class="upside t' + (e.tier || 0) + '">' + pot + '</span></td>' +
+        '<td>' + fmtUsd(e.mcap) + '</td>' +
+        '<td><span class="phase p-' + (PHASE_SLUG[ph] || 'novy') + '">' + esc(ph) + '</span></td></tr>';
+    }).join('');
+    out += '<h4 style="margin-top:26px">' + g[2] + '</h4>' +
+      (rows ? '<div class="tablewrap memwrap"><table class="memtable"><thead><tr><th class="left">Projekt</th>' +
+        '<th>Potenciál</th><th>Mcap</th><th>Fáze</th></tr></thead><tbody>' + rows + '</tbody></table></div>' : '') +
+      // "label: count" agrees with any number; "dalších 3 neprověřených skryto" did not
+      '<p class="sub" style="margin-top:8px">Prověřené: ' + shown.length +
+      (hidden ? ' · skryté neprověřené: ' + hidden + ' (najdeš je v ' + g[3] +
+        ' v režimu „Vše podle potenciálu")' : '') + '.</p>';
+  });
+  return out;
+}
+
+/* ================= detail panel ================= */
+function findEntity(id){
+  var pool = entities();
+  for (var i = 0; i < pool.length; i++) {
+    if ((pool[i].key || pool[i].slug) === id) return pool[i];
+  }
+  return null;
+}
+
+/* "✓ $369M · Uniswap $5,5mld": thirty times today's market cap against the
+   biggest direct rival. The collector picks the rival; this only prints it. */
+function test30Html(e){
+  var t = e.test30 || {};
+  if (!t.implied) return '—';
+  if (t.size_ok === null || t.size_ok === undefined) {
+    return fmtUsd(t.implied) + ' <span class="sub">bez srovnání</span>';
+  }
+  return (t.size_ok ? '✓ ' : '✗ ') + fmtUsd(t.implied) +
+    ' <span class="sub">' + esc(t.ceiling_name || '') + ' ' + fmtUsd(t.ceiling) + '</span>';
+}
+
+function statCell(k, v, cls, info){
+  return '<div class="statcell"><div class="k">' + esc(k) +
+    (info ? '<button class="info-btn" data-info="' + info + '" type="button">i</button>' : '') +
+    '</div><div class="v ' + (cls || '') + '">' + v + '</div></div>';
+}
+
+function monthlyBars(hostId, months, label){
+  var host = document.getElementById(hostId);
+  if (!months || !months.length) { host.innerHTML = '<div class="empty">Bez dat</div>'; return; }
+  var W = Math.max(300, Math.min(760, host.clientWidth || 700)), H = 150;
+  var padB = 22, padL = 4, n = months.length, gap = 5;
+  var bw = (W - padL * 2 - gap * (n - 1)) / n;
+  var max = 0;
+  months.forEach(function(m){ if (m.v > max) max = m.v; });
+  if (max <= 0) { host.innerHTML = '<div class="empty">Bez dat</div>'; return; }
+  var bars = '', labels = '';
+  months.forEach(function(m, i){
+    var h = Math.max(1, (m.v / max) * (H - padB - 6));
+    var x = padL + i * (bw + gap);
+    bars += '<rect class="bigbar' + (m.partial ? ' partial' : '') + '" x="' + x.toFixed(1) +
+      '" y="' + (H - padB - h).toFixed(1) + '" width="' + bw.toFixed(1) +
+      '" height="' + h.toFixed(1) + '" rx="2"><title>' +
+      esc(m.m + ': ' + fmtUsd(m.v) + (m.partial ? ' (neúplný měsíc)' : '')) + '</title></rect>';
+    if (n <= 13) {
+      labels += '<text x="' + (x + bw / 2).toFixed(1) + '" y="' + (H - 6) +
+        '" text-anchor="middle" font-size="9" fill="' + (css('--muted') || '#888') + '">' +
+        esc(m.m.slice(5)) + '</text>';
+    }
+  });
+  host.innerHTML = '<div class="mchart-label">' + esc(label) + ' · nejnovější měsíc je neúplný (šrafovaný)</div>' +
+    '<svg width="' + W + '" height="' + H + '" viewBox="0 0 ' + W + ' ' + H + '">' +
+    '<defs><pattern id="hatch" width="4" height="4" patternTransform="rotate(45)" patternUnits="userSpaceOnUse">' +
+    '<line x1="0" y1="0" x2="0" y2="4" stroke="' + (css('--accent') || '#39c') + '" stroke-width="2"/>' +
+    '</pattern></defs>' + bars + labels + '</svg>';
+}
+
+function potentialOverTime(hostId, e){
+  var host = document.getElementById(hostId);
+  var s = e.sila6m || {};
+  var pts = (s.points || []).filter(function(p){ return p.rr && p.price; });
+  if (pts.length < 3 || !e.mcap) { host.innerHTML = '<div class="empty">Chybí cenová historie</div>'; return; }
+  var bench = (isChainsView() ? BENCH_CHAINS : BENCH).mult;
+  var p0 = pts[0];
+  // Same construction as sila: mcap_t proxied by price, benchmark held fixed,
+  // so the line moves only when the project itself moves.
+  var series = pts.slice().reverse().map(function(p){
+    var mcapT = e.mcap * (p.price / p0.price);
+    return {t: p.t, v: bench / (mcapT / p.rr)};
+  });
+  var W = Math.max(300, Math.min(760, host.clientWidth || 700)), H = 120, padL = 40, padB = 18, padT = 10;
+  var vals = series.map(function(p){ return p.v; });
+  var min = Math.min.apply(null, vals), max = Math.max.apply(null, vals);
+  if (!(max > 0)) { host.innerHTML = '<div class="empty">Bez dat</div>'; return; }
+  min = Math.min(min, 1) * 0.9; max = max * 1.1;
+  var y = function(v){ return padT + (1 - (v - min) / (max - min)) * (H - padT - padB); };
+  var x = function(i){ return padL + (i / (series.length - 1)) * (W - padL - 12); };
+  var d = series.map(function(p, i){ return (i ? 'L' : 'M') + x(i).toFixed(1) + ' ' + y(p.v).toFixed(1); }).join('');
+  var dots = series.map(function(p, i){
+    return '<circle cx="' + x(i).toFixed(1) + '" cy="' + y(p.v).toFixed(1) + '" r="2.5" fill="' +
+      (css('--accent') || '#39c') + '"><title>' + esc(fmtMult(p.v)) + '</title></circle>';
+  }).join('');
+  var one = (1 >= min && 1 <= max)
+    ? '<line x1="' + padL + '" x2="' + (W - 12) + '" y1="' + y(1) + '" y2="' + y(1) +
+      '" stroke="' + (css('--muted') || '#888') + '" stroke-dasharray="3 3"/>' +
+      '<text x="' + (padL - 5) + '" y="' + (y(1) + 3) + '" text-anchor="end" font-size="9" fill="' +
+      (css('--muted') || '#888') + '">1×</text>' : '';
+  var arrow = (s.ratio >= 1.1 ? 'sílí' : (s.ratio >= 0.9 ? 'drží se' : 'slábne'));
+  var label = isChainsView() ? 'kapitál' : 'revenue';
+  host.innerHTML = '<div class="mchart-label">' + esc(label + ' ×' + czNum((s.rev_factor || 0).toFixed(2)) +
+    ' / cena ×' + czNum((s.price_factor || 0).toFixed(2)) + ' → ' + arrow) + '</div>' +
+    '<svg width="' + W + '" height="' + H + '" viewBox="0 0 ' + W + ' ' + H + '">' + one +
+    '<path d="' + d + '" fill="none" stroke="' + (css('--accent') || '#39c') + '" stroke-width="2"/>' +
+    dots + '</svg>';
+}
+
+function openPanel(id){
+  var e = findEntity(id);
+  if (!e) return;
+  state.selectedId = id;
+  state.selectedTheme = null;
+  document.getElementById('themeBody').hidden = true;
+  document.getElementById('entityBody').hidden = false;
+  var isChains = isChainsView();
+
+  document.getElementById('pIco').innerHTML = logoImg(e.logo_data, e.name, 40);
+  document.getElementById('pName').textContent = e.name;
+  document.getElementById('pSub').textContent = (e.symbol || '') + ' · ' + (e.category || '');
+  document.getElementById('pDesc').textContent = e.description || '';
+
+  var tags = [];
+  if (e.url) tags.push('<a class="catchip" href="' + esc(e.url) + '" target="_blank" rel="noopener">web ↗</a>');
+  (e.chains || []).slice(0, 6).forEach(function(c){ tags.push('<span class="catchip">' + esc(c) + '</span>'); });
+  document.getElementById('pTags').innerHTML = tags.join('');
+
+  var rr = e.runrate || {};
+  var s = e.sila6m || {};
+  var g = e.growth6m || {};
+  var stats = statCell('Market Cap', fmtUsd(e.mcap));
+  if (isChains) {
+    stats += statCell('Stablecoiny', fmtUsd(e.stables_now));
+    stats += statCell('DEX objem 30d', fmtUsd(e.dex30d));
+    stats += statCell('MC / stablecoiny', fmtMult(e.ps));
+  } else {
+    stats += statCell('Revenue 30d', fmtUsd(e.rev30d));
+    stats += statCell('Roční běh', fmtUsd(rr.value), '', 'runrate');
+    stats += statCell('MC / roční běh', fmtMult(e.ps));
+    var hs = e.holders_share;
+    stats += statCell('Pro držitele', hs === null || hs === undefined ? '—' : czNum((100 * hs).toFixed(0)) + ' %',
+                      hs === null || hs === undefined ? '' : (hs < 0.05 ? 'neg' : (hs >= 0.5 ? 'pos' : '')), 'holders');
+  }
+  if (e.fdv && e.mcap) {
+    stats += statCell('FDV', fmtUsd(e.fdv) + (e.fdv > 1.05 * e.mcap ? ' <span class="sub">' +
+      czNum((e.fdv / e.mcap).toFixed(1)) + '× mcap</span>' : ''));
+  }
+  stats += statCell('Potenciál', fmtMult(e.potential), e.tier >= 4 ? 'pos' : '', 'potential');
+  // the multiple in money, the same multiple after full unlock, and whether 30×
+  // would still fit under the biggest rival
+  var gtb = e.bench_capped ? '&gt;' : '';
+  stats += statCell(isChains ? 'Při násobku mediánu' : 'Při násobku HL',
+    e.mcap_at_bench ? gtb + fmtUsd(e.mcap_at_bench) + (e.price_at_bench
+      ? ' <span class="sub">cena ' + gtb + esc(fmtPrice(e.price_at_bench)) + '</span>' : '') : '—',
+    '', 'benchmcap');
+  if (!isChains) {
+    var pfs = e.potential_fdv_shown, cp = circPct(e);
+    stats += statCell('Po plném odemčení', pfs === null || pfs === undefined
+      ? (e.fdv ? '—' : 'FDV neznámé')
+      : fmtMult(pfs) + (cp !== null ? ' <span class="sub">v oběhu ' + czNum(cp.toFixed(0)) + ' %</span>' : ''),
+      e.float_worse ? 'neg' : '', 'fdvpot');
+  }
+  var t30 = e.test30 || {};
+  stats += statCell('Test 30×', test30Html(e),
+    t30.size_ok === true ? 'pos' : (t30.size_ok === false ? 'neg' : ''), 'test30');
+  if (isChains && BENCH_CHAINS.fee_mult) {
+    var fr = (e.fee_runrate || {}).value;
+    var pf = e.potential_fees;
+    stats += statCell('Podle poplatků', pf === null || pf === undefined ? '—'
+      : ((e.potential_fees_raw || 0) >= UPSIDE_CAP ? '&gt;' : '') + fmtMult(pf) +
+        (fr ? ' <span class="sub">' + fmtUsd(fr) + '/rok</span>' : ''),
+      pf !== null && pf !== undefined && pf < 1 && (e.potential || 0) >= 1.2 ? 'neg' : '', 'fees');
+  }
+  stats += statCell('Síla 6M', s.ratio ? czNum(s.ratio.toFixed(2)) + '×' : '—',
+                    s.ratio >= 1.1 ? 'pos' : (s.ratio < 0.9 ? 'neg' : ''), 'sila');
+  stats += statCell(isChains ? 'Růst adopce 6M' : 'Růst revenue 6M', fmtPct(g.g),
+                    g.g > 3 ? 'pos' : (g.g < -3 ? 'neg' : ''));
+  document.getElementById('pStats').innerHTML = stats;
+
+  /* Spell out WHY, with this project's own numbers. "nespolehlivé: klesající
+     trend" named a rule, not a reason, and left you no wiser. */
+  var relHtml;
+  if (e.reliable) {
+    relHtml = '<div class="reltitle relok">✓ Prověřené — potenciál se dá brát vážně</div>' +
+      '<div class="sub">Market cap nad $3M, aspoň půl roku dat, ' +
+      (isChains ? 'adopce' : 'revenue') + ' neklesá, blízko svého maxima a data jsou čerstvá.</div>';
+  } else {
+    var items = (e.reliable_fail || []).map(function(r){
+      var def = TRUST_REASONS[r];
+      return '<li><b>' + esc(def ? def.tag : r) + '</b> — ' +
+        esc(def ? def.why(e) : r) + '</li>';
+    }).join('');
+    relHtml = '<div class="reltitle ' + (e.young ? 'relnew' : 'relbad') + '">' +
+      (e.young ? '◆ Nový — zatím není co prověřit' : '⚠ Proč tomuto číslu nevěřit') +
+      '</div><ul class="rellist">' + items + '</ul>' +
+      '<div class="sub">Potenciál sám je spočítaný správně. Tyhle body říkají, ' +
+      'proč z něj nejde udělat závěr — ne že je špatně.</div>';
+  }
+  if (rr.basis) {
+    relHtml += '<div class="relbasis">Roční běh <b>' + fmtUsd(rr.value) + '</b> je spočítaný takto: ' +
+      esc(BASIS_LABEL[rr.basis] || rr.basis) + '. Historie ' + (e.hist_days || 0) + ' dní, ' +
+      'poslední data ' + czNum((e.lag_days === null || e.lag_days === undefined ? 0 : e.lag_days).toFixed(1)) +
+      ' dne stará.</div>';
+  }
+  document.getElementById('pReliable').innerHTML = relHtml;
+  document.getElementById('pBuy').innerHTML = buyBlock(e);
+
+  var traj = e.traj || {};
+  var slug = PHASE_SLUG[traj.phase] || 'novy';
+  var qrows = [['p1', '365–274 dní'], ['p2', '273–183 dní'], ['p3', '182–92 dní'], ['p4', '91–0 dní']]
+    .map(function(q){
+      var p = (traj.periods || {})[q[0]] || {};
+      return '<tr><td>' + q[1] + '</td><td>' + fmtPct(p.g) + '</td><td>' +
+        czNum((p.r2 === null || p.r2 === undefined ? 0 : p.r2).toFixed(2)) + '</td></tr>';
+    }).join('');
+  document.getElementById('trajBlock').innerHTML =
+    '<div class="trajpanel"><div class="trajpanel-top">' + trajGlyph(traj) +
+    '<span class="phase p-' + slug + '">' + esc(traj.phase || 'Nový') + '</span>' +
+    (traj.level_vs_peak !== null && traj.level_vs_peak !== undefined
+      ? '<span class="peakinfo">na <b>' + Math.round(traj.level_vs_peak * 100) +
+        ' %</b> svého ročního maxima</span>' : '') +
+    '</div><p class="trajwhy">' + esc(PHASE_HELP[traj.phase] || '') + '</p>' +
+    '<table class="growthtable"><thead><tr><th>Čtvrtletí</th><th>Růst / měsíc</th><th>r²</th></tr></thead>' +
+    '<tbody>' + qrows + '</tbody></table></div>';
+
+  // The only place overlapping time windows survive: a reference table for
+  // someone who wants the old view, not a control that reshapes the app.
+  var dic = isChains ? e.tvl_growth : e.rev_growth;
+  document.getElementById('growthTable').innerHTML =
+    '<thead><tr><th>Okno</th><th>Růst / měsíc</th><th>r²</th><th>Součet</th></tr></thead><tbody>' +
+    WINDOWS.map(function(w){
+      var d = (dic || {})[String(w)] || {};
+      return '<tr><td>' + WLABEL[w] + '</td><td>' + fmtPct(d.g) + '</td><td>' +
+        czNum((d.r2 === null || d.r2 === undefined ? 0 : d.r2).toFixed(2)) + '</td><td>' +
+        fmtUsd(d.total) + '</td></tr>';
+    }).join('') + '</tbody>';
+
+  document.getElementById('chartHeading').textContent = isChains ? 'Stablecoiny po měsících' : 'Revenue po měsících';
+  monthlyBars('mcPrimary', isChains ? e.monthly_stables : e.monthly,
+              isChains ? 'Stablecoiny (průměr měsíce)' : 'Revenue (součet měsíce)');
+  if (isChains && (e.monthly_dex || []).length) {
+    document.getElementById('mcSecondaryWrap').style.display = '';
+    monthlyBars('mcSecondary', e.monthly_dex, 'DEX objem (součet měsíce)');
+  } else {
+    document.getElementById('mcSecondaryWrap').style.display = 'none';
+  }
+  potentialOverTime('mcPotential', e);
+
+  document.getElementById('panel').classList.add('open');
+  document.getElementById('scrim').classList.add('open');
+  document.querySelectorAll('tbody tr.selected').forEach(function(t){ t.classList.remove('selected'); });
+  var row = document.querySelector('tr[data-id="' + id + '"]');
+  if (row) row.classList.add('selected');
+  document.querySelectorAll('#panel .info-btn').forEach(function(b){
+    b.addEventListener('click', function(ev){
+      ev.stopPropagation();
+      togglePopover(b, INFO_TEXT[b.dataset.info] ? INFO_TEXT[b.dataset.info]() : '');
+    });
+  });
+}
+
+function closePanel(){
+  document.getElementById('panel').classList.remove('open');
+  document.getElementById('scrim').classList.remove('open');
+  state.selectedId = null;
+  state.selectedTheme = null;
+  document.querySelectorAll('tbody tr.selected').forEach(function(t){ t.classList.remove('selected'); });
+}
+
+/* ================= popovers ================= */
+var popover = document.getElementById('popover');
+var popoverOwner = null;
+
+var INFO_TEXT = {
+  scatter: function(){
+    return '<b>Kdyby teď začala altseason</b> — každé téma je bublina. Vodorovně jeho ' +
+      '<b>zesílení</b> (beta k BTC), svisle kolik za čtvrtletí <b>předběhlo BTC</b>.' +
+      '<span class="pk">Vpravo nahoře: zesiluje a už vede. Vpravo dole: zesiluje, ale ještě ' +
+      'se nerozjelo — nejvíc prostoru, pokud trh začne běžet. Vlevo nahoře: roste po svém, ' +
+      'nezávisle na trhu.</span>' +
+      '<span class="pk">Vodorovné vousy jsou nejistota odhadu. Z jednoho roku dat se dají ' +
+      'rozlišit jen hrubé skupiny — témata s překrytými vousy jsou statisticky stejná.</span>';
+  },
+  beta: function(){
+    return '<b>Zesílení (beta k BTC)</b> — o kolik se téma historicky pohnulo, když se ' +
+      'pohnul BTC. 1,5 = když BTC udělá +10 %, téma udělá +15 %.' +
+      '<span class="pk">Tohle je přímá odpověď na „co bude nejvíc hot, kdyby začala altseason". ' +
+      'Počítá se z 52 týdenních výnosů koše, ne z denních — denní šum betu u krypta ' +
+      'systematicky podhodnocuje.</span>' +
+      '<span class="pk">Tři pásma: ≥ 1,3 silné, 0,95–1,3 střední, pod 0,95 slabé. Jemněji to ' +
+      'rok dat nerozliší.</span>';
+  },
+  rho: function(){
+    return '<b>Korelace s BTC</b> — jak těsně téma sleduje trh, 0 až 1.' +
+      '<span class="pk">Pod 0,5 se téma hýbe hlavně podle vlastních zpráv (Privacy a ZEC) a ' +
+      'jeho beta pro altseason nic neznamená — dostane značku „Vlastní příběh".</span>';
+  },
+  breadth: function(){
+    return '<b>Šíře</b> — kolik procent coinů v koši za čtvrtletí překonalo BTC.' +
+      '<span class="pk">Vysoké číslo = roste celé téma. Nízká šíře při vysokém výnosu znamená, ' +
+      'že téma táhne jeden coin.</span>';
+  },
+  rs: function(){
+    return '<b>vs BTC</b> — výnos koše tématu měřený v bitcoinu: +20 % znamená, že téma ' +
+      'předběhlo BTC o 20 %, ať trh rostl nebo padal.' +
+      '<span class="pk">Počítá se na koši, jak vypadal <i>na začátku</i> období. Kdybychom brali ' +
+      'dnešní coiny, ty, které mezitím propadly z žebříčku, by chyběly a výnos by vypadal lépe.</span>';
+  },
+  fund: function(){
+    return '<b>Fundament</b> — revenue protokolů z odpovídajících kategorií DeFiLlamy za 30 dní. ' +
+      'U L1 a L2 stablecoiny na těch chainech (včetně chainů bez tokenu, hlavně Base).' +
+      '<span class="pk">Pozor: není to výdělek coinů z koše. Memecoiny nic nevydělávají — ' +
+      'jejich fundament je revenue launchpadů a trading botů, na kterých se s nimi obchoduje.</span>' +
+      '<span class="pk">Pod $1M za 30 dní se neukazuje — na trend je to málo.</span>';
+  },
+  holders: function(){
+    return '<b>Pro držitele</b> — kolik procent revenue projektu se dostane k držitelům tokenu: ' +
+      'zpětné odkupy, pálení, výplaty stakerům. Zbytek zůstává v pokladně nebo firmě.' +
+      '<span class="pk">Tohle je čtvrté kritérium z tvého původního zadání (value accrual). ' +
+      'Hyperliquid, se kterým se potenciál porovnává, vrací držitelům ~100 % — proto má tak ' +
+      'vysoký násobek. Projekt se stejným P/S, ale 0 % pro držitele, levný není: jeho token ' +
+      'z revenue nic nemá.</span>' +
+      '<span class="pk">Pod 5 % dostane řádek značku „Bez podílu" — jen obrysovou: řádek zůstává ' +
+      'i v „Jen prověřené", protože číslo samo je spočítané dobře. Plné korálové značky říkají, ' +
+      'proč číslu nevěřit; tahle říká, že z něj token nemusí nic mít. Nula u DeFiLlamy navíc ' +
+      'někdy znamená jen to, že zpětné odkupy nesleduje.</span>' +
+      '<span class="pk">Údaj je z DeFiLlamy za 30 dní; „—" znamená, že ho DeFiLlama u projektu ' +
+      'neuvádí — ne že je nulový.</span>';
+  },
+  fees: function(){
+    return '<b>Podle poplatků</b> — kontrola potenciálu chainu z druhé strany: kolikrát by ' +
+      'povyrostl, kdyby ho trh ocenil jako medián chainů (' + fmtMult(BENCH_CHAINS.fee_mult) +
+      ' market cap / roční poplatky) podle toho, co si chain z poplatků nechá nebo spálí.' +
+      '<span class="pk">Potenciál chainů dál stojí na adopci — tohle se jen ukazuje vedle. ' +
+      'Když adopce říká „levný" a poplatky „drahý" (číslo zčervená), kapitál na chainu parkuje, ' +
+      'ale token z něj zatím nic nemá. Typicky Plasma: hodně stablecoinů, poplatky ' +
+      'skoro nulové.</span>' +
+      '<span class="pk">Pozor, co DeFiLlama u chainů počítá jako revenue: hlavně spálené ' +
+      'poplatky, ne výdělky appek, které na chainu běží. Proto má Hyperliquid L1 jako chain ' +
+      'řádově méně než Hyperliquid jako appka. A Ethereum vychází draze hlavně proto, ' +
+      'že se při levném gasu pálí málo — ne nutně proto, že je předražené.</span>';
+  },
+  gamma: function(){
+    return '<b>Citlivost na altseason</b> — o kolik téma předběhne BTC, když alty jako celek ' +
+      'předbíhají BTC. 1,2 = když alty vedou o 10 %, téma vede o 12 %.' +
+      '<span class="pk">Je to užší a přesnější otázka než beta, ale v roce bez altseasonu ' +
+      'se měří na malých výkyvech, takže je spíš doplňková.</span>';
+  },
+  rank: function(){
+    return '<b>Rok v grafu</b> — deset projektů s nejvyšším potenciálem, jejich ' +
+      (isChainsView() ? 'adopce' : 'revenue') + ' za posledních 12 měsíců, ' +
+      'indexováno na 100 na začátku.' +
+      '<span class="pk">Do grafu se dostanou jen projekty, které prošly kontrolou ' +
+      'spolehlivosti a mají aspoň 30 týdnů historie. Osa je logaritmická, aby byl ' +
+      'desetinásobek stejně vysoký skok jako dvojnásobek.</span>' +
+      '<span class="pk">Graf ignoruje hledání i minimální revenue pod sebou — ' +
+      'odpovídá na otázku „jak si vedly nejlevnější projekty“, a ta se nemění tím, ' +
+      'že si v tabulce něco vyfiltrujete.</span>';
+  },
+  potential: function(){
+    return '<b>Potenciál</b> — kolikrát by projekt povyrostl, kdyby ho trh ocenil stejným ' +
+      'násobkem jako ' + esc(BENCH.label || 'měřítko') + ', a jeho revenue se nezměnilo.' +
+      '<span class="pk">Měřítko appek: ' + esc(BENCH.label) + ' ' + fmtMult(BENCH.mult) +
+      ' MC/revenue. Chainy: ' + esc(BENCH_CHAINS.label) + ' ' + fmtMult(BENCH_CHAINS.mult) +
+      ' MC/stablecoiny' + (BENCH_CHAINS.fee_mult ? ' (kontrola podle poplatků: ' +
+      fmtMult(BENCH_CHAINS.fee_mult) + ' MC/roční poplatky)' : '') + '.</span>' +
+      '<span class="pk">Řadí se čistě podle násobku, nic se nikam neschovává. Důvěru řeší ' +
+      '<b>přepínač</b> nad tabulkou a <b>značky</b> u jména: zlatá „Nový" = ještě není co ' +
+      'prověřit, korálové („Mikro", „Klesá", „Po propadu", „Stará data") = konkrétní důvod, ' +
+      'proč z toho čísla nejde udělat závěr.</span>' +
+      '<span class="pk">Klikni na řádek a v panelu je u každé značky vysvětlení s vlastními ' +
+      'čísly toho projektu.</span>';
+  },
+  benchmcap: function(){
+    var b = isChainsView() ? BENCH_CHAINS : BENCH;
+    return '<b>Při násobku ' + esc(b.label || 'měřítka') + '</b> — market cap a cena, při kterých by projekt ' +
+      'měl stejný násobek jako ' + esc(b.label || 'měřítko') + ' (' + fmtMult(b.mult) + '). Tím se Potenciál ' +
+      'převádí na peníze: například 40× u projektu za $10M znamená $400M.' +
+      '<span class="pk">Není to cenový cíl ani předpověď. Je to strop ocenění — nad ním by byl projekt dražší ' +
+      'než ' + esc(b.label || 'měřítko') + ', takže se hodí jako orientační bod pro výběr zisku.</span>' +
+      '<span class="pk">U projektů s Potenciálem nad 50× se ukazuje „&gt;" a strop pro 50×.</span>';
+  },
+  fdvpot: function(){
+    var r = BENCH.fdv && BENCH.mcap ? BENCH.fdv / BENCH.mcap : null;
+    return '<b>Po plném odemčení u obou</b> — Potenciál spočítaný z plně rozředěné hodnoty (FDV) projektu ' +
+      'i ' + esc(BENCH.label || 'měřítka') + '.' +
+      (r ? '<span class="pk">' + esc(BENCH.label || 'Měřítko') + ' sám má FDV ' + czNum(r.toFixed(1)) + '× ' +
+        'svého market capu, proto se porovnává FDV s FDV. Srovnat FDV projektu s market capem měřítka by ' +
+        'měřítko udělalo předraženým vůči sobě samému.</span>' : '') +
+      '<span class="pk">Číslo může Potenciál jen snížit. Když má projekt v oběhu větší část tokenů než ' +
+      esc(BENCH.label || 'měřítko') + ', zůstává stejné — jinak by dostal kredit za cizí budoucí ředění.</span>' +
+      '<span class="pk">Když se projekt ředí víc než ' + esc(BENCH.label || 'měřítko') + ', ukáže se toto ' +
+      'číslo korálově i v tabulce pod Potenciálem. Je to jen informace, projekt z výběru nevyřazuje.</span>';
+  },
+  start: function(){
+    var r = DEGEN.rules || {};
+    return '<b>Pro degena</b> — appky, které splňují všech sedm podmínek naráz:' +
+      '<span class="pk">1. výdělek aspoň ' + fmtUsd(r.min_rev30 || 1e5) + ' za 30 dní · 2. prošla kontrolou ' +
+      'spolehlivosti (nebo je nová a čistě roste) · 3. Potenciál aspoň ' + czNum(String(r.min_potential || 2.5)) +
+      '× · 4. Test 30×: ani po 30× by nepřerostla největšího konkurenta · 5. byznys roste · 6. nákup za ' +
+      '$10 000 bez velkého skluzu · 7. její téma při altseasonu zesiluje nebo už vede.</span>' +
+      '<span class="pk">Není to skóre: buď projde vším, nebo ne, a řadí se podle Potenciálu jako tabulka Apps. ' +
+      'Float, odemykání a podíl držitelů vidíš na kartě, ale nikoho nevyřazují.</span>' +
+      '<span class="pk">Stejný výběr ukáže Apps v poloze přepínače „Pro degena".</span>';
+  },
+  buy: function(){
+    var t = RULES.ticket || 10000;
+    return '<b>Koupit a držet</b> — dá se do toho vůbec vstoupit a vystoupit, a kdo bude prodávat.' +
+      '<span class="pk">Skluz: nákup za $' + String(t).replace(/\B(?=(\d{3})+(?!\d))/g, ' ') + ' v hlavním poolu na DEX (DexScreener). U poolu typu x·y=k ' +
+      'je to zhruba 2 × nákup / likvidita poolu, takže ' + czNum(String(RULES.max_impact_pct || 3)) + ' % znamená ' +
+      'aspoň ' + fmtUsd(2 * t / ((RULES.max_impact_pct || 3) / 100)) + ' likvidity. Moderní pooly se ' +
+      'soustředěnou likviditou bývají hlubší, než ukazuje součet — odhad je spíš opatrný. Když je pool mělký, ' +
+      'ale obrat za 24 hodin je aspoň ' + fmtUsd(RULES.vol_pass || 2e6) + ', stačí to taky: coin se obchoduje ' +
+      'na burzách.</span>' +
+      '<span class="pk">Odemykání: harmonogram od DeFiLlamy — kolik tokenů přibude do 90 dní a kdy je ' +
+      'nejbližší jednorázové odemčení. Odemčení do pokladny DAO se nepočítá, na trh nejde.</span>' +
+      '<span class="pk">Značky „Mělká likvidita", „Cliff" a „+X % do 90 dní" jsou jen informace: nic ' +
+      'neskrývají a pořadí nemění.</span>';
+  },
+  test30: function(){
+    return '<b>Test 30×</b> — jak velký by projekt byl, kdyby udělal 30×, a jestli by tím přerostl svého ' +
+      'největšího přímého konkurenta: největší obchodovatelný projekt stejné kategorie DeFiLlamy. Když je ' +
+      'projekt sám lídrem kategorie, porovnává se s největším coinem svého tématu.' +
+      '<span class="pk">✓ = i po 30× by byl menší než dnešní jednička. ✗ = aby udělal 30×, musel by ji ' +
+      'přerůst. „bez srovnání" = není s kým srovnat.</span>' +
+      '<span class="pk">Je to kontrola reálnosti, ne předpověď: neříká, že projekt 30× udělá, jen jestli by ' +
+      'to velikostí vůbec dávalo smysl.</span>';
+  },
+  runrate: function(){
+    return '<b>Roční běh</b> — nejopatrnější ze tří odhadů toho, co projekt vydělává právě teď: ' +
+      'posledních 30 dní × 12, posledních 90 dní × 4, a dvanáctinásobek <i>mediánu</i> ' +
+      'tří posledních měsíců.' +
+      '<span class="pk">Ten medián tam musí být. Bez něj by protokol s normálním tempem N/měsíc, ' +
+      'který si v posledním měsíci připsal 10N, vyšel na 48N — čtyřikrát víc, než vydělává. ' +
+      'S mediánem vyjde 12N.</span>' +
+      '<span class="pk">Roční součet (TTM) se nepoužívá: trestal by každý projekt, který vyrostl.</span>';
+  },
+  sila: function(){
+    return '<b>Síla 6M</b> — růst revenue dělený růstem ceny za posledních 6 měsíců.' +
+      '<span class="pk">Nad 1 znamená, že byznys roste rychleji než jeho vlastní token — ' +
+      'trh to ještě nepřecenil. Pod 1 cena utekla fundamentu.</span>' +
+      '<span class="pk">Počítá se z ceny, ne z historie market capu, takže u tokenů se silnou ' +
+      'inflací je hodnota nadhodnocená. Potřebuje aspoň 3 měsíční body.</span>';
+  },
+  growth: function(){
+    return '<b>Růst 6M</b> — log-lineární regrese přes týdenní součty za 182 dní, ' +
+      'vyjádřená jako % za měsíc.' +
+      '<span class="pk">Tečka vedle čísla ukazuje r², tedy jak čistý ten trend je. Šedá tečka = ' +
+      'šum; jedno vystřelené číslo neudělá trend.</span>';
+  },
+  monthly: function(){
+    return '<b>12 měsíců</b> — kalendářní měsíce, aby byl tvar roku vidět bez přepínání filtrů.' +
+      '<span class="pk">Nejnovější sloupec je skoro vždy neúplný (běžící měsíc) a je proto ' +
+      'světlejší — není to propad.</span>';
+  },
+  share: function(){
+    return '<b>Podíl v kategorii</b> — kolik z revenue své kategorie projekt drží za 30 dní, ' +
+      '<i>mezi projekty, které mají token</i>. Projekty bez tokenu (burzovní rozhraní, firmy) ' +
+      've jmenovateli nejsou, takže to je „jak velký je mezi tím, co se dá koupit", ne podíl ' +
+      'na celém sektoru — ten je u lídrů o pár bodů nižší.' +
+      '<span class="pk">Barva chipu kategorie ukazuje, kde ten sektor stojí v žebříčku ' +
+      'šestiměsíčního růstu mezi sektory nad $1M/30 d.</span>';
+  },
+  adoption: function(){
+    return '<b>Adopce chainu</b> — kapitál × aktivita: nabídka stablecoinů a 30denní DEX objem, ' +
+      'geometrický průměr obou, každý normovaný na svou hodnotu před 6 měsíci.' +
+      '<span class="pk">Samotné TVL v dolarech je cenový graf: je denominované ve vlastním ' +
+      'tokenu chainu, takže když token padá, „adopce" padá s ním. Stablecoiny jsou navázané ' +
+      'na dolar, takže jejich pohyb je skutečný přítok a odtok.</span>' +
+      '<span class="pk">Složka pod $1M se vynechá — Quai dělá $14K DEX objemu za měsíc a ' +
+      'jeho výkyvy by přebily miliardovou stablecoinovou základnu.</span>';
+  },
+  traj: function(){
+    return '<b>Trajektorie</b> — rok rozdělený na čtyři <i>nepřekrývající</i> se čtvrtletí ' +
+      '(364–274, 273–183, 182–92, 91–0 dní), takže tvar sloupců JE křivka růstu.' +
+      '<span class="pk">Skóre 0–100 váží poslední čtvrtletí (0,5), zrychlení proti průměru ' +
+      'předchozích tří (0,4) a to, jak blízko je projekt svému ročnímu maximu (0,1).</span>' +
+      '<span class="pk">„Zážeh" vyžaduje, aby poslední čtvrtletí bylo aspoň na 60 % maxima — ' +
+      'jinak by odraz ode dna po kolapsu vypadal stejně jako průlom.</span>';
+  }
+};
+
+function togglePopover(btn, html){
+  if (popoverOwner === btn && popover.classList.contains('open')) return closePopover();
+  popoverOwner = btn;
+  popover.innerHTML = html;
+  popover.classList.add('open');
+  var r = btn.getBoundingClientRect();
+  var w = 290;
+  var left = Math.min(window.innerWidth - w - 12, Math.max(12, r.left - w / 2));
+  popover.style.left = left + 'px';
+  popover.style.top = (r.bottom + 8) + 'px';
+}
+function closePopover(){ popover.classList.remove('open'); popoverOwner = null; }
+
+/* ================= Start: the degen view =================
+   Seven gates, decided in the collector (degen_ok / degen_fail). Keyed by the
+   collector's own reason strings, like TRUST_REASONS; each says WHY with the
+   row's numbers. `grey` marks "we don't know" gates — they still exclude
+   (reliability over recall), but not knowing is not the same as failing. */
+var DEGEN = DATA.degen || {};
+var DEGEN_REASONS = {
+  'malý byznys': {why: function(e){
+    return 'Revenue ' + fmtUsd(e.rev30d) + ' za 30 dní je pod ' + fmtUsd((DEGEN.rules || {}).min_rev30 || 1e5) +
+      ' — tak malý výdělek nafoukne jediná velká transakce.'; }},
+  'neprověřené': {why: function(e){
+    return 'Neprošel kontrolou spolehlivosti: ' + (e.reliable_fail || []).join(', ') + '.'; }},
+  'drahé': {why: function(e){
+    return 'Potenciál ' + fmtMult(e.potential) + ' — není aspoň ' +
+      czNum(String((DEGEN.rules || {}).min_potential || 2.5)) + '× levnější než Hyperliquid.'; }},
+  'moc velký': {why: function(e){
+    var t = e.test30 || {};
+    return '30× by znamenalo ' + fmtUsd(t.implied) + ', ale ' + t.ceiling_name + ' (největší ' +
+      (t.ceiling_kind === 'category' ? 'v kategorii' : 'v tématu') + ') má ' + fmtUsd(t.ceiling) +
+      '. Do jeho velikosti ' + fmtMult(t.room_x) + '.'; }},
+  'bez srovnání': {grey: true, why: function(){
+    return 'Nevíme, jestli se na 30× vejde: je jediný ve své kategorii a nemá téma, se kterým ho srovnat.'; }},
+  'byznys neroste': {why: function(e){
+    var g = (e.growth6m || {}).g;
+    return 'Fáze ' + ((e.traj || {}).phase || '—') + (g === null || g === undefined ? ', trend nejde změřit'
+      : ', revenue ' + fmtPct(g) + ' měsíčně za půl roku') + '.'; }},
+  'mělká likvidita': {why: function(e){ return liqText(e); }},
+  'likvidita neznámá': {grey: true, why: function(){
+    return 'Nevíme, jestli se dá koupit: DexScreener pro token nemá pár a CoinGecko neuvádí obrat.'; }},
+  'téma bez větru': {why: function(e){
+    var t = e.theme || {};
+    return 'Téma ' + t.name + ' při altseasonu historicky nezesiluje (' + betaWord(t.beta) + ') a ani nevede.'; }},
+  'bez tématu': {grey: true, why: function(e){
+    return 'Kategorie ' + (e.category || '—') + ' nepatří do žádného z 11 témat, o kterých se při ' +
+      'altseasonu mluví — nevíme, jaký vítr by ji nesl.'; }}
+};
+
+/* The three "proč" chips: a FIXED order of facts, the first three that hold.
+   No weights — Gem Score died once. */
+function whyChips(e){
+  var out = [], t = e.theme || {}, tags = t.tags || [], g = e.growth6m || {};
+  if (t.key) {
+    if (tags.indexOf('leads') >= 0) out.push('téma ' + t.name + ' už vede');
+    else if (tags.indexOf('waiting') >= 0) out.push('téma ' + t.name + ' čeká na start');
+    else if (t.tier === 5) out.push('téma ' + t.name + ' nejvíc zesiluje');
+    else if (tags.indexOf('fund_up') >= 0) out.push('v tématu ' + t.name + ' roste výdělek');
+  }
+  if (g.g !== null && g.g !== undefined && g.g >= 10 && (g.r2 || 0) >= 0.25) {
+    out.push('revenue ' + fmtPct(g.g, 0) + ' měsíčně');
+  }
+  var ph = (e.traj || {}).phase;
+  if (ph === 'Zážeh' || ph === 'Akcelerace') out.push('fáze ' + ph.toLowerCase());
+  var s = (e.sila6m || {}).ratio;
+  if (s && s >= 1.5) out.push('výdělek předběhl cenu ' + czNum(s.toFixed(1)) + '×');
+  if (e.holders_share !== null && e.holders_share !== undefined && e.holders_share >= 0.5) {
+    out.push('držitelům ' + czNum((100 * e.holders_share).toFixed(0)) + ' % revenue');
+  }
+  var sh = (e.share || {})['30'];
+  if (sh && sh >= 20) out.push(czNum(sh.toFixed(0)) + ' % své kategorie');
+  return out.slice(0, 3);
+}
+
+var EXIT_TEXT = {
+  nad_stropem: 'cena je nad stropem podle Hyperliquidu',
+  byznys_slabne: 'byznys přestává růst',
+  tema_zaostava: 'téma za poslední měsíc zaostává za BTC'
+};
+
+function degenCard(e){
+  var t30 = e.test30 || {}, l = e.liq || {}, c = circPct(e);
+  var gt = e.bench_capped ? '>' : '';
+  var fdv = fdvLower(e)
+    ? '<div class="dc-fdv warn" title="' + esc(fdvPotText(e)) + '">po plném odemčení u obou ' +
+      fmtMult(e.potential_fdv_shown) + (c !== null ? ' · v oběhu ' + czNum(c.toFixed(0)) + ' %' : '') + '</div>'
+    : '<div class="dc-fdv">' + (c !== null ? 'v oběhu ' + czNum(c.toFixed(0)) + ' % tokenů' : 'FDV neznámé') + '</div>';
+  var buy = l.source === 'dex' && l.impact_pct !== null
+    ? '≈ ' + czNum(l.impact_pct < 10 ? l.impact_pct.toFixed(1) : l.impact_pct.toFixed(0)) + ' % skluz · ' +
+      esc(l.dex || '') + (l.pair_url ? ' <a href="' + esc(l.pair_url) + '" target="_blank" rel="noopener">↗</a>' : '')
+    : (l.source === 'volume' ? 'burzy · obrat ' + fmtUsd(l.vol24h) + '/24 h' : '—');
+  var exits = (e.exit_flags || []).map(function(f){ return EXIT_TEXT[f]; }).filter(Boolean);
+  return '<article class="dcard" data-id="' + esc(e.key || e.slug) + '">' +
+    '<div class="dc-head">' + logoImg(e.logo_data, e.name, 30) +
+      '<div class="dc-name"><b>' + esc(e.name) + '</b><span class="sym">' + esc(e.symbol || '') + '</span></div>' +
+      themeChip(e, true) + '</div>' +
+    '<div class="dc-pot"><span class="dc-big">' + (e.bench_capped ? '&gt;' : '') + fmtMult(e.potential) + '</span>' +
+      '<span class="dc-money">' + fmtUsd(e.mcap) + ' → ' + gt + fmtUsd(e.mcap_at_bench) +
+      ' při ocenění jako ' + esc(BENCH.label || 'měřítko') + '</span></div>' +
+    fdv +
+    '<div class="dc-why">' + whyChips(e).map(function(w){ return '<span class="why">' + esc(w) + '</span>'; }).join('') + '</div>' +
+    '<div class="dc-risk">' + (e.young ? '<span class="tag warn" title="' + esc('Má jen ' + (e.hist_days || 0) +
+      ' dní dat — zatím není co prověřit.') + '">Nový</span>' : '') + accrualTag(e) + riskTags(e, 'card') + '</div>' +
+    '<dl class="dc-rows">' +
+      '<div><dt>Test 30×</dt><dd class="' + (t30.size_ok ? 'ok' : 'bad') + '">' + test30Html(e) + '</dd></div>' +
+      '<div><dt>Nákup $10K</dt><dd>' + buy + '</dd></div>' +
+      '<div><dt>Strop podle HL</dt><dd>' + gt + fmtPrice(e.price_at_bench) +
+        ' <span class="sub">dnes ' + fmtPrice(e.price) + '</span></dd></div>' +
+    '</dl>' +
+    (exits.length ? '<div class="dc-exit">Pozor: ' + esc(exits.join(', ')) + '.</div>' : '') +
+    '</article>';
+}
+
+/* What the pre-registered backtest (backtest.py, 30 monthly formations
+   2024–2026) says about these rules — shown ABOVE the cards, whatever it says.
+   The criteria were locked before the first result (prereg_hash). */
+function verdictHtml(bt){
+  if (!bt || !bt.verdict) {
+    return '<div class="reltitle">Zpětný test zatím neproběhl</div><div class="sub">Až doběhne, uvidíš tu, ' +
+      'jestli tahle pravidla historicky vybírala lepší coiny než náhoda.</div>';
+  }
+  var br = bt.base_rates || {}, all = br.all || {}, p10 = all.p10 || {}, p3 = (br.trusted || {}).p3 || {};
+  var items = [];
+  items.push('<li><b>Pořadí podle Potenciálu</b> — souvislost s výnosem za 3 měsíce ' +
+    czNum((bt.h1 && bt.h1.ic_mean || 0).toFixed(3)) + ' (od nuly nerozeznatelná). Horní pětina prověřených ' +
+    'udělala 3× o něco častěji (' + czNum((100 * ((bt.h2 || {}).top_rate || 0)).toFixed(1)) + ' % proti ' +
+    czNum((100 * ((bt.h2 || {}).base_rate || 0)).toFixed(1)) + ' %), ale průkazné to není.</li>');
+  var h3 = bt.h3 || {};
+  if (h3.diff_median !== null && h3.diff_median !== undefined) {
+    items.push('<li><b>Brány tohoto výběru</b> (bez likvidity, tu zpětně změřit nejde) — coiny, které by jimi ' +
+      'prošly, dopadly za půl roku proti BTC v mediánu o ' + czNum((100 * (1 - Math.exp(h3.diff_median))).toFixed(0)) +
+      ' % ' + (h3.diff_median < 0 ? 'hůř' : 'líp') + ' než ostatní' + (h3.n_pass_tokens ? ' (jen ' +
+      h3.n_pass_tokens + ' různých coinů)' : '') + '.</li>');
+  }
+  if (p10.n) {
+    items.push('<li><b>Kolik coinů udělalo 10×</b> za půl roku: ' + Math.round((p10.p || 0) * p10.n) + ' z ' +
+      String(p10.n).replace(/\B(?=(\d{3})+(?!\d))/g, ' ') + '. Aspoň 3× z prověřených ' +
+      czNum((100 * (p3.p || 0)).toFixed(1)) + ' %.</li>');
+  }
+  return '<div class="reltitle">Zpětný test 2024–2026: ' + esc(bt.verdict) + '</div>' +
+    '<ul class="rellist">' + items.join('') + '</ul>' +
+    '<div class="sub">Kritéria byla zapsaná a zamčená před prvním výsledkem. Karty níž proto ber jako ' +
+    'přehled s riziky, ne jako tip — že tahle pravidla najdou další 30×, data neukazují.</div>';
+}
+
+function renderStart(){
+  var byKey = {};
+  APPS.forEach(function(e){ byKey[e.key || e.slug] = e; });
+  var picks = (DEGEN.shortlist || []).map(function(k){ return byKey[k]; }).filter(Boolean);
+  var n = DEGEN.n_ok || 0, total = DEGEN.n_total || APPS.length;
+  document.getElementById('startTitle').textContent = n
+    ? n + ' z ' + total + ' appek splňuje všech 7 podmínek'
+    : 'Dnes nesplňuje všech 7 podmínek žádná appka';
+  document.getElementById('startLead').innerHTML =
+    'Levné proti výdělku, byznys roste, 30× by nepřerostlo největšího konkurenta, dá se koupit a téma má ' +
+    'při altseasonu vítr v zádech. Řazeno podle Potenciálu. <b>Ocenění 30× a víc (i po 30× levnější ' +
+    'než Hyperliquid) má dnes jen ' + (DEGEN.val30_trusted || 0) + ' prověřených appek</b> — karty proto ' +
+    'ukazují reálný prostor, ne slib.' + (DEGEN.stale_theme ? ' <b>Témata jsou z minulého běhu.</b>' : '');
+  renderAltStrip('startAlt');
+
+  // the three strongest themes (Sektory already sorts by beta) and what earns in them
+  document.getElementById('startThemes').innerHTML = THEMES.slice(0, 3).map(function(th){
+    var tags = (th.tags || []).map(function(k){ return (THEME_TAGS[k] || {}).label; }).filter(Boolean);
+    var pool = (th.kind === 'chains' ? CHAINS : APPS).filter(function(e){
+      return (e.theme || {}).key === th.key && (e.reliable || e.young); }).sort(compareBy('potential', -1));
+    return '<button type="button" class="thcard" data-theme="' + esc(th.key) + '"><span class="thn">' + esc(th.name) +
+      ' <span class="thb">β ' + (th.beta === null || th.beta === undefined ? '—' : czNum(th.beta.toFixed(2))) +
+      '</span></span><span>' + esc(betaWord(th.beta)) + (tags.length ? ' · ' + esc(tags.join(', ')) : '') + '</span>' +
+      (pool.length ? '<span class="sub">' + pool.slice(0, 3).map(function(e){
+        return esc(e.name) + ' ' + fmtMult(e.potential); }).join(' · ') + '</span>' : '') + '</button>';
+  }).join('');
+
+  document.getElementById('startCards').innerHTML = picks.length ? picks.map(degenCard).join('')
+    : '<div class="empty"><b>Žádný projekt dnes neprošel všemi podmínkami.</b><br>Nejblíž mají ty pod tímto textem.</div>';
+
+  var near = (DEGEN.near || []).map(function(k){ return byKey[k]; }).filter(Boolean);
+  var hist = DEGEN.fail_hist || {};
+  var histTxt = Object.keys(hist).filter(function(k){ return hist[k]; })
+    .sort(function(a, b){ return hist[b] - hist[a]; })
+    .map(function(k){ return k + ' ' + hist[k]; }).join(' · ');
+  document.getElementById('startNear').innerHTML =
+    '<div class="reltitle">Těsně neprošly — padly na jediné podmínce</div>' +
+    (near.length ? '<ul class="rellist">' + near.map(function(e){
+      var r = (e.degen_fail || [])[0], d = DEGEN_REASONS[r] || {};
+      return '<li class="' + (d.grey ? 'gate-grey' : '') + '"><a href="#" data-id="' + esc(e.key || e.slug) + '">' +
+        esc(e.name) + '</a> ' + fmtMult(e.potential) + ' — <b>' + esc(r) + '</b>: ' + esc(d.why ? d.why(e) : '') + '</li>';
+    }).join('') + '</ul>' : '<div class="sub">Žádné.</div>') +
+    '<div class="relbasis">Proč neprošly ostatní (projekt může padnout na víc podmínkách): ' + esc(histTxt) + '.</div>';
+
+  document.getElementById('startSell').innerHTML =
+    '<div class="reltitle">Kdy vybrat zisk</div><ul class="rellist">' +
+    '<li><b>Strop</b> — cena přeroste „strop podle HL": projekt je pak dražší než nejdražší velký protokol s revenue.</li>' +
+    '<li><b>Byznys</b> — revenue přestane růst (fáze Zpomaluje, Stagnace nebo Pokles).</li>' +
+    '<li><b>Téma</b> — téma začne za BTC zaostávat. Karta to u každého coinu hlídá a napíše „Pozor".</li></ul>' +
+    '<div class="relbasis">Vrchol netrefí nikdo. Tahle tři pravidla aspoň nejsou z nálady, ale z dat.</div>';
+  document.getElementById('startBlind').innerHTML =
+    '<div class="reltitle">Co tento nástroj nevidí</div><ul class="rellist">' +
+    '<li>Coiny bez revenue — memecoiny, AI tokeny bez adaptéru DeFiLlamy, čerstvé launche. Většina historických ' +
+    '30–50× byla právě takových. Hodnotu jim spočítat nejde; co v tématu už běží, ukáže panel tématu ' +
+    '(<a href="#" data-goto="sectors">Sektory</a>).</li>' +
+    '<li>Předpověď pumpy — na datech jsme ji ověřovali a nefunguje, proto ji tu nenajdeš.</li>' +
+    '<li>Zprávy, listingy na burzách a náladu na sítích.</li></ul>';
+
+  document.getElementById('startVerdict').innerHTML = verdictHtml(DATA.backtest_summary);
+  var led = DATA.picks_ledger || {};
+  var proof = led.since ? 'Záznam tipů běží od ' + fmtDate(led.since) + (led.ready
+      ? ' — výsledky minulých výběrů vs BTC: ' + (led.cohorts || []).slice(-3).map(function(c){
+          return fmtDate(c.ts, true) + ' ' + fmtPct(100 * (c.median_vs_btc || 0), 0); }).join(', ') + '.'
+      : '; první vyhodnocení po 4 týdnech.')
+    : 'Záznam tipů začíná touto aktualizací; první vyhodnocení po 4 týdnech.';
+  proof += '<br>Tohle není investiční doporučení. Nástroj třídí veřejná data podle pravidel, která tu vidíš; ' +
+    'co udělá 30×, dopředu nepozná nikdo.';
+  document.getElementById('startProof').innerHTML = proof;
+
+  var view = document.getElementById('view-start');
+  view.querySelectorAll('.dcard').forEach(function(c){
+    c.addEventListener('click', function(){ openPanel(c.dataset.id); });
+  });
+  view.querySelectorAll('.dcard a, .dcard .themechip').forEach(function(a){
+    a.addEventListener('click', function(ev){
+      ev.stopPropagation();
+      if (a.classList.contains('themechip')) openThemePanel(a.dataset.theme);
+    });
+  });
+  view.querySelectorAll('.thcard').forEach(function(b){
+    b.addEventListener('click', function(){ openThemePanel(b.dataset.theme); });
+  });
+  view.querySelectorAll('#startNear a[data-id]').forEach(function(a){
+    a.addEventListener('click', function(ev){ ev.preventDefault(); openPanel(a.dataset.id); });
+  });
+  view.querySelectorAll('a[data-goto]').forEach(function(a){
+    a.addEventListener('click', function(ev){ ev.preventDefault(); setView(a.dataset.goto); });
+  });
+}
+
+/* ================= view switching ================= */
+function setView(v){
+  state.view = v;
+  document.querySelectorAll('nav.tabs button').forEach(function(b){
+    b.classList.toggle('active', b.dataset.view === v);
+  });
+  ['start', 'apps', 'chains', 'sectors'].forEach(function(k){
+    var el = document.getElementById('view-' + k);
+    if (el) el.classList.toggle('active', k === v);
+  });
+  var listy = (v === 'apps' || v === 'chains');
+  document.getElementById('listControls').style.display = listy ? '' : 'none';
+  // chains are never in the degen selection (their multiple is against the
+  // median chain), so the third switch position exists only for apps
+  document.getElementById('degenBtn').hidden = v === 'chains';
+  if (v === 'chains' && state.trustMode === 'degen') setTrustMode('reliable');
+  closePanel();
+  if (listy) {
+    if (!sortValue({}, state.sortKey) && state.sortKey === 'rev' && v === 'chains') state.sortKey = 'potential';
+    renderList();
+    renderLeaderboard();
+  } else if (v === 'start') {
+    renderStart();
+  } else {
+    renderSectorsView();
+  }
+}
+
+function setTrustMode(mode){
+  state.trustMode = mode;
+  document.querySelectorAll('#trustSwitch button').forEach(function(x){
+    x.classList.toggle('active', x.dataset.mode === mode);
+  });
+}
+
+/* ================= wiring ================= */
+buildSectorHeat();
+
+document.querySelectorAll('nav.tabs button').forEach(function(b){
+  b.addEventListener('click', function(){ setView(b.dataset.view); });
+});
+
+document.querySelectorAll('#trustSwitch button').forEach(function(b){
+  b.addEventListener('click', function(){
+    setTrustMode(b.dataset.mode);
+    renderList();
+  });
+});
+
+var searchInput = document.getElementById('searchInput');
+searchInput.addEventListener('input', function(){ state.search = searchInput.value; renderList(); });
+
+var floorRange = document.getElementById('floorRange');
+floorRange.addEventListener('input', function(){
+  state.floorIdx = parseInt(floorRange.value, 10);
+  document.getElementById('floorVal').textContent = fmtUsd(floorValue());
+  renderList();
+});
+document.getElementById('floorVal').textContent = fmtUsd(floorValue());
+
+document.getElementById('panelClose').addEventListener('click', closePanel);
+document.getElementById('scrim').addEventListener('click', closePanel);
+document.addEventListener('keydown', function(ev){
+  if (ev.key === 'Escape') { closePanel(); closePopover(); }
+});
+document.addEventListener('click', function(ev){
+  if (popoverOwner && !popover.contains(ev.target) && ev.target !== popoverOwner) closePopover();
+});
+
+var rtimer = null;
+window.addEventListener('resize', function(){
+  clearTimeout(rtimer);
+  rtimer = setTimeout(function(){
+    if (state.view === 'apps' || state.view === 'chains') renderLeaderboard();
+    if (state.view === 'sectors') renderThemeScatter();
+    if (state.selectedTheme) openThemePanel(state.selectedTheme);
+    else if (state.selectedId) openPanel(state.selectedId);
+  }, 180);
+});
+
+function onThemeChange(){
+  if (state.view === 'apps' || state.view === 'chains') renderLeaderboard();
+  if (state.view === 'sectors') renderThemeScatter();
+  if (state.selectedTheme) openThemePanel(state.selectedTheme);
+  else if (state.selectedId) openPanel(state.selectedId);
+}
+if (window.matchMedia) {
+  var mq = window.matchMedia('(prefers-color-scheme: dark)');
+  if (mq.addEventListener) mq.addEventListener('change', onThemeChange);
+}
+new MutationObserver(onThemeChange).observe(document.documentElement,
+  {attributes: true, attributeFilter: ['data-theme']});
+
+/* meta line + sticky shadow */
+(function(){
+  var t = DATA.generated_at ? new Date(DATA.generated_at * 1000) : null;
+  document.getElementById('metaTime').textContent = t
+    ? t.toLocaleString('cs-CZ', {day: 'numeric', month: 'numeric', year: 'numeric',
+                                hour: '2-digit', minute: '2-digit'})
+    : '—';
+  document.getElementById('metaFloor').textContent = fmtUsd(DATA.collection_floor_usd_30d || 0);
+  document.getElementById('metaApps').textContent = APPS.length;
+  document.getElementById('metaChains').textContent = CHAINS.length;
+
+  // A refresh that came back incomplete must say so on the page, not only in
+  // the log nobody opens (the rate limiter once cost X Layer all its data).
+  var nw = DATA.fetch_warning_count || 0;
+  if (nw) {
+    var chip = document.createElement('span');
+    chip.className = 'warnchip';
+    chip.textContent = '⚠ neúplná data (' + nw + ')';
+    chip.title = 'Při posledním stahování se ' + nw + ' dotazů na API nepodařilo ani po opakování ' +
+      '— čísla u dotčených projektů můžou chybět nebo být starší. Zkus Aktualizovat data.\n\n' +
+      (DATA.fetch_warnings || []).slice(0, 8).join('\n');
+    document.querySelector('.meta').appendChild(chip);
+  }
+
+  var top = document.querySelector('.stickytop');
+  window.addEventListener('scroll', function(){
+    top.classList.toggle('scrolled', window.scrollY > 4);
+  }, {passive: true});
+})();
+
+/* exclusion notes */
+(function(){
+  var ex = DATA.excluded || {};
+  var chainsNote = document.getElementById('excludeChainsNote');
+  var list = ex.chains_no_token || [];
+  if (list.length) {
+    chainsNote.innerHTML = '<b>' + list.length + ' chainů</b> nad prahem revenue vyřazeno, ' +
+      'protože nemají vlastní token — nedá se je koupit: ' +
+      list.slice(0, 6).map(function(c){ return esc(c.name); }).join(', ') + '.';
+  } else { chainsNote.style.display = 'none'; }
+
+  var appsNote = document.getElementById('excludeAppsNote');
+  if (ex.apps_no_token_count) {
+    appsNote.innerHTML = '<b>' + ex.apps_no_token_count + ' appek</b> vyřazeno bez tokenu ' +
+      '(burzovní rozhraní, custodiální peněženky, bankovní infrastruktura) a <b>' +
+      (ex.untradeable_count || 0) + '</b> neobchodovatelných. Do sektorových součtů se ' +
+      'ale započítávají — „roste ten koláč?" je otázka o celém koláči.';
+  } else { appsNote.style.display = 'none'; }
+})();
+
+/* ================= refresh (app.py only) =================
+   window.GEM_SERVED is stamped in at build time: app.py sets true,
+   build_viewer.py leaves false. Probing instead would make the published
+   artifact fire a fetch that can only fail — a console error on every load. */
+(function(){
+  if (!window.GEM_SERVED) return;
+  var btn = document.getElementById('refreshBtn');
+  var lbl = document.getElementById('refreshLabel');
+  var startedAt = DATA.generated_at || 0;
+  var poll = null;
+
+  btn.hidden = false;
+  if (startedAt && (Date.now() / 1000 - startedAt) > 86400) btn.classList.add('stale');
+
+  function setLabel(text, progress){
+    lbl.innerHTML = esc(text) + (progress ? ' <span class="rprog">' + esc(progress) + '</span>' : '');
+  }
+  function progressOf(lines){
+    for (var i = lines.length - 1; i >= 0; i--) {
+      var m = /(\d+)\/(\d+)/.exec(lines[i]);
+      if (m) return m[1] + '/' + m[2];
+    }
+    return '';
+  }
+  function busy(on){
+    btn.disabled = on;
+    btn.classList.toggle('busy', on);
+    if (on) btn.classList.remove('stale');
+  }
+  function stopPolling(){ if (poll) { clearInterval(poll); poll = null; } }
+
+  function check(){
+    fetch('/api/status').then(function(r){ return r.json(); }).then(function(s){
+      if (s.running) { setLabel('Stahuji data', progressOf(s.lines || [])); return; }
+      stopPolling();
+      if (s.error) { busy(false); setLabel('Chyba — zkusit znovu'); btn.title = s.error; return; }
+      if (s.generated_at && s.generated_at !== startedAt) { setLabel('Hotovo, načítám'); location.reload(); return; }
+      busy(false); setLabel('Aktualizovat data');
+    }).catch(function(){ stopPolling(); busy(false); setLabel('Server neodpovídá'); });
+  }
+
+  btn.addEventListener('click', function(){
+    busy(true); setLabel('Spouštím');
+    fetch('/api/refresh', {method: 'POST'}).then(function(r){
+      if (r.status === 409) setLabel('Už běží');
+      stopPolling();
+      poll = setInterval(check, 2000);
+      check();
+    }).catch(function(){ busy(false); setLabel('Server neodpovídá'); });
+  });
+
+  fetch('/api/status').then(function(r){ return r.json(); }).then(function(s){
+    if (s.running) {
+      busy(true);
+      setLabel('Stahuji data', progressOf(s.lines || []));
+      poll = setInterval(check, 2000);
+    }
+  }).catch(function(){});
+
+  /* Quit. */
+  var quit = document.getElementById('quitBtn');
+  quit.hidden = false;
+  quit.addEventListener('click', function(){
+    quit.disabled = true;
+    quit.textContent = 'Ukončuji';
+    if (typeof keepAlive !== 'undefined') clearInterval(keepAlive);
+    stopPolling();
+    fetch('/api/quit', {method: 'POST'}).catch(function(){}).then(function(){
+      document.body.innerHTML =
+        '<div class="deadnote"><h2>Program ukončen</h2>' +
+        'Tohle okno můžeš zavřít. Data zůstala uložená, takže příští spuštění ' +
+        'naskočí okamžitě — stahovat je bude až tehdy, když budou starší než 12 hodin.' +
+        '<p>Znovu: <code>GemScreener.exe</code></p></div>';
+    });
+  });
+
+  /* Keep the server alive while you are actually looking at the page. Without
+     this the 30-minute idle watchdog kills it under an open window, because a
+     page that is just sitting there makes no requests. Switch tabs away and the
+     pings stop, so a forgotten window does not keep the process forever. */
+  // …and stop the moment the server is gone (Ukončit, the 30-minute idle exit,
+  // or the process being killed): pinging a dead server every minute filled
+  // the console with ERR_CONNECTION_REFUSED and told the user nothing.
+  var keepAlive = setInterval(function(){
+    if (document.hidden) return;
+    fetch('/api/status').catch(function(){
+      clearInterval(keepAlive);
+      stopPolling();
+      btn.disabled = true;
+      btn.classList.remove('busy');
+      setLabel('Server neběží — spusť GemScreener znovu');
+      quit.hidden = true;
+    });
+  }, 60000);
+})();
+
+/* ================= go ================= */
+setView('start');
+})();
+</script>

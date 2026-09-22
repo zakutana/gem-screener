@@ -1,0 +1,124 @@
+# Gem Screener — sběr dat, audity a zveřejnění na GitHub Pages.
+#
+# Každých 6 hodin (a po každém pushnutí kódu) spustí collector, pak všechny tři
+# audity. Na web jde jen snapshot, který audity prošel: když cokoli selže, stránka
+# zůstane na poslední dobré verzi a GitHub pošle e-mail o neúspěšném běhu.
+#
+# Mezi běhy si pamatuje cache (koše témat, adresy tokenů, DexScreener, unlocky)
+# a minulý snapshot přes actions/cache. Záznam tipů (picks_ledger.jsonl) se
+# commituje do repa: je to dopředný test výběru a nesmí se ztratit s cache.
+# Commit každých 6 h zároveň drží repo aktivní — GitHub jinak po 60 dnech bez
+# aktivity naplánované běhy vypne.
+name: Aktualizace Gem Screeneru
+
+on:
+  schedule:
+    - cron: "17 */6 * * *"      # 4× denně, mimo celou hodinu (ty GitHub zdržuje)
+  workflow_dispatch:             # ruční spuštění z karty Actions
+  push:
+    branches: [main]
+    paths:
+      - "template.html"
+      - "collector.py"
+      - "themes.py"
+      - "liquidity.py"
+      - "unlocks.py"
+      - "build_viewer.py"
+      - "backtest_summary.json"
+      - ".github/workflows/update.yml"
+
+permissions:
+  contents: write     # commit záznamu tipů
+  pages: write
+  id-token: write
+
+concurrency:
+  group: gem-screener-update
+  cancel-in-progress: false
+
+jobs:
+  update:
+    runs-on: ubuntu-latest
+    timeout-minutes: 40
+    environment:
+      name: github-pages
+      url: ${{ steps.deploy.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v7
+
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.13"
+
+      - uses: actions/setup-node@v7
+        with:
+          node-version: "22"
+
+      - name: Závislosti
+        run: pip install requests
+
+      - name: Obnovit cache z minulého běhu
+        uses: actions/cache/restore@v6
+        with:
+          path: |
+            snapshot.json
+            baskets_cache.json
+            platforms_cache.json
+            dex_cache.json
+            unlocks_cache.json
+          key: gem-data-${{ github.run_id }}
+          restore-keys: gem-data-
+
+      - name: Sběr dat
+        env:
+          COINGECKO_DEMO_KEY: ${{ secrets.COINGECKO_DEMO_KEY }}
+          PYTHONIOENCODING: utf-8
+        run: python collector.py
+
+      - name: Uložit cache pro příští běh
+        uses: actions/cache/save@v6
+        with:
+          path: |
+            snapshot.json
+            baskets_cache.json
+            platforms_cache.json
+            dex_cache.json
+            unlocks_cache.json
+          key: gem-data-${{ github.run_id }}
+
+      - name: Audity (bez průchodu se nic nezveřejní)
+        env:
+          PYTHONIOENCODING: utf-8
+        run: |
+          python audit.py
+          python audit_sectors.py
+          node audit_static.js
+
+      - name: Sestavit stránku
+        run: |
+          python build_viewer.py
+          mkdir -p site
+          cp gem_screener.html site/index.html
+          cp backtest_report.html site/backtest_report.html
+
+      - name: Zapsat záznam tipů do repa
+        run: |
+          git config user.name "gem-screener-bot"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add picks_ledger.jsonl
+          if ! git diff --cached --quiet; then
+            git commit -m "data: záznam tipů $(date -u '+%Y-%m-%d %H:%M UTC')"
+            # the run rewrote the seeded caches; they travel in actions/cache,
+            # not in git, so stash them out of the way of the rebase
+            git pull --rebase --autostash
+            git push
+          fi
+
+      - uses: actions/configure-pages@v6
+
+      - uses: actions/upload-pages-artifact@v5
+        with:
+          path: site
+
+      - id: deploy
+        uses: actions/deploy-pages@v5
