@@ -1,5 +1,5 @@
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
 <title>Gem Screener</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -24,6 +24,7 @@
 }
 @media (prefers-color-scheme: dark){
   :root:not([data-theme="light"]){
+    color-scheme:dark;
     --paper:#131110; --surface:#1B1816; --surface-2:#211D1A; --surface-sunk:#0E0C0B;
     --ink:#F3EEE5; --ink-2:#C2B9AC; --muted:#8C8175;
     --rule:#2C2723; --rule-soft:#221E1B;
@@ -38,6 +39,7 @@
   }
 }
 :root[data-theme="dark"]{
+  color-scheme:dark;
   --paper:#131110; --surface:#1B1816; --surface-2:#211D1A; --surface-sunk:#0E0C0B;
   --ink:#F3EEE5; --ink-2:#C2B9AC; --muted:#8C8175;
   --rule:#2C2723; --rule-soft:#221E1B;
@@ -58,7 +60,7 @@ html, body{height:100%}
    their backgrounds and rules run edge to edge, but their CONTENT is pinned to
    the same centred column — otherwise on an ultrawide monitor the name column
    swallows ~1100px of dead space. */
-:root{ --gutter:clamp(14px,3vw,32px); --maxw:1400px; }
+:root{ --gutter:clamp(16px,3vw,32px); --maxw:1400px; }
 .measure{ padding-inline:max(var(--gutter), calc((100% - var(--maxw)) / 2)); }
 body{
   margin:0; background:var(--paper); color:var(--ink);
@@ -77,7 +79,7 @@ button{font-family:inherit}
 /* Header + tabs + window/floor controls stick together as one unit, so the
    time filter never scrolls out of reach. A shadow only appears once the page
    has actually scrolled under it — cheap and avoids a hardcoded shadow on load. */
-.stickytop{position:sticky; top:0; z-index:20}
+.stickytop{position:sticky; top:env(safe-area-inset-top, 0px); z-index:20}
 .stickytop::after{
   content:""; position:absolute; left:0; right:0; top:100%; height:10px; pointer-events:none;
   background:linear-gradient(rgba(0,0,0,.10), transparent); opacity:0;
