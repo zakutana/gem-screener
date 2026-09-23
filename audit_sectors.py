@@ -1,5 +1,5 @@
 """
-Independent audit of the sector aggregates and the eleven themes (v12).
+Independent audit of the sector aggregates and the twelve themes (v12, Infra since v14).
 
 App sectors are built from the FULL DeFiLlama universe — including the ~213
 adapters with no token, which never appear as rows — so they cannot be checked
@@ -250,7 +250,7 @@ def a_regress(xs, ys):
     return b, rho, se, n
 
 
-head("5. TEMATA — 11 radku, krizova mapa kategorii")
+head("5. TEMATA — radky a krizova mapa kategorii")
 print("  temat: %d" % len(THEMES_D))
 if not THEMES_D:
     FAILS.append("snapshot nema zadna temata")

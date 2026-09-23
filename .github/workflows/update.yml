@@ -24,6 +24,7 @@ on:
       - "liquidity.py"
       - "unlocks.py"
       - "build_viewer.py"
+      - "requirements.txt"
       - "backtest_summary.json"
       - ".github/workflows/update.yml"
 
@@ -55,7 +56,7 @@ jobs:
           node-version: "22"
 
       - name: Závislosti
-        run: pip install requests
+        run: pip install -r requirements.txt
 
       - name: Obnovit cache z minulého běhu
         uses: actions/cache/restore@v6

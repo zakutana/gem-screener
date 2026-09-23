@@ -1393,9 +1393,12 @@ def exit_flags(e):
 
 
 def degen_version():
+    """Stamped on every picks-ledger line. It covers the theme join too: which
+    theme a row gets decides two gates (theme, Test 30× ceiling), so the
+    2026-09-23 ladder that gave the 67 themeless apps a theme is a new cohort."""
     raw = json.dumps([DEGEN_MIN_REV30, DEGEN_MIN_POTENTIAL, TEST_MULT, SIZE_CEILING_RULE,
                       liquidity.TICKET, liquidity.MAX_IMPACT_PCT, liquidity.VOL_PASS,
-                      DEGEN_REASONS], ensure_ascii=False)
+                      DEGEN_REASONS, themes.row_join_version()], ensure_ascii=False)
     import hashlib
     return hashlib.sha1(raw.encode("utf-8")).hexdigest()[:12]
 
@@ -1972,7 +1975,7 @@ def run(log=None, data_dir=None):
     sectors_apps = build_sectors_v11(ctx)
     sectors_chains = build_sectors(chains_scored, "tvl_series", "category", stock=True)
 
-    # The eleven themes of the Sektory tab. A CoinGecko outage must not cost
+    # The twelve themes of the Sektory tab. A CoinGecko outage must not cost
     # the refresh: themes.py falls back to its basket cache, then to the last
     # snapshot's members, then to seed baskets.
     prev = None
@@ -1992,7 +1995,12 @@ def run(log=None, data_dir=None):
 
     # Rows learn their theme only now: themes are measured after compute_metrics,
     # and Test 30× measures a category leader against its theme's biggest coin.
-    themes.attach_themes(apps_scored, chains_scored, th["themes"], stale=bool(th.get("stale")))
+    # On the stale path there are no CoinGecko candidates, so the join skips its
+    # CoinGecko steps and theme_join.changed shows who moved because of it.
+    theme_join = themes.attach_themes(apps_scored, chains_scored, th["themes"],
+                                      stale=bool(th.get("stale")), cg_members=th.get("cg_members"),
+                                      prev_snapshot=prev)
+    ctx.log("témata řádků: %s" % ", ".join("%s %d" % kv for kv in theme_join["counts"].items()))
     apply_test30(apps_scored, chains_scored, th["themes"])
     degen = apply_degen(apps_scored, chains_scored, bool(th.get("stale")), prev)
     ctx.log("pro degena: %d z %d appek splňuje všech 7 podmínek" % (degen["n_ok"], degen["n_total"]))
@@ -2058,6 +2066,7 @@ def run(log=None, data_dir=None):
         "theme_anomalies": th["theme_anomalies"],
         "unmapped": th["unmapped"],
         "themes_stale": bool(th.get("stale")),
+        "theme_join": theme_join,
         "fetch_warnings": ctx.warnings[:40],
         "fetch_warning_count": len(ctx.warnings),
         "excluded": {

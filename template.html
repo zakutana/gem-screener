@@ -301,16 +301,20 @@ tbody tr:last-child td{border-bottom:0}
 .catrow{display:inline-flex; align-items:center; gap:8px; white-space:nowrap}
 /* The theme a row belongs to — the join Sektory never made. Same colour logic as
    the Sektory table: green = strong amplifier (tier 5), blue = already leading
-   or fundament rising, muted = no tailwind. Outlined, so it never competes with
-   the potential multiple for attention. */
+   or fundament rising, neutral = no tailwind. Outlined, so it never competes with
+   the potential multiple for attention — but the neutral chip must still read as
+   a chip: on the dark rows a --rule border vanished and it looked like no theme. */
 .themechip{
   appearance:none; cursor:pointer; font-family:inherit; font-size:10.5px; line-height:1.5;
-  padding:0 7px; border-radius:99px; border:1px solid var(--rule); background:transparent;
-  color:var(--muted); white-space:nowrap;
+  padding:0 7px; border-radius:99px; background:transparent; white-space:nowrap;
+  border:1px solid color-mix(in srgb, var(--muted) 65%, transparent); color:var(--ink-2);
 }
 .themechip.strong{border-color:var(--gem); color:var(--gem)}
 .themechip.lead{border-color:var(--accent); color:var(--accent)}
 .themechip:hover{background:var(--accent-soft)}
+/* a category no theme claims yet (a brand-new DeFiLlama category): shown, not hidden */
+.themechip.none{border-style:dashed; cursor:help}
+.themechip.none:hover{background:transparent}
 /* Potential after full unlock, printed only when the coin dilutes more than the
    benchmark: outlined coral, the "number is sound, the token may not benefit"
    language of Bez podílu. */
@@ -954,7 +958,10 @@ var THEME_EN = {
   gaming: {name: 'Gaming', blurb: 'Blockchain games and gaming ecosystems.'},
   defi: {name: 'DeFi lending & staking', blurb: 'Lending, CDPs and liquid staking — the yield backbone of DeFi.'},
   l1: {name: 'L1', blurb: 'Layer-1 blockchains. Coins that already belong to another theme (ZEC, HYPE…) are not counted here.'},
-  l2: {name: 'L2', blurb: 'Layer-2 rollups. The fundamentals include chains without a token, mainly Base.'}
+  l2: {name: 'L2', blurb: 'Layer-2 rollups. The fundamentals include chains without a token, mainly Base.'},
+  infra: {name: 'Infrastructure', blurb: 'Bridges, oracles, wallets, domains and other services the rest ' +
+    'is built on. A residual theme: it only gets what no more specific narrative claims; chain tokens ' +
+    'belong to L1/L2.'}
 };
 /* A theme by key, or a row's {key, name} theme object → its display name. */
 function themeName(t){
@@ -983,7 +990,8 @@ var DROP_EN = {
   'BTC je měřítko, ne člen': 'BTC is the benchmark, not a member',
   'wrapped / staked / tokenizované aktivum': 'wrapped / staked / tokenized asset',
   'stablecoin': 'stablecoin',
-  'nechová se jako rizikové aktivum (zlato, dluhopis)': 'does not trade like a risk asset (gold, bonds)'
+  'nechová se jako rizikové aktivum (zlato, dluhopis)': 'does not trade like a risk asset (gold, bonds)',
+  'token chainu': 'a chain’s own token (belongs to L1/L2)'
 };
 function dropReason(r){
   var s = String(r || ''), m;
@@ -1461,7 +1469,7 @@ function compareBy(key, dir){ return compareWith(sortValue, key, dir); }
 var COLS_APPS = [
   {key: 'rank',      label: '#',                 tight: true,  sortable: false},
   {key: 'name',      label: 'Projekt',           en: 'Project', left: true,   sortable: false},
-  {key: 'category',  label: 'Kategorie · podíl', en: 'Category · share', left: true, tight: true, sortable: true, info: 'share'},
+  {key: 'category',  label: 'Kategorie · podíl · téma', en: 'Category · share · theme', left: true, tight: true, sortable: true, info: 'share'},
   {key: 'mcap',      label: 'Market Cap',        tight: true,  sortable: true},
   {key: 'rev',       label: 'Revenue 30d',       tight: true,  sortable: true},
   {key: 'monthly',   label: '12 měsíců',         en: '12 months', tight: true,  sortable: true, info: 'monthly'},
@@ -1474,7 +1482,7 @@ var COLS_APPS = [
 var COLS_CHAINS = [
   {key: 'rank',      label: '#',                 tight: true,  sortable: false},
   {key: 'name',      label: 'Chain',             left: true,   sortable: false},
-  {key: 'category',  label: 'Vrstva · podíl',    en: 'Layer · share', left: true, tight: true, sortable: true, info: 'share'},
+  {key: 'category',  label: 'Vrstva · podíl · téma', en: 'Layer · share · theme', left: true, tight: true, sortable: true, info: 'share'},
   {key: 'mcap',      label: 'Market Cap',        tight: true,  sortable: true},
   {key: 'stables',   label: 'Stablecoiny',       en: 'Stablecoins', tight: true,  sortable: true, info: 'adoption'},
   {key: 'monthly',   label: '12 měsíců',         en: '12 months', tight: true,  sortable: true, info: 'monthly'},
@@ -1537,21 +1545,38 @@ function categoryCell(e){
 }
 
 /* The row's theme from Sektory — "does this ride the altseason wave?" answered
-   on the row itself. A click opens the theme, with every app that belongs to it. */
-function themeChip(e, always){
+   on EVERY row. It used to hide when the theme repeated the category ("RWA"
+   under "RWA"), and the missing chips read as missing themes. A click opens
+   the theme, with every app that belongs to it; the tooltip says where the
+   theme came from (the ladder in themes.app_theme). */
+var THEME_SOURCE = {
+  override: function(){ return L('Téma určené ručně.', 'Theme set by hand.'); },
+  category: function(e){ return L('Podle kategorie DeFiLlamy „' + (e.category || '—') + '“.',
+                                  'From DeFiLlama category "' + (e.category || '—') + '".'); },
+  coingecko: function(){ return L('CoinGecko řadí coin do tohoto tématu.', 'CoinGecko files the coin under this theme.'); },
+  nearest: function(e){ return L('Nejbližší téma ke kategorii „' + (e.category || '—') +
+                                 '“ — její revenue se do fundamentu tématu nepočítá.',
+                                 'Nearest theme to category "' + (e.category || '—') +
+                                 '" — its revenue is not part of the theme’s fundamentals.'); },
+  basket: function(){ return L('Coin je v koši tématu.', 'The coin is in the theme’s basket.'); },
+  layer: function(){ return L('Podle vrstvy chainu.', 'From the chain’s layer.'); }
+};
+function themeChip(e){
   var t = e.theme;
-  // "RWA" under "RWA" (or "L2" under "L2 / rollup") read as a bug; the theme is
-  // still one click away in Sektory. A Start card has no category chip, so it
-  // always shows the theme.
-  var tn = (t && t.name || '').toLowerCase(), cn = (e.category || '').toLowerCase();
-  if (!t || !tn || (!always && cn && (cn.indexOf(tn) === 0 || tn.indexOf(cn) === 0))) return '';
+  if (!t || !t.key) {
+    return '<span class="themechip none" title="' + esc(L(
+      'Kategorie „' + (e.category || '—') + '“ zatím nepatří k žádnému tématu a CoinGecko coin do žádného neřadí.',
+      'Category "' + (e.category || '—') + '" has no theme yet and CoinGecko files the coin under none.')) +
+      '">' + esc(L('Bez tématu', 'No theme')) + '</span>';
+  }
   var tags = t.tags || [];
   var cls = t.tier === 5 ? ' strong'
     : ((tags.indexOf('leads') >= 0 || tags.indexOf('fund_up') >= 0) ? ' lead' : '');
   var labels = tags.map(tagLabel).filter(Boolean);
+  var why = THEME_SOURCE[t.source] ? ' ' + THEME_SOURCE[t.source](e) : '';
   var tip = L('Téma ', 'Theme ') + themeName(t) + (t.beta !== null && t.beta !== undefined ? ': ' + betaWord(t.beta) : '') +
     (labels.length ? '. ' + labels.join(', ') : '') + (t.stale ? L('. Z minulého běhu.', '. From the previous run.') : '.') +
-    L(' Klikni pro celé téma.', ' Click for the whole theme.');
+    why + L(' Klikni pro celé téma.', ' Click for the whole theme.');
   return '<button type="button" class="themechip' + cls + '" data-theme="' + esc(t.key) + '" title="' +
     esc(tip) + '">' + esc(themeName(t)) + '</button>';
 }
@@ -1871,7 +1896,7 @@ function renderList(){
   tbody.querySelectorAll('tr[data-id]').forEach(function(tr){
     tr.addEventListener('click', function(){ openPanel(tr.dataset.id); });
   });
-  tbody.querySelectorAll('.themechip').forEach(function(b){
+  tbody.querySelectorAll('.themechip[data-theme]').forEach(function(b){
     b.addEventListener('click', function(ev){ ev.stopPropagation(); openThemePanel(b.dataset.theme); });
   });
   if (state.selectedId) {
@@ -2043,7 +2068,7 @@ function renderLeaderboard(){
 }
 
 /* ================= sectors = themes =================
-   Eleven themes instead of 70 revenue categories + 50 CoinGecko narratives.
+   Twelve themes instead of 70 revenue categories + 50 CoinGecko narratives.
    Each row joins a price basket with a fundament, and the default order is
    BETA TO BTC — the direct answer to "which theme gets hottest if altseason
    starts". There is no composite score; the columns are the reasons. */
@@ -2452,11 +2477,13 @@ function renderThemesNote(){
   var el = document.getElementById('themesNote');
   var parts = [];
   if (UNMAPPED && UNMAPPED.rev30d) {
-    parts.push(L('<b>Nezařazeno ', '<b>Unassigned ') + fmtUsd(UNMAPPED.rev30d) + L('/30 d (', '/30d (') +
-      czNum((UNMAPPED.share_pct || 0).toFixed(1)) +
-      L(' % revenue)</b> — kategorie, které nepatří žádnému tématu: ',
-        '% of revenue)</b> — categories that belong to no theme: ') + esc((UNMAPPED.top || []).join(', ')) +
-      L('. V Apps je dál uvidíš u jednotlivých projektů.', '. You still see them on individual projects in Apps.'));
+    parts.push(L('<b>Mimo fundamenty ', '<b>Outside every fundament ') + fmtUsd(UNMAPPED.rev30d) +
+      L('/30 d (', '/30d (') + czNum((UNMAPPED.share_pct || 0).toFixed(1)) +
+      L(' % revenue)</b> — kategorie, jejichž revenue se do žádného tématu nepočítá: ',
+        '% of revenue)</b> — categories whose revenue counts in no theme: ') +
+      esc((UNMAPPED.top || []).join(', ')) +
+      L('. Jejich projekty téma přesto mají — podle CoinGecka nebo nejbližší kategorie.',
+        '. Their projects still carry a theme — from CoinGecko or the nearest category.'));
   }
   if (DATA.themes_stale) {
     parts.push(L('<b>Témata jsou z minulého běhu</b> — tentokrát je nešlo spočítat.',
@@ -2464,11 +2491,13 @@ function renderThemesNote(){
   }
   parts.push(L('Koše: top 15 coinů z kategorií CoinGecka, váhy podle odmocniny market capu (max 25 % ' +
     'na coin), aby téma nebylo synonymem pro jeden coin. Relativní síla se počítá na koši, jak ' +
-    'vypadal na začátku období — jinak by zmizelé memecoiny nepočítaly a výnosy by vypadaly lépe.',
+    'vypadal na začátku období — jinak by zmizelé memecoiny nepočítaly a výnosy by vypadaly lépe. ' +
+    'Zbytková témata (L1, L2, Infrastruktura) nepočítají coiny, které patří konkrétnějšímu tématu.',
     'Baskets: the top 15 coins from CoinGecko categories, weighted by the square root of market cap ' +
     '(max 25% per coin) so that a theme is not a synonym for one coin. Relative strength is computed on ' +
     'the basket as it stood at the start of the period — otherwise vanished memecoins would not count ' +
-    'and returns would look better.'));
+    'and returns would look better. Residual themes (L1, L2, Infrastructure) leave out coins that ' +
+    'belong to a more specific theme.'));
   el.innerHTML = parts.join('<br>');
 }
 
@@ -2654,9 +2683,23 @@ function themeRowsBlock(th){
       '<p class="sub" style="margin-top:8px">' + L('Prověřené: ', 'Vetted: ') + shown.length +
       (hidden ? L(' · skryté neprověřené: ' + hidden + ' (najdeš je v ' + g[3] +
         ' v režimu „Vše podle potenciálu")', ' · hidden, not vetted: ' + hidden + ' (find them in ' + g[3] +
-        ' in “All by upside” mode)') : '') + '.</p>';
+        ' in “All by upside” mode)') : '') + '.</p>' +
+      (g[0] === 'apps' ? themeSourcesLine(all) : '');
   });
   return out;
+}
+
+/* How the theme's apps got here (themes.app_theme): "nearest" apps wear the
+   chip, but their category's revenue is not in this theme's fundament. */
+function themeSourcesLine(rows){
+  var n = {override: 0, category: 0, coingecko: 0, nearest: 0};
+  rows.forEach(function(e){ var s = (e.theme || {}).source; if (s in n) n[s] += 1; });
+  var parts = [];
+  if (n.category + n.override) parts.push(L('podle kategorie ', 'by category ') + (n.category + n.override));
+  if (n.coingecko) parts.push(L('podle CoinGecka ', 'by CoinGecko ') + n.coingecko);
+  if (n.nearest) parts.push(L('nejbližší kategorie ', 'nearest category ') + n.nearest +
+    L(' (jejich revenue do fundamentu nepočítáme)', ' (their revenue is not in the fundamentals)'));
+  return parts.length ? '<p class="sub">' + L('Přiřazení: ', 'Assigned: ') + parts.join(' · ') + '.</p>' : '';
 }
 
 /* ================= detail panel ================= */
@@ -2962,15 +3005,17 @@ var INFO_TEXT = {
       '<span class="pk">Tohle je přímá odpověď na „co bude nejvíc hot, kdyby začala altseason". ' +
       'Počítá se z 52 týdenních výnosů koše, ne z denních — denní šum betu u krypta ' +
       'systematicky podhodnocuje.</span>' +
-      '<span class="pk">Tři pásma: ≥ 1,3 silné, 0,95–1,3 střední, pod 0,95 slabé. Jemněji to ' +
-      'rok dat nerozliší.</span>',
+      '<span class="pk">Tři pásma podle toho, co odhad unese: silné, když beta i po odečtení své ' +
+      'nejistoty zůstane aspoň 1,15; slabé, když i po jejím přičtení zůstane pod 0,95; jinak ' +
+      'střední. Jemněji to rok dat nerozliší.</span>',
       '<b>Beta β (to BTC)</b> — how much the theme has historically moved when BTC moved. ' +
       '1.5 = when BTC does +10%, the theme does +15%.' +
       '<span class="pk">This is the direct answer to “what gets hottest if altseason starts”. ' +
       'It is computed from 52 weekly basket returns, not daily ones — daily noise systematically ' +
       'understates beta in crypto.</span>' +
-      '<span class="pk">Three bands: ≥ 1.3 strong, 0.95–1.3 medium, below 0.95 weak. A year of data ' +
-      'cannot resolve anything finer.</span>');
+      '<span class="pk">Three bands by what the estimate can support: strong when beta minus its ' +
+      'uncertainty is still at least 1.15; weak when beta plus its uncertainty is still below 0.95; ' +
+      'otherwise medium. A year of data cannot resolve anything finer.</span>');
   },
   rho: function(){
     return L('<b>Korelace s BTC</b> — jak těsně téma sleduje trh, 0 až 1.' +
@@ -3273,13 +3318,21 @@ var INFO_TEXT = {
       've jmenovateli nejsou, takže to je „jak velký je mezi tím, co se dá koupit", ne podíl ' +
       'na celém sektoru — ten je u lídrů o pár bodů nižší.' +
       '<span class="pk">Barva chipu kategorie ukazuje, kde ten sektor stojí v žebříčku ' +
-      'šestiměsíčního růstu mezi sektory nad $1M/30 d.</span>',
+      'šestiměsíčního růstu mezi sektory nad $1M/30 d.</span>' +
+      '<span class="pk"><b>Téma</b> (obrysový štítek pod ním) má každý řádek: podle kategorie, ' +
+      'podle toho, kam coin řadí CoinGecko, nebo nejbližší téma ke kategorii — odkud, řekne tooltip. ' +
+      'Zelený = téma silně zesiluje BTC, modrý = vede nebo mu roste fundament, šedý = bez větru. ' +
+      'Kliknutím otevřeš celé téma.</span>',
       '<b>Share of category</b> — how much of its category’s revenue the project holds over 30 days, ' +
       '<i>among projects that have a token</i>. Projects without a token (exchange front-ends, companies) ' +
       'are not in the denominator, so it is “how big it is among what you can buy”, not a share ' +
       'of the whole sector — for the leaders that one is a few points lower.' +
       '<span class="pk">The colour of the category chip shows where that sector stands in the ' +
-      'six-month growth ranking among sectors above $1M/30d.</span>');
+      'six-month growth ranking among sectors above $1M/30d.</span>' +
+      '<span class="pk"><b>Theme</b> (the outlined chip below it) is on every row: from the category, ' +
+      'from where CoinGecko files the coin, or the nearest theme to the category — the tooltip says which. ' +
+      'Green = the theme strongly amplifies BTC, blue = leading or growing fundamentals, grey = no tailwind. ' +
+      'Click it to open the whole theme.</span>');
   },
   adoption: function(){
     return L('<b>Adopce chainu</b> — kapitál × aktivita: nabídka stablecoinů a 30denní DEX objem, ' +
@@ -3372,11 +3425,13 @@ var DEGEN_REASONS = {
     return L('Téma ' + t.name + ' při altseasonu historicky nezesiluje (' + betaWord(t.beta) + ') a ani nevede.',
       'The ' + themeName(t) + ' theme has historically not amplified in an altseason (' + betaWord(t.beta) +
       ') and is not leading either.'); }},
+  // since the 2026-09-23 ladder only a category DeFiLlama added after the
+  // last NEAREST_THEME update can land here (the audit lists it)
   'bez tématu': {en: 'no theme', grey: true, why: function(e){
-    return L('Kategorie ' + (e.category || '—') + ' nepatří do žádného z 11 témat, o kterých se při ' +
-      'altseasonu mluví — nevíme, jaký vítr by ji nesl.', 'The category ' + (e.category || '—') +
-      ' belongs to none of the 11 themes people talk about in an altseason — we do not know what wind ' +
-      'would carry it.'); }}
+    return L('Kategorie „' + (e.category || '—') + '“ zatím nepatří k žádnému z ' + THEMES.length +
+      ' témat a CoinGecko coin do žádného neřadí — nevíme, jaký vítr by ho nesl.',
+      'The category "' + (e.category || '—') + '" does not belong to any of the ' + THEMES.length +
+      ' themes yet and CoinGecko files the coin under none — we do not know what wind would carry it.'); }}
 };
 /* the gate's name as printed on Start: the Czech key itself, or its English label */
 function degenLabel(r){ var d = DEGEN_REASONS[r]; return L(r, d && d.en ? d.en : r); }
@@ -3431,7 +3486,7 @@ function degenCard(e){
   return '<article class="dcard" data-id="' + esc(e.key || e.slug) + '">' +
     '<div class="dc-head">' + logoImg(e.logo_data, e.name, 30) +
       '<div class="dc-name"><b>' + esc(e.name) + '</b><span class="sym">' + esc(e.symbol || '') + '</span></div>' +
-      themeChip(e, true) + '</div>' +
+      themeChip(e) + '</div>' +
     '<div class="dc-pot"><span class="dc-big">' + (e.bench_capped ? '&gt;' : '') + fmtMult(e.potential) + '</span>' +
       '<span class="dc-money">' + fmtUsd(e.mcap) + ' → ' + gt + fmtUsd(e.mcap_at_bench) +
       L(' při ocenění jako ' + esc(BENCH.label || 'měřítko'), ' if valued like ' + esc(BENCH.label || 'the benchmark')) +
@@ -3597,7 +3652,7 @@ function renderStart(){
   view.querySelectorAll('.dcard').forEach(function(c){
     c.addEventListener('click', function(){ openPanel(c.dataset.id); });
   });
-  view.querySelectorAll('.dcard a, .dcard .themechip').forEach(function(a){
+  view.querySelectorAll('.dcard a, .dcard .themechip[data-theme]').forEach(function(a){
     a.addEventListener('click', function(ev){
       ev.stopPropagation();
       if (a.classList.contains('themechip')) openThemePanel(a.dataset.theme);

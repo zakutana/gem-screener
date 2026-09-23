@@ -1,0 +1,5 @@
+# Runtime for collector.py, app.py and the audits (Python 3.13; developed on 2.32.5).
+# Everything else is the standard library. The viewer is a single HTML file with
+# no build step; audit_static.js needs Node 22 and no packages.
+requests>=2.31
+# The Windows exe additionally needs PyInstaller — build_exe.bat installs it on demand.

@@ -1,36 +1,60 @@
 # Gem Screener
 
+> **English:** a crypto screener over DeFiLlama and CoinGecko data — how much a
+> project earns, what it costs relative to that, whether its token can really be
+> bought, and which market narrative it rides. The UI is Czech with an English
+> switch (`#en`). **The full architecture and specification:
+> [ARCHITECTURE.md](ARCHITECTURE.md). Rules for coding agents:
+> [AGENTS.md](AGENTS.md).** MIT licensed. Not investment advice.
+
 Screener kryptoprojektů nad daty DeFiLlamy a CoinGecka: kolik projekt vydělává,
-kolik stojí, jestli se dá koupit a co se s ním chystá. Česky.
+kolik stojí, jestli se jeho token dá opravdu koupit, na jakém tržním narativu jede
+a co se s ním chystá. Česky, s přepínačem do angličtiny.
 
-**Web:** https://zakutana.github.io/gem-screener/ — obnovuje se sám každých 6 hodin.
+## Co v tom je
 
-## Jak se to obnovuje
+- **Start (pro degena)** — appky, které projdou všemi 7 branami (byznys, prověření,
+  cena, test 30×, růst, likvidita, téma s větrem), s pravidly „Kdy prodat“ a
+  výsledkem předem zaregistrovaného zpětného testu nad nimi.
+- **Apps a Chains** — seřazené podle Potenciálu (násobek vůči Hyperliquidu, u chainů
+  vůči mediánu chainů), s důvěrou jako filtrem a štítky, nikdy jako pořadím. Každý
+  řádek má téma a v tooltipu odkud.
+- **Sektory** — 12 témat (AI, Memecoiny, DEX a perpy, RWA, Privacy, Prediction
+  markets, DePIN, Gaming, DeFi úvěry a staking, L1, L2, Infrastruktura): jak moc
+  zesilují BTC (beta s nejistotou), co už běží a jak roste jejich fundament.
 
-GitHub Actions (`.github/workflows/update.yml`) každých 6 hodin:
+## Spuštění
 
-1. spustí `collector.py` (DeFiLlama, CoinGecko, DexScreener, datasety DeFiLlamy),
-2. pustí všechny tři audity — **když některý selže, nic se nezveřejní** a web
-   zůstane na poslední dobré verzi,
-3. sestaví stránku (`build_viewer.py`) a nasadí ji na GitHub Pages,
-4. připíše výběr do `picks_ledger.jsonl` (záznam tipů — dopředný test).
+```
+pip install -r requirements.txt
+python collector.py        # sběr dat -> snapshot.json (3–6 min)
+python app.py              # lokální stránka s tlačítkem Aktualizovat data
+python build_viewer.py     # statická stránka gem_screener.html (anglicky, Apps)
+```
 
-Ručně: záložka **Actions → Aktualizace Gem Screeneru → Run workflow**.
+Windows: `build_exe.bat` → `dist\GemScreener.exe` (stejná stránka, data vedle exe).
 
-## CoinGecko klíč (doporučeno)
+## Audity
 
-Sdílené adresy GitHub Actions dostávají od CoinGecka častěji odmítnutí (HTTP 429).
-Zdarma: založ si účet na coingecko.com → *Developer Dashboard* → *Demo API key*
-a ulož ho v repu jako secret `COINGECKO_DEMO_KEY`
-(*Settings → Secrets and variables → Actions → New repository secret*).
-Bez klíče to funguje taky, jen s větším rizikem, že některý běh selže.
+`python audit.py`, `python audit_sectors.py`, `node audit_static.js` — přepočítají
+každé číslo druhou implementací; když některý skončí chybou, nic se nezveřejní.
+Zpětný test: `python backtest.py` (kritéria zamčená v `backtest_cache/prereg.lock`,
+verdikt zatím NEPRŮKAZNÉ).
 
-## Lokálně
+## Web (GitHub Pages)
 
-`python app.py` (nebo `dist\GemScreener.exe` z `build_exe.bat`) — stejná stránka
-s tlačítkem Aktualizovat data.
+`.github/workflows/update.yml` každých 6 hodin spustí collector, všechny tři audity,
+sestaví stránku, nasadí ji na GitHub Pages a připíše výběr do `picks_ledger.jsonl`
+(dopředný test tipů). Poběží, až bude repo veřejné:
 
-Audity: `python audit.py`, `python audit_sectors.py`, `node audit_static.js`.
-Zpětný test: `python backtest.py` (kritéria zamčená v `backtest_cache/prereg.lock`).
+1. repo veřejné, *Settings → Pages → Source: GitHub Actions*,
+2. doporučeno: secret `COINGECKO_DEMO_KEY` (zdarma: coingecko.com → *Developer
+   Dashboard* → *Demo API key*; *Settings → Secrets and variables → Actions*) —
+   sdílené adresy GitHub Actions dostávají od CoinGecka častěji odmítnutí (429),
+3. první push na `main` (nebo *Actions → Aktualizace Gem Screeneru → Run workflow*).
 
-Není to investiční doporučení.
+Adresa pak bude https://zakutana.github.io/gem-screener/.
+
+## Licence
+
+MIT — viz [LICENSE](LICENSE). Není to investiční doporučení.

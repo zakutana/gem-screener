@@ -1081,39 +1081,95 @@ if bad:
 if shown_up:
     fail("reframe", "%d rows show a fully diluted figure ABOVE their potential" % shown_up)
 
-head("29. TÉMA NA ŘÁDKU — crosswalk kategorií, override a koše")
+head("29. TÉMA NA ŘÁDKU — žebřík: override, kategorie, CoinGecko, zbytková kategorie, nejbližší")
 THEMES_SNAP = D.get("themes") or []
+TJ = D.get("theme_join") or {}
+
+
+def module_literal(src, name):
+    """A module-level `NAME = {...}` literal read with ast. The old single-line
+    regex silently returned {} as soon as a dict spanned two lines."""
+    import ast
+    for node in ast.parse(src).body:
+        if isinstance(node, ast.Assign) and any(isinstance(t, ast.Name) and t.id == name
+                                                for t in node.targets):
+            return ast.literal_eval(node.value)
+    return None
+
+
 tsrc = io.open("themes.py", encoding="utf-8").read()
-mo = re.search(r"^THEME_OVERRIDES = (\{.*?\})", tsrc, re.M)
-OVERRIDES = __import__("ast").literal_eval(mo.group(1)) if mo else {}
-# the crosswalk rebuilt from the snapshot's own fundament lists, not from themes.py
-CW = {}
+OVERRIDES = module_literal(tsrc, "THEME_OVERRIDES") or {}
+NEAREST = module_literal(tsrc, "NEAREST_THEME") or {}
+if not TJ:
+    fail("theme", "snapshot has no theme_join block — collector older than the row ladder")
+elif TJ.get("overrides") != OVERRIDES or TJ.get("nearest") != NEAREST:
+    fail("theme", "theme_join.overrides/nearest differ from themes.py — stale snapshot, re-run the collector")
+ORDER = TJ.get("order") or [th["key"] for th in THEMES_SNAP]
+RESIDUAL = set(TJ.get("residual") or [th["key"] for th in THEMES_SNAP if th.get("kind") == "chains"])
+TH_BY = {th["key"]: th for th in THEMES_SNAP}
+MEM = {th["key"]: {m["id"] for m in th.get("members") or []} for th in THEMES_SNAP}
+LAYERS = {th["key"] for th in THEMES_SNAP if th.get("kind") == "chains"}
+# the crosswalks rebuilt from the snapshot's own fundament lists, not from themes.py
+CW, CW_RES = {}, {}
 for th in THEMES_SNAP:
     f = th.get("fundament") or {}
     for c in (f.get("categories") or []) + (f.get("below_floor") or []) + (f.get("missing") or []):
-        CW[c] = th["key"]
-TH_BY = {th["key"]: th for th in THEMES_SNAP}
-MEM = {th["key"]: {m["id"] for m in th.get("members") or []} for th in THEMES_SNAP}
-RESID = {th["key"] for th in THEMES_SNAP if th.get("kind") == "chains"}
+        (CW_RES if th["key"] in RESIDUAL else CW)[c] = th["key"]
+dead = sorted(c for c in NEAREST if c in CW or c in CW_RES)
+if dead:
+    fail("theme", "NEAREST_THEME entries that already feed a fundament: %s" % ", ".join(dead))
+nowhere = sorted(c for c, k in NEAREST.items() if k not in ORDER)
+if nowhere:
+    fail("theme", "NEAREST_THEME points at no theme: %s" % ", ".join(nowhere))
+
+
+def app_theme_ref(e):
+    """themes.app_theme, second implementation: override, narrative category,
+    CoinGecko (narratives, then residual themes), residual category, nearest."""
+    g, cat, cgt = e.get("gecko_id"), e.get("category"), set(e.get("cg_themes") or [])
+    if g in OVERRIDES:
+        return OVERRIDES[g], "override"
+    if cat in CW:
+        return CW[cat], "category"
+    for keys in ([k for k in ORDER if k not in RESIDUAL], [k for k in ORDER if k in RESIDUAL]):
+        for k in keys:
+            if k in cgt:
+                return k, "coingecko"
+    if cat in CW_RES:
+        return CW_RES[cat], "category"
+    if cat in NEAREST:
+        return NEAREST[cat], "nearest"
+    return None, None
+
+
 bad = 0
+src_n = _C()
 for e in APPS:
-    exp = OVERRIDES.get(e.get("gecko_id")) or CW.get(e.get("category"))
-    exp = exp if exp in TH_BY else None
-    got = (e.get("theme") or {}).get("key")
-    if exp != got:
+    k, src = app_theme_ref(e)
+    if k not in TH_BY:        # a key whose theme is missing from the output → no chip
+        k, src = None, None
+    t = e.get("theme") or {}
+    src_n[src or "none"] += 1
+    if (t.get("key"), t.get("source")) != (k, src):
         bad += 1
         if bad <= 4:
-            print("  MISMATCH %-22s kategorie %-18s stored=%s mine=%s" % (e["name"][:21], (e.get("category") or "")[:17], got, exp))
+            print("  MISMATCH %-22s kategorie %-18s stored=%s/%s mine=%s/%s"
+                  % (e["name"][:21], (e.get("category") or "")[:17], t.get("key"), t.get("source"), k, src))
 for e in CHAINS:
     g = e.get("gecko_id")
-    ok_keys = {k for k, ids in MEM.items() if g in ids and k not in RESID}
+    ok_keys = {k for k, ids in MEM.items() if g in ids and k not in RESIDUAL}
     if not ok_keys:
-        ok_keys = {k for k, ids in MEM.items() if g in ids and k in RESID}
+        ok_keys = {k for k, ids in MEM.items() if g in ids and k in LAYERS}
     if not ok_keys:
         ok_keys = {"l2" if (e.get("category") or "").startswith("L2") else "l1"}
-    if (e.get("theme") or {}).get("key") not in ok_keys:
+    t = e.get("theme") or {}
+    if t.get("key") not in ok_keys:
         bad += 1
-        print("  MISMATCH chain %-16s stored=%s allowed=%s" % (e["name"][:15], (e.get("theme") or {}).get("key"), sorted(ok_keys)))
+        print("  MISMATCH chain %-16s stored=%s allowed=%s" % (e["name"][:15], t.get("key"), sorted(ok_keys)))
+    elif t.get("source") != ("basket" if g in MEM.get(t.get("key"), ()) else "layer"):
+        bad += 1
+        print("  MISMATCH chain %-16s source=%s" % (e["name"][:15], t.get("source")))
+not_sub = 0
 for e in APPS + CHAINS:
     t = e.get("theme")
     if t:
@@ -1123,10 +1179,46 @@ for e in APPS + CHAINS:
             bad += 1
     if e.get("basket_themes") != sorted(k for k, ids in MEM.items() if e.get("gecko_id") in ids):
         bad += 1
-no_theme = sum(1 for e in APPS if not e.get("theme"))
-print("  mismatches: %d | appky bez tématu: %d/%d | override: %s" % (bad, no_theme, len(APPS), OVERRIDES))
+    # the display basket is cut from the CoinGecko candidates, so it must be a subset
+    # (not on the stale path, where the join ran without candidates)
+    if not D.get("themes_stale") and not set(e.get("basket_themes") or []) <= set(e.get("cg_themes") or []):
+        not_sub += 1
+if not_sub:
+    warn("theme", "%d rows sit in a display basket but not in its CoinGecko candidates" % not_sub)
+# the same coin must not read as two themes on Apps and Chains (NEAR, OP, SUI once did)
+chain_theme = {e.get("gecko_id"): (e.get("theme") or {}).get("key") for e in CHAINS if e.get("gecko_id")}
+split = [(e["name"], (e.get("theme") or {}).get("key"), chain_theme[e["gecko_id"]]) for e in APPS
+         if e.get("gecko_id") in chain_theme and (e.get("theme") or {}).get("key") != chain_theme[e["gecko_id"]]]
+for nm, a, c in split:
+    print("  RŮZNÉ TÉMA app %s=%s vs chain=%s" % (nm, a, c))
+if split:
+    warn("theme", "%d coins read as a different theme on Apps and Chains" % len(split))
+# residual baskets: nothing a narrative owns; Infrastruktura also no chain's own coin
+narr_mem = set().union(*[MEM[k] for k in MEM if k not in RESIDUAL]) if MEM else set()
+chain_coins = set(chain_theme) | set().union(*[MEM[k] for k in LAYERS if k in MEM]) if MEM else set()
+for th in THEMES_SNAP:
+    if th["key"] not in RESIDUAL:
+        continue
+    ids = MEM.get(th["key"], set()) | {m["id"] for m in th.get("beta_members") or []}
+    owned = sorted(ids & narr_mem)
+    chains_in = sorted(ids & chain_coins) if th["key"] not in LAYERS else []
+    if owned or chains_in:
+        fail("theme", "residual theme %s holds coins it must leave out: %s"
+             % (th["key"], ", ".join(owned + chains_in)))
+# English names: a theme without a THEME_EN entry would show Czech in EN mode
+mo = re.search(r"var THEME_EN = \{(.*?)\n\};", tpl, re.S)
+en_keys = set(re.findall(r"^\s*([a-z0-9_]+):\s*\{name:", mo.group(1), re.M)) if mo else set()
+no_en = sorted(k for k in TH_BY if k not in en_keys)
+if no_en:
+    fail("theme", "themes with no English name in THEME_EN: %s" % ", ".join(no_en))
+none_cats = _C((e.get("category") or "—") for e in APPS if not e.get("theme"))
+if none_cats:
+    warn("theme", "apps with no theme — add their categories to NEAREST_THEME or a theme: %s"
+         % ", ".join("%s (%d)" % kv for kv in none_cats.most_common()))
+print("  mismatches: %d | zdroje: %s | bez tématu: %d/%d | změny od minula: %s"
+      % (bad, dict(src_n), sum(none_cats.values()), len(APPS), TJ.get("n_changed")))
 if bad:
-    fail("theme", "%d row themes disagree with the crosswalk / baskets" % bad)
+    fail("theme", "%d row themes disagree with the ladder / baskets" % bad)
 
 head("30. TEST 30× — strop po žebříku, přepočítaný z řádků a košů")
 RULE = D.get("test30_rule")
@@ -1405,6 +1497,47 @@ else:
         fail("backtest", "summary prereg_hash does not match backtest_cache/prereg.lock")
     if BT.get("verdict") not in ("FUNGUJE", "NEPRŮKAZNÉ", "NEFUNGUJE"):
         fail("backtest", "unknown verdict %r" % BT.get("verdict"))
+
+
+head("36. DOKUMENTACE — ARCHITECTURE.md popisuje celý datový kontrakt")
+# The repo is public and ARCHITECTURE.md is how an outside agent learns the
+# snapshot. A key the collector writes but the spec never names is a silent
+# gap, so every key of the contract must appear in it `in backticks`.
+try:
+    ARCH = io.open("ARCHITECTURE.md", encoding="utf-8").read()
+except FileNotFoundError:
+    ARCH = None
+    fail("docs", "ARCHITECTURE.md is missing")
+if ARCH is not None:
+    documented = set(re.findall(r"`([^`\n]+)`", ARCH))
+    words = set()
+    for span in documented:
+        words.update(re.findall(r"[A-Za-z_][A-Za-z0-9_]*", span))
+
+    def keys_of(rows):
+        out = set()
+        for r in rows:
+            out.update(r.keys())
+        return out
+
+    contract = {
+        "top-level": set(D.keys()),
+        "app row": keys_of(APPS),
+        "chain row": keys_of(CHAINS),
+        "theme": keys_of(THEMES_SNAP),
+        "theme member": keys_of([m for th in THEMES_SNAP for m in th.get("members") or []]),
+        "row theme": keys_of([e["theme"] for e in APPS + CHAINS if e.get("theme")]),
+        "theme_join": set(TJ.keys()),
+        "degen": set((D.get("degen") or {}).keys()),
+        "theme keys": {th["key"] for th in THEMES_SNAP},
+    }
+    missing = {part: sorted(k for k in ks if k not in words) for part, ks in contract.items()}
+    missing = {part: ks for part, ks in missing.items() if ks}
+    print("  klíčů v kontraktu: %d | nepopsaných: %d"
+          % (sum(len(v) for v in contract.values()), sum(len(v) for v in missing.values())))
+    for part, ks in missing.items():
+        print("  NEPOPSÁNO (%s): %s" % (part, ", ".join(ks)))
+        fail("docs", "ARCHITECTURE.md does not mention %s keys: %s" % (part, ", ".join(ks)))
 
 
 head("VERDICT")

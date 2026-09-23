@@ -1,5 +1,5 @@
 """
-Themes — the eleven market narratives the Sektory tab is built from.
+Themes — the twelve market narratives the Sektory tab is built from.
 
 Each theme joins two things that used to live in two unconnected tabs:
 
@@ -83,9 +83,48 @@ THEMES = [
      "blurb": "Layer-1 blockchainy. Coiny, které už patří jinému tématu (ZEC, HYPE…), sem nepočítáme."},
     {"key": "l2", "name": "L2", "cg": ["layer-2"], "dl": [], "chain_layer": "L2", "residual": True,
      "blurb": "Layer-2 rollupy. Fundament počítá i chainy bez tokenu, hlavně Base."},
+    # Residual like L1/L2, but for apps: bridges, oracles, wallets, domains and
+    # services had no theme at all (67 of 213 apps were themeless before it).
+    # Its basket drops coins a narrative owns (LINK is RWA) and chain tokens
+    # (Kaspa sits in CoinGecko's "wallets") — see build_themes.
+    {"key": "infra", "name": "Infrastruktura",
+     "cg": ["oracle", "cross-chain-communication", "bridge-governance-tokens", "wallets", "name-service"],
+     "dl": ["Bridge", "Cross Chain Bridge", "Canonical Bridge", "Bridge Aggregator", "Oracle", "Wallets",
+            "Domains", "Services", "Developer Tools", "Payments", "Crypto Card Issuer", "Coins Tracker",
+            "Interface", "DAO Service Provider", "Security Extension", "Block Builders"],
+     "residual": True,
+     "blurb": "Mosty, orákula, peněženky, domény a další služby, na kterých stojí ostatní projekty. "
+              "Zbytkové téma: dostane jen to, co si nenárokuje konkrétnější narativ; tokeny chainů "
+              "patří do L1/L2."},
 ]
 # Coins CoinGecko files under several themes where one reading is clearly right.
 THEME_OVERRIDES = {"pump-fun": "memes"}
+# Row join only — never a fundament. DeFiLlama categories that feed no theme's
+# revenue but have an obvious home; an app reaches this map only when neither
+# its own category nor CoinGecko names a theme (see app_theme). Their revenue
+# stays in `unmapped`: Yearn wears the DeFi chip, but Yield Aggregator revenue
+# is not added to the lending/staking fundament.
+NEAREST_THEME = {
+    # the same money machine as lending and staking, filed separately
+    "Yield": "defi", "Yield Aggregator": "defi", "Basis Trading": "defi", "Insurance": "defi",
+    "Indexes": "defi", "Synthetics": "defi", "Staking Pool": "defi", "Restaked BTC": "defi",
+    "Decentralized BTC": "defi", "Liquidity Manager": "defi", "Leveraged Farming": "defi",
+    "Farm": "defi", "NFT Lending": "defi", "NftFi": "defi", "Dual-Token Stablecoin": "defi",
+    "Algo-Stables": "defi", "Reserve Currency": "defi", "MEV": "defi", "CeDeFi": "defi",
+    "Risk Curators": "defi", "Onchain Capital Allocator": "defi", "CDP Manager": "defi",
+    "Uncollateralized Lending": "defi", "NFT Automated Strategies": "defi",
+    "Stablecoin Issuer": "defi",
+    # trading venues and execution tools
+    "Interest Rate Derivatives": "dex", "DCA Tools": "dex", "OTC Marketplace": "dex",
+    # games of chance, gamified mining and collectibles trading
+    "Gamified Mining": "gaming", "Luck Games": "gaming", "NFT Marketplace": "gaming",
+    # tokenized physical collectibles — CoinGecko files Collector Crypt as RWA too
+    "Physical TCG": "rwa",
+    # physical networks
+    "Video Infrastructure": "depin",
+    # services with no narrative of their own
+    "SoFi": "infra", "Foundation": "infra", "Chain": "infra",
+}
 # Last-resort baskets if CoinGecko is down AND there is no cache or prior snapshot.
 THEME_SEED = {
     "ai": ["near", "bittensor", "internet-computer", "venice-token", "render-token", "virtual-protocol", "fetch-ai"],
@@ -99,6 +138,8 @@ THEME_SEED = {
     "defi": ["aave", "morpho", "lido-dao", "jito-governance-token", "compound-governance-token", "kamino", "rocket-pool"],
     "l1": ["ethereum", "binancecoin", "ripple", "solana", "tron", "cardano", "avalanche-2"],
     "l2": ["okb", "mantle", "arbitrum", "polygon-ecosystem-token", "blockstack", "optimism", "starknet"],
+    "infra": ["pyth-network", "layerzero", "ethereum-name-service", "trust-wallet-token", "wormhole",
+              "debridge", "safe"],
 }
 # Word boundaries matter: "treasur" alone would drop Treasure (MAGIC, a gaming
 # token) and "gold" would drop Goldfinch.
@@ -112,13 +153,24 @@ def themes_version():
 
 def validate_crosswalk():
     """A DeFiLlama category may feed at most one theme — otherwise its revenue
-    is counted twice across the table."""
+    is counted twice across the table. NEAREST_THEME is the row-only fallback:
+    a category there must feed no fundament (the entry would be dead) and every
+    target must be a real theme, or rows would silently lose their chip."""
     seen = {}
     for t in THEMES:
         for c in t["dl"]:
             if c in seen:
                 raise ValueError("category %s mapped to both %s and %s" % (c, seen[c], t["key"]))
             seen[c] = t["key"]
+    keys = {t["key"] for t in THEMES}
+    for c, k in NEAREST_THEME.items():
+        if c in seen:
+            raise ValueError("category %s is in NEAREST_THEME but already feeds %s" % (c, seen[c]))
+        if k not in keys:
+            raise ValueError("NEAREST_THEME[%r] = %r is not a theme" % (c, k))
+    for g, k in THEME_OVERRIDES.items():
+        if k not in keys:
+            raise ValueError("THEME_OVERRIDES[%r] = %r is not a theme" % (g, k))
 
 
 # ------------------------------------------------------------------ small maths
@@ -525,18 +577,73 @@ def fallback_members(key, prev_snapshot):
 
 # ------------------------------------------------------------------ rows <-> themes
 # Every DeFiLlama category belongs to at most one theme (validate_crosswalk), so
-# this map is a function: category -> theme key.
-CAT2THEME = {c: t["key"] for t in THEMES for c in t["dl"]}
+# these maps are functions: category -> theme key. A narrative category names
+# the coin's story outright; a residual one (Infrastruktura) only claims what
+# nothing more specific does — the same rule the residual price baskets follow.
+CAT2THEME = {c: t["key"] for t in THEMES if not t.get("residual") for c in t["dl"]}
+RESIDUAL_CAT2THEME = {c: t["key"] for t in THEMES if t.get("residual") for c in t["dl"]}
+NARRATIVES = [t["key"] for t in THEMES if not t.get("residual")]
+RESIDUALS = [t["key"] for t in THEMES if t.get("residual")]
+LAYERS = [t["key"] for t in THEMES if t.get("chain_layer")]
+# app_theme's steps, in order; part of row_join_version()
+LADDER = ("override", "category", "coingecko", "coingecko-residual", "category-residual", "nearest")
+JOIN_SOURCES = ("override", "category", "coingecko", "nearest")
 
 
 def theme_of_app(e):
-    """Apps join on their DeFiLlama category — the fundament side — so a row and
-    the revenue its theme is measured on come from the same place. An override
-    wins, exactly as it does when the baskets are built (PUMP -> Memecoiny)."""
+    """Steps 1-2 of the row ladder in `app_theme`: an override (exactly as when
+    the baskets are built, PUMP -> Memecoiny), else a category that feeds a
+    narrative theme's fundament.
+
+    FROZEN: backtest.py rebuilt its pre-registered H3 gate on exactly this join,
+    so changing what it returns silently changes a locked result. Extend the
+    ladder in `app_theme` instead."""
     g = e.get("gecko_id")
     if g in THEME_OVERRIDES:
         return THEME_OVERRIDES[g]
     return CAT2THEME.get(e.get("category"))
+
+
+def app_theme(e, cg_members):
+    """Which theme an app row belongs to — `(key, source)` or `(None, None)`.
+
+    The most specific evidence about the row's coin wins (THEMES order within a
+    step):
+
+        1 override    THEME_OVERRIDES, a reading fixed by hand
+        2 category    its DeFiLlama category feeds a narrative theme
+        3 coingecko   CoinGecko files the coin under a narrative theme
+        4 coingecko   ... or under a residual one (L1, L2, Infrastruktura)
+        5 category    its category feeds a residual theme (Infrastruktura)
+        6 nearest     NEAREST_THEME: the closest theme to a category that
+                      feeds no fundament (row only, the revenue is not added)
+
+    Before this ladder only steps 1-2 existed and 67 of 213 apps had no theme
+    (bridges, wallets, yield, Physical TCG…). Residual themes coming after
+    CoinGecko keeps Apps and Chains consistent: NEAR's app is a DeFiLlama
+    "Bridge", but NEAR trades as an AI coin and is AI on the Chains tab too.
+
+    Consequence, by design: the chip is about the COIN, the fundament about
+    the CATEGORY. Chainlink shows RWA (CoinGecko) while its "Services" revenue
+    counts in Infrastruktura's fundament.
+
+    `cg_members` = {theme key: coin ids} — the cached CoinGecko candidates the
+    baskets are built from, after override exclusivity."""
+    k = theme_of_app(e)
+    if k:
+        return k, ("override" if e.get("gecko_id") in THEME_OVERRIDES else "category")
+    g = e.get("gecko_id")
+    if g:
+        for keys in (NARRATIVES, RESIDUALS):
+            for k in keys:
+                if g in (cg_members or {}).get(k, ()):
+                    return k, "coingecko"
+    cat = e.get("category")
+    if cat in RESIDUAL_CAT2THEME:
+        return RESIDUAL_CAT2THEME[cat], "category"
+    if cat in NEAREST_THEME:
+        return NEAREST_THEME[cat], "nearest"
+    return None, None
 
 
 def theme_of_chain(e, members):
@@ -544,41 +651,90 @@ def theme_of_chain(e, members):
     coin before it is an L1, HYPE a DEX coin before it is a chain), then through
     the L1/L2 baskets (POL sits in CoinGecko's layer-2 basket although
     DeFiLlama files Polygon as L1), and only then by layer. Within each pass
-    the first theme in THEMES order wins."""
+    the first theme in THEMES order wins. Only chain-layer themes take part in
+    the second pass: Infrastruktura is residual too, but a chain is a chain."""
     g = e.get("gecko_id")
-    for residual in (False, True):
-        for t in THEMES:
-            if bool(t.get("residual")) == residual and g in members.get(t["key"], ()):
-                return t["key"]
+    for keys in (NARRATIVES, LAYERS):
+        for k in keys:
+            if g in members.get(k, ()):
+                return k
     return "l2" if (e.get("category") or "").startswith("L2") else "l1"
 
 
-def attach_themes(apps, chains, themes_out, stale=False):
-    """Copy each row's theme onto it — the join the Sektory tab never made.
+def row_join_version():
+    """Changes whenever a rule that decides a row's theme changes. The collector
+    folds it into gates_version: the theme decides two of the seven degen gates
+    (the theme itself and the Test 30× ceiling), so a picks-ledger cohort must
+    say which join it was selected under."""
+    raw = json.dumps([[(t["key"], t["cg"], t["dl"], bool(t.get("residual")), t.get("chain_layer"))
+                       for t in THEMES], THEME_OVERRIDES, NEAREST_THEME, LADDER],
+                     sort_keys=True, ensure_ascii=False)
+    return hashlib.sha1(raw.encode("utf-8")).hexdigest()[:12]
+
+
+def attach_themes(apps, chains, themes_out, stale=False, cg_members=None, prev_snapshot=None):
+    """Copy each row's theme onto it — the join the Sektory tab never made — and
+    return the `theme_join` block of the snapshot.
 
     Sektory said which theme amplifies an altseason; no Apps row said which
     theme it belonged to, so connecting the two was left to the reader. The
-    copy is deliberately small (the viewer finds the full theme by key), and
-    `basket_themes` lists every display basket the row's coin sits in, so the
-    audit can check the join without importing this module."""
+    copy is deliberately small (the viewer finds the full theme by key) and says
+    where it came from (`source`). `basket_themes` lists every display basket
+    the row's coin sits in and `cg_themes` every theme whose CoinGecko
+    candidates contain it, so the audit can check the join without importing
+    this module.
+
+    A CoinGecko-sourced theme can change when the weekly basket refresh moves a
+    coin in or out of a category's top 30 (a category-sourced one cannot);
+    `changed` lists every row whose theme differs from the previous snapshot."""
     by_key = {th.get("key"): th for th in themes_out or []}
     members = {k: {m["id"] for m in (th.get("members") or [])} for k, th in by_key.items()}
+    cg = {k: set(v) for k, v in (cg_members or {}).items()}
 
-    def summary(k):
+    def summary(k, source):
         th = by_key.get(k)
         if not th:
             return None
         return {"key": k, "name": th.get("name"), "tier": th.get("tier"),
                 "tags": list(th.get("tags") or []), "beta": th.get("beta"),
                 # the "Kdy prodat" rule reads it: a theme falling behind BTC
-                "rs1m": th.get("rs1m"), "stale": bool(stale)}
+                "rs1m": th.get("rs1m"), "stale": bool(stale), "source": source}
 
+    counts = dict.fromkeys(JOIN_SOURCES + ("none",), 0)
+    none_categories = {}
     for e in apps:
-        e["theme"] = summary(theme_of_app(e))
+        k, source = app_theme(e, cg)
+        e["theme"] = summary(k, source)
+        if e["theme"]:
+            counts[source] += 1
+        else:
+            counts["none"] += 1
+            cat = e.get("category") or "—"
+            none_categories[cat] = none_categories.get(cat, 0) + 1
     for e in chains:
-        e["theme"] = summary(theme_of_chain(e, members))
+        k = theme_of_chain(e, members)
+        e["theme"] = summary(k, "basket" if e.get("gecko_id") in members.get(k, ()) else "layer")
     for e in apps + chains:
         e["basket_themes"] = sorted(k for k, ids in members.items() if e.get("gecko_id") in ids)
+        e["cg_themes"] = sorted(k for k, ids in cg.items() if e.get("gecko_id") in ids)
+
+    before = {}
+    for e in ((prev_snapshot or {}).get("apps") or []) + ((prev_snapshot or {}).get("chains") or []):
+        before[e.get("key") or e.get("slug")] = (e.get("theme") or {}).get("key")
+    changed = []
+    for e in apps + chains:
+        rid = e.get("key") or e.get("slug")
+        now_k = (e.get("theme") or {}).get("key")
+        if rid in before and before[rid] != now_k:
+            changed.append({"key": rid, "name": e.get("name"), "from": before[rid], "to": now_k,
+                            "source": (e.get("theme") or {}).get("source")})
+    changed.sort(key=lambda c: str(c["key"]))     # rows arrive in thread-completion order
+    return {"version": row_join_version(), "ladder": list(LADDER),
+            "order": [t["key"] for t in THEMES], "residual": list(RESIDUALS),
+            "chain_layers": list(LAYERS), "overrides": dict(THEME_OVERRIDES),
+            "nearest": dict(NEAREST_THEME), "counts": counts,
+            "none_categories": none_categories, "changed": changed[:100],
+            "n_changed": len(changed)}
 
 
 # ------------------------------------------------------------------ fundament
@@ -699,6 +855,16 @@ def build_themes(ctx, sectors_apps, now, prev_snapshot=None):
         for k in cands:
             if k != owner:
                 cands[k] = [c for c in cands[k] if c["id"] != gid]
+    # which themes CoinGecko files a coin under — step 3-4 of app_theme's
+    # ladder. The same candidate lists the baskets are built from, no deeper:
+    # at rank 200 CoinGecko tags liberally and "AI" would claim half the market
+    cg_members = {k: sorted({c["id"] for c in v}) for k, v in cands.items()}
+    # a chain's own coin is a chain, whatever else CoinGecko files it under
+    # (Kaspa sits in "wallets", ZetaChain in "cross-chain-communication"), so
+    # a residual theme without a layer leaves it to L1/L2
+    chain_coins = ({v.get("geckoId") for v in (getattr(ctx, "chain_gecko", None) or {}).values()
+                    if isinstance(v, dict) and v.get("geckoId")}
+                   | {c["id"] for k in LAYERS for c in cands.get(k) or []})
 
     universe = ((cache.get("universe") or {}).get("coins")) or []
     all_ids = sorted({c["id"] for v in cands.values() for c in v} | {c["id"] for c in universe} | {"bitcoin"})
@@ -788,6 +954,8 @@ def build_themes(ctx, sectors_apps, now, prev_snapshot=None):
             why = excl(g)
             if not why and t.get("residual") and g in member_of:
                 why = "patří tématu %s" % member_of[g]
+            if not why and t.get("residual") and not t.get("chain_layer") and g in chain_coins:
+                why = "token chainu"
             if why:
                 dropped.append({"id": g, "sym": (meta.get(g) or c).get("symbol", ""), "reason": why})
                 continue
@@ -1000,4 +1168,5 @@ def build_themes(ctx, sectors_apps, now, prev_snapshot=None):
     ctx.log("témata: %d/%d změřených, altseason index %s %%"
             % (ok, len(out), ("%.0f" % idx_now) if idx_now is not None else "—"))
     return {"themes": out, "altseason": altseason, "theme_prices": theme_prices,
-            "coin_meta": coin_meta, "theme_anomalies": anomalies, "unmapped": unmapped}
+            "coin_meta": coin_meta, "theme_anomalies": anomalies, "unmapped": unmapped,
+            "cg_members": cg_members}
