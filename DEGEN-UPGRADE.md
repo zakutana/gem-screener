@@ -1,6 +1,6 @@
 # Gem Screener: degen upgrade (follow-up to ET-26608)
 
-This is the full spec of a follow-up to Build it Better request **ET-26608** (Gem Screener, shipped 2026-09-24, verdict PASS, live at https://cymetica.com/gem-screener). The request form takes only 1,000 characters, so the whole list lives here. Every numbered item is one requirement and can be checked on the live page.
+This is the full spec of a follow-up to Build it Better request **ET-26608** (Gem Screener, shipped 2026-09-24, verdict PASS, live at https://cymetica.com/gem-screener). The request form takes only 1,000 characters, so the whole list lives here. Every numbered item (1 to 27) is one requirement and can be checked on the live page or, for item 26, in llms.txt and the API.
 
 Gem Screener is my own app; this repository is its source. Anything not mentioned here stays as it is.
 
@@ -53,6 +53,10 @@ Gem Screener is my own app; this repository is its source. Anything not mentione
 24. **Format**, in this order, one line each: What it is / Where the money comes from / Real or printed (30-day revenue vs 30-day token emissions) / Numbers (MC, FDV, % of tokens out, price vs revenue) / Good (max 3) / Shady (max 3) / The bet and the one metric to watch / One-line verdict. Anything unknown says "unknown", never a guess; sources are linked; "Not financial advice" at the end.
 25. **Illustrative target for Pharaoh (PHAR).** What it is: Avalanche's main DEX, a RAMSES fork on x(3,3). Money: $2.0M fees in 30 days from $2.5B volume. Real or printed: earns $1.98M, prints $1.08M in tokens, so +$0.9M real. Numbers: MC $3.1M, FDV $46M, 7% of tokens out. Good: profitable after emissions, emissions shrink when revenue drops, 50% exit burn. Shady: +131% in 30 days near its all-time high, revenue swings with Avalanche activity. The bet: Avalanche stays busy; watch weekly fees vs weekly emissions. Verdict: strong DEX, bought after a pump.
 
+## Ready for AI agents
+
+26. **Agent-ready.** AI agents visit the Gem Screener too, and today they get only one line in llms.txt and a 2.45 MB snapshot. After this: (a) llms.txt has a Gem Screener section: what it is, every endpoint, the fields that matter, how often it refreshes, and what it does not do. (b) Small endpoints, so an agent does not download the whole snapshot: the current Degen picks (about 1-2 kB), a compact ranked list (`sort`, `limit`), and one coin in full by symbol with the same facts as the coin detail. The full snapshot stays. (c) MCP tools for the same three reads and for the Degen report of item 23. (d) `/gem-screener` answers `Accept: text/markdown` with a short markdown view, the way /build does. (e) Typed OpenAPI schemas for all of it and a Gem Screener skill in the agent card. (f) Every number carries its unit and an as-of time.
+
 ## Nice to have (not a condition of this request)
 
-26. If you can list some of the Degen picks on your exchange, the Trade button (item 17) shows for them too.
+27. If you can list some of the Degen picks on your exchange, the Trade button (item 17) shows for them too.
