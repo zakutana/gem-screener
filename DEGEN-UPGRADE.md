@@ -20,7 +20,7 @@ Gem Screener is my own app; this repository is its source. Anything not mentione
 6. **Benchmark.** Replace "benchmark: Hyperliquid 37x MC/revenue" with one highlighted line: "Hyperliquid is priced at 37x its yearly revenue. Upside = what a coin is worth at the same price tag."
 7. **Tooltips everywhere:** at most 20 plain words, no formulas, no r², no "log-OLS", no "MC/run-rate". Examples: Strength "Revenue grew faster than the price: still cheap (up) / price ran ahead (down)". Growth "How much revenue changed in 6 months". A "How it's calculated" link at the end of a tooltip opens the maths for whoever wants it.
 8. **FDV line.** The "FDV 39x" line under Upside reads "39x if all tokens were out", and its tooltip says how many tokens are still to come ("only 7% are out today").
-9. **Legend.** A "Legend" button next to the tabs opens one short panel listing every icon, tag, colour, column and trajectory word (Ignition, Slowing, Flat, ...), at most 8 words each. Clicking any flag icon next to a name also opens this panel and highlights the entry of the icon that was clicked. This click-through applies only to the icons in the Project column (Apps tab) and the Chain column (Chains tab); other icons keep only their tooltip.
+9. **Legend.** A "Legend" button next to the tabs opens one short panel listing every icon, tag, colour, column and trajectory word (Ignition, Slowing, Flat, ...), at most 8 words each. Clicking any flag icon next to a name also opens this panel and highlights the entry of the icon that was clicked. This click-through applies only to the icons in the Project column (Apps tab) and the Chain column (Chains tab); the tooltip on hover stays on every icon, and other icons keep only their tooltip.
 
 ## Numbers and colours
 
@@ -39,8 +39,8 @@ Gem Screener is my own app; this repository is its source. Anything not mentione
 ## Start tab
 
 18. **Start tab.** Rename it to what it shows (for example "Top Picks"). Top to bottom it holds only: the Altseason index (number and bar, no paragraph), the hot sectors, the Gem Screener Top Picks fund, and the Degen picks as today. Below them, short: near misses one line each (name, upside, the failed gate in 5 words or fewer), "When to take profit" as 3 short bullets, the backtest as one line with an expand ("Backtest: inconclusive. A shortlist, not a signal."). "What this tool can't see", the altseason paragraph and the footer text move into About.
-19. **Hot sectors on the Start tab.** No symbols (no β); each card in plain words, for example "Memecoins: BTC +10% -> +14%, waiting to run". Each hot sector has its own CyMetica-managed AIB fund (like the Managed AIB funds on /fund-performance) holding that sector's leading coins, rebalanced weekly, shown on its card with its return since launch and a link to its /fund-performance page.
-20. **Gem Screener Top Picks fund.** A CyMetica-managed AIB fund holding the current Degen picks at equal weight, rebalanced weekly, shown on the Start tab right above the Degen picks with its return since launch and a link to its /fund-performance page.
+19. **Hot sectors on the Start tab.** No symbols (no β); each card in plain words, for example "Memecoins: BTC +10% -> +14%, waiting to run". Each hot sector has its own CyMetica-managed AIB fund (like the Managed AIB funds on /fund-performance) holding that sector's leading coins, rebalanced weekly, shown on its card with its return since launch and a link to its /fund-performance page. If funds need a human-reviewed build slot, they may follow as a second step; do not hold back the other items.
+20. **Gem Screener Top Picks fund.** A CyMetica-managed AIB fund holding the current Degen picks at equal weight, rebalanced weekly, shown on the Start tab right above the Degen picks with its return since launch and a link to its /fund-performance page. Same second-step rule as item 19.
 
 ## Sectors and data quality
 
@@ -51,7 +51,7 @@ Gem Screener is my own app; this repository is its source. Anything not mentione
 
 23. **On request.** A "Degen report" button in every coin's detail asks NEXUS for a short report on that coin, for example by pre-filling the NEXUS chat with the prompt so the visitor only presses Enter. How it is wired is your call; the report follows the format in item 24 and is at most 150 words.
 24. **Format**, in this order, one line each: What it is / Where the money comes from / Real or printed (30-day revenue vs 30-day token emissions) / Numbers (MC, FDV, % of tokens out, price vs revenue) / Good (max 3) / Shady (max 3) / The bet and the one metric to watch / One-line verdict. Anything unknown says "unknown", never a guess; sources are linked; "Not financial advice" at the end.
-25. **Illustrative target for Pharaoh (PHAR).** What it is: Avalanche's main DEX, a RAMSES fork on x(3,3). Money: $2.0M fees in 30 days from $2.5B volume. Real or printed: earns $1.98M, prints $1.08M in tokens, so +$0.9M real. Numbers: MC $3.1M, FDV $46M, 7% of tokens out. Good: profitable after emissions, emissions shrink when revenue drops, 50% exit burn. Shady: +131% in 30 days near its all-time high, revenue swings with Avalanche activity. The bet: Avalanche stays busy; watch weekly fees vs weekly emissions. Verdict: strong DEX, bought after a pump.
+25. **Illustrative target for Pharaoh (PHAR), same format.** Avalanche's main DEX (a RAMSES fork on x(3,3)); earns $1.98M in 30 days and prints $1.08M in tokens, so +$0.9M is real; Shady: +131% in 30 days near its all-time high, revenue follows Avalanche activity. Verdict: strong DEX, bought after a pump.
 
 ## Ready for AI agents
 
