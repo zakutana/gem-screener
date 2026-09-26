@@ -20,7 +20,7 @@ Gem Screener is my own app; this repository is its source. Anything not mentione
 6. **Benchmark.** Replace "benchmark: Hyperliquid 37x MC/revenue" with one highlighted line: "Hyperliquid is priced at 37x its yearly revenue. Upside = what a coin is worth at the same price tag."
 7. **Tooltips everywhere:** at most 20 plain words, no formulas, no r², no "log-OLS", no "MC/run-rate". Examples: Strength "Revenue grew faster than the price: still cheap (up) / price ran ahead (down)". Growth "How much revenue changed in 6 months". A "How it's calculated" link at the end of a tooltip opens the maths for whoever wants it.
 8. **FDV line.** The "FDV 39x" line under Upside reads "39x if all tokens were out", and its tooltip says how many tokens are still to come ("only 7% are out today").
-9. **Legend.** A "Legend" button next to the tabs opens one short panel listing every icon, tag, colour, column and trajectory word (Ignition, Slowing, Flat, ...), at most 8 words each.
+9. **Legend.** A "Legend" button next to the tabs opens one short panel listing every icon, tag, colour, column and trajectory word (Ignition, Slowing, Flat, ...), at most 8 words each. Clicking any flag icon next to a name also opens this panel and highlights the entry of the icon that was clicked. This click-through applies only to the icons in the Project column (Apps tab) and the Chain column (Chains tab); other icons keep only their tooltip.
 
 ## Numbers and colours
 
