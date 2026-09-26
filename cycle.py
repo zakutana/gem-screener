@@ -1396,7 +1396,9 @@ def build_cycle(ctx, prev, now_ts, log=None, data_dir=None, fetch=True):
 
     # --- history line: the same phase earlier, and what alts did next
     hint = None
-    if ph[last]:
+    # not for the catch-all phase: "last time in no particular phase" is noise
+    # dressed as evidence
+    if ph[last] and ph[last] != "zima":
         eps = [e for e in phase_episodes(weeks, ph) if e[0] == ph[last]]
         cur = eps[-1] if eps and eps[-1][2] == last else None
         prior = [e for e in eps if e is not cur and weeks[e[1]] >= DISPLAY_FROM]
