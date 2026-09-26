@@ -136,12 +136,17 @@ Three properties define the architecture:
 |---|---|---|
 | `collector.py` | yes | The pipeline: fetch, measure, gate, write `snapshot.json` and the ledger. Entry point `run()`. |
 | `themes.py` | yes | The 12 themes: CoinGecko baskets, weekly grid, beta/RS/tags, fundament, altseason index, row-theme join. |
+| `cycle.py` | yes | The Altseason panel (§13.8): its own inputs (CMC, Coin Metrics, Upbit, App Store, Tranco…), `cycle_history.json`, the index, phases, verdicts, the OTHERS.D trendline, retail and volume. |
+| `cycle_backtest.py` | yes | The pre-registered consistency check of the Altseason index (§17.1); `--selftest` on synthetic data. |
+| `tools/cycle_seed.py` | yes | One-time, resumable build of `cycle_history.json` (~630 paced CMC calls, Upbit, Tranco, DeFiLlama breakdown). |
+| `cycle_backtest_summary.json`, `cycle_backtest_report.html`, `backtest_cache/cycle_prereg.lock` | yes | The backtest's verdict and chosen rules (read by the collector), its report with charts, and the lock of its pre-registration. |
+| `cycle_history.json`, `cycle_cache/` | **no** | Vendor data (CMC and DeFiLlama terms, Coin Metrics CC BY-NC): rebuilt by the seed, never committed. |
 | `liquidity.py` | yes | Can a $10K ticket be bought and sold? DexScreener pair depth or CoinGecko volume. |
 | `unlocks.py` | yes | Token emission schedules (DeFiLlama datasets) → cliffs, 90-day unlocks, insiders. |
 | `template.html` | yes | The whole viewer: HTML + CSS + JS in one file (~4,000 lines), no build step. |
 | `build_viewer.py` | yes | Injects a snapshot into the template → `gem_screener.html`. |
 | `app.py` | yes | Local HTTP server (exe entry point): serves the page, runs the collector on Refresh. |
-| `audit.py` | yes | 36 sections recomputing every metric, gate and join from the snapshot (+ live spot checks). |
+| `audit.py` | yes | 37 sections recomputing every metric, gate and join from the snapshot (+ live spot checks). |
 | `audit_sectors.py` | yes | Sector aggregates and themes, recomputed with a second implementation. |
 | `audit_static.js` | yes | Static analysis of `template.html` (dead code, undefined ids, CSS tokens, info keys…). |
 | `backtest.py` | yes | The pre-registered historical test of the ranking (offline, not run in CI). |
@@ -173,11 +178,15 @@ python build_viewer.py         # -> gem_screener.html (default: English, Apps ta
 python build_viewer.py --lang cs --view start
 python app.py                  # local server, Czech, Start tab, Refresh button
 python backtest.py             # offline; see §17 before changing anything it reads
+python tools/cycle_seed.py     # once: the Altseason panel's history (~40 min, resumable)
+python cycle_backtest.py       # the Altseason index's pre-registered check (--selftest: synthetic)
 ```
 
 | Variable | Read by | Effect |
 |---|---|---|
 | `COINGECKO_DEMO_KEY` | `themes.cg_headers()` | Sent as `x-cg-demo-api-key` on every CoinGecko call. Optional; CI should set it (shared runners get 429s). Never logged. |
+| `YOUTUBE_API_KEY` | `cycle.update_youtube` | Optional free key: YouTube views per day from channel totals. Without it the channel RSS feeds are used. Sent as a header, never logged. |
+| `CLOUDFLARE_API_TOKEN` | `cycle.update_ai` | Optional free token (Radar Read): the AI row's share of AI assistants fetching crypto sites for users. Without it the row says which key it needs. |
 | `GEM_PORT` | `app.py` | Pin one port instead of the first free of 8765–8775 (lets a test build run next to a live one). |
 | `GEM_NO_BROWSER` | `app.py` | Do not open a browser tab (tests, CI-like runs). |
 | `PYTHONIOENCODING=utf-8` | Python | Needed on consoles that are not UTF-8 (Czech log lines). |
@@ -221,6 +230,14 @@ research tool)`. Two retry policies exist:
 | `api.dexscreener.com` | `/tokens/v1/{chain}/{addr,…}` (30 per call, **sorted**), `/token-pairs/v1/{chain}/{addr}` | deepest money pair per token | `dex_cache.json`: fresh 12 h, kept 7 d |
 | `defillama-datasets.llama.fi` | `/emissionsProtocolsList`, `/emissions/{slug}` | unlock schedules | `unlocks_cache.json`, 7 d |
 | `icons.llamao.fi` (+ feed logo URLs) | logos | 48 px, ≤ 25 KB, embedded as data URIs | — |
+| `api.coinmarketcap.com/data-api/v3` (undocumented web API; Adam's decision 2026-09-26) | `global-metrics/quotes/historical` (`interval=weekly`, one call = every week since 2013; `interval=1d`, ≤ 2 200 days a call), `cryptocurrency/listings/historical?date=…&limit=500` | BTC.D, total/alt mcap, adjusted daily volume; weekly listings → OTHERS.D, OTHERS $, breadth, volume split (§13.8) | `cycle_history.json` |
+| `community-api.coinmetrics.io/v4` | `timeseries/asset-metrics` (`PriceUSD`, `CapMrktCurUSD`, `CapMVRVCur`, `IssTotUSD`; `SplyCur` of USDT and USDC) | BTC cycle heat, stablecoin supply | `cycle_history.json` |
+| `api.upbit.com/v1` | `market/all`, `candles/weeks` | Korean retail turnover (weekly, once a week) | `cycle_history.json` |
+| `itunes.apple.com` | `us/rss/topfreeapplications/limit=100[/genre=6015]/json`, `lookup?id=…` | crypto app ranks, rating counts | own ledger in `cycle_history.json` |
+| `tranco-list.eu` | `api/ranks/domain/…`, `api/lists/date/…` + `download/{id}/10000` | exchange traffic ranks | `cycle_history.json` |
+| `www.youtube.com/feeds`, `googleapis.com/youtube/v3` (optional key) | channel feeds / `channels?part=statistics` | crypto YouTube views | own ledger |
+| `colintalkscrypto.com/cbbi/data/latest.json` | — | CBBI as one reference line (never an input) | — |
+| `api.cloudflare.com/client/v4/radar` (optional token) | `ai/bots/timeseries_groups/INDUSTRY` | the AI row | — |
 
 Caches are written atomically (tmp + `os.replace`, 5 retries on Windows
 `PermissionError`). "Stale beats empty": a failed refresh keeps the old entry and
@@ -262,6 +279,9 @@ accumulators once double-counted on the second Refresh).
     `apply_degen`.
 18. Ledger summary (forward returns of past picks) and `backtest_summary.json`
     if present next to the snapshot.
+    The Altseason panel follows: `cycle.build_cycle` (§13.8) — its own fetches,
+    `cycle_history.json`, own try/except (a failure keeps the previous `cycle`
+    block with `stale: true`).
 19. Trim: apps lose their TVL series (~2 MB no view draws); dollar series are
     rounded to cents (`clean_series`). (The adoption index is different: it keeps
     9 significant digits, `%.9g`, because it can start at 0.0007.)
@@ -728,14 +748,104 @@ tier; the RS equivalent would inflate the quarterly "vs BTC" of AI by +159 pp
   r² ≥ 0.25). The degen theme gate passes on tier 5, `leads` or `fund_up`.
 - Themes are sorted by beta (descending); Start shows the first three.
 
-### 13.8 Altseason index
+### 13.8 Altseason panel (`cycle.py`)
 
-For every weekly stamp from week 13 on: the top 50 alts of the cached top-250
-universe (BTC and hard exclusions out) ranked by the market cap they had **then**
-(constant-supply proxy `mcap · p_then / p_now`, ≥ 30 required), and the share of
-them that beat BTC over the previous 13 weeks (the Blockchaincenter convention:
-≥ 75% = altseason, ≤ 25% = BTC season). `altseason.history`, `index`,
-`three_months_ago`, `universe_mcap` (so the audit can re-rank every point).
+Adam's question (2026-09-26): where are we in the altseason, and has it played out?
+The old strip showed only breadth (the share of the top-50 alts beating BTC over
+13 weeks) — 40 weekly points, noisy, silent on "early or late". Its computation
+(`altseason` in `themes.py`: `index`, `history` `[stamp, %, n]`, `three_months_ago` =
+the newest point ≥ 13 weeks back, `universe_mcap` so audit_sectors re-ranks every
+point) is kept because themes' `gamma` and the `leads` tag use it, but the page no
+longer shows it. The panel shows `cycle`:
+
+**Principle: only series with free history across both the 2017/18 and 2021
+altseasons enter the index; everything else is shown beside it.**
+
+| Pillar | Component (weekly, Monday 00:00 UTC, inputs from 2014-07) | Score |
+|---|---|---|
+| `rotation` | BTC.D drawdown = 1 − mean4(BTC.D) / 52-week max of mean4 | trailing percentile |
+| | OTHERS.D rise = mean4(OTHERS.D) / 52-week min − 1 (OTHERS.D = ranks 11–125 ÷ top 125, stablecoins in — TradingView's definition) | trailing percentile |
+| | breadth = top-50 alts (stablecoins and wrapped twins out) beating BTC over 13 weeks, from that week's CMC listing (survivorship-free), 4-week mean | used raw |
+| `heat` | mean of the percentiles of MVRV ratio, Puell, Mayer, Pi Cycle ratio (Coin Metrics daily; MVRV ratio, not MVRV-Z, whose full-series σ looks ahead) | — |
+
+- Percentile = mid-rank `100·(#{y<x} + ½·#{y=x}) / n` over the previous 208 weeks,
+  current week excluded, ≥ 104 values. Index `I = (rotation + heat) / 2`.
+- Phases (first match): `po_vrcholu` (two consecutive `prehrate` weeks in the last
+  26, I ≥ 15 below their max), `prehrate` (I ≥ T, breadth ≥ 75, BTC.D drawdown ≥ 25 %),
+  `bezi` (rotation ≥ 60 and breadth ≥ 75, or ≥ 50 with drawdown ≥ 25 %), `zacina`
+  (rotation ≥ 40 and up 15 in 13 weeks, or an OTHERS.D breakout within 13 weeks),
+  `btc_sezona` (heat ≥ 50, rotation < 40), `zima` (everything else; the page calls it "Bez signálu" — at index 47 on 2026-09-21 "winter" read wrong). The raw gates are market
+  conventions (75 % breadth = altseason; both real altseasons took BTC.D 42–61 %
+  below its yearly high, 2024–26 never more than 12 %). T and the breadth gate are
+  the pre-registered variant the backtest picked (§17.1), read from
+  `cycle_backtest_summary.json`.
+- **OTHERS.D trendline** (`trend_break`): pivot highs (highest close of ±4 weeks,
+  usable 4 weeks later); from each pivot still the highest close since, the flattest
+  line no close pierces; a close > 3 % over the line through the previous week, ≥ 40
+  weeks after the anchor, is a breakout; a close 3 % under the frozen line within 26
+  weeks is `failed`. At most two lines are kept (`pick_lines`). The newest complete
+  CMC day is tested too and labelled unconfirmed. BTC.D uses the mirror (rising
+  support). audit §37 re-derives the breakout week by brute force.
+- **Retail** measures what people do, not what they look up (Wikipedia and Google
+  lose readers to chatbots): Korean Upbit turnover (13-week change, percentile —
+  delisted coins make old levels too low), the memecoin economy's 30-day revenue
+  (Launchpad + Telegram Bot + Trading App), the best-ranked crypto app in the US
+  App Store (`app_score`, anchored on Coinbase's published ranks at past tops), the
+  90-day growth of USDT+USDC. Facts beside it: exchange traffic (Tranco), YouTube,
+  rating-count growth (a downloads proxy), AI (Anthropic Economic Index; Cloudflare
+  Radar with a token). Not an index input.
+- **Volume** (Adam's add): CMC's adjusted daily volume, 7-day mean ÷ the 1-year
+  median, and the alts' share of volume. Spikes on crashes too → beside the index.
+- Inputs live in `cycle_history.json` (gitignored), built by `tools/cycle_seed.py`;
+  each run fetches the missing tail (≤ 12 listing weeks). Its loader tells missing
+  from corrupt, keeps a `.bak` and refuses to save fewer weeks than it loaded.
+
+Snapshot block `cycle`: `version`, `prereg_sha256`, `as_of`, `generated`,
+`history_missing`, `stale` (fallback only), `rules`, `index`, `phase`,
+`index_3m_ago`, `rotation`, `heat`, `weeks` (full axis from 2014-07),
+`display_from` (charts start 2016), `series` (`index`, `rotation`, `heat`, `phase`,
+`btcd`, `othersd`, `breadth`, `breadth4`, `dd52`, `others_usd`, `btc`, `mvrv`,
+`puell`, `mayer`, `pi`, `breakouts`), `components`, `events` (`P0`, `P1`, `P2`,
+`P2b`), `index_at_events`, `hint` (`phase`, `episodes` with `start`, `usd13`,
+`vbtc13`; `n_prior`), `backtest` (`verdict`, `chosen`, `index_at`, `eval_start`,
+`generated_utc`), `anomalies`.
+
+`rules`: `window`, `min_window`, `T`, `t_factor`, `breadth_gate`,
+`prehrate_breadth`, `prehrate_dd`, `bezi_rotation`, `bezi_breadth_hi`,
+`bezi_breadth_lo`, `bezi_dd`, `zacina_rotation`, `zacina_rise`, `zacina_weeks`,
+`btc_sezona_heat`, `btc_sezona_rotation`, `po_vrcholu_drop`, `po_vrcholu_weeks`,
+`breadth_hi`, `breadth_lo`, `btcd_move_pp`, `heat_lo`, `heat_hi`, `retail_lo`,
+`retail_hi`, `retail_rush`, `vol_lo`, `vol_mid`, `vol_hi`, `trend_break`,
+`trend_fail`, `trend_min_weeks`, `trend_max_weeks`, `trend_pivot`,
+`trend_touch_gap`.
+
+`components`:
+- `btcd`: `value` (newest day), `day`, `week`, `chg13_pp`, `dd52`, `verdict`
+  (`klesa` / `roste` / `bokem`), `lows` (`P1`, `P2`), `trend`, `source`.
+- `othersd`: `value`, `day`, `week`, `verdict` (`pruraz`, `pruraz_nepotvrzeny`,
+  `downtrend`, `zpet_pod`, `bez_trendu`), `trend`, `unconfirmed`, `usd_bn`,
+  `usd_peak_2021_bn`, `usd_low_26w_bn`, `rise_score`, `source`. A trend line:
+  `anchor`, `anchor_v`, `touch`, `touch_v`, `slope_week`, `breakout`,
+  `breakout_v`, `failed_at`, `status`, `weeks`, `line_now`, `dist_pct`,
+  `latest_line`, `latest_dist_pct`.
+- `breadth`: `value`, `mean4`, `beat`, `n`, `leaders` (`[symbol, vs BTC, return]`),
+  `verdict` (`alty_vedou`, `smisene`, `btc_vede`), `source`.
+- `btc_heat`: `value`, `verdict` (`brzy`, `polovina`, `prehraty`), `hits`, `of`,
+  `cbbi`, `parts` (`mvrv`, `puell`, `mayer`, `pi`: `name`, `value`, `score`,
+  `top2017`, `top2021`, `hit`).
+- `retail`: `value`, `verdict` (`spi`, `probouzi`, `hrne`), `tempo`, `tempo_word`
+  (`naval`, `postupne`, `odliv`, `stoji`), `n_scored`, `parts`: `upbit` (`score`,
+  `week`, `sum4_t_krw`, `peak_t_krw`, `peak_week`, `pct_of_peak`, `chg13_pct`,
+  `score_4w`, `series`), `degen` (`score`, `day`, `rev30d`, `peak`, `peak_day`,
+  `pct_of_peak`, `score_4w`, `movers`, `series`), `stables` (`score`, `day`,
+  `supply_bn`, `g90`, `score_4w`, `series`), `apps` (`score`, `best`,
+  `best_overall`, `best_finance`, `day`, `apps`, `score_4w`, `ledger_days`),
+  `traffic` (`score`, `day`, `ranks`, `ranks_4w`, `monthly`, `best`), `youtube`
+  (`score`, `day`, `kind`, `views_per_day`, `median_views`, `channels`,
+  `ledger_days`), `ai` (`score`, `claude`, `cloudflare`, `needs`).
+- `volume`: `day`, `vol24h`, `avg7`, `ratio_1y`, `verdict` (`slaby`, `normalni`,
+  `zvyseny`, `extremni`), `alt_share`, `alt_share_13w`, `alt_share_2021`, `chart`,
+  `fake_volume_span`.
 
 ### 13.9 Which theme a row belongs to — the join
 
@@ -831,6 +941,7 @@ collector writes is missing from this section.
 | `sectors` | `{apps: [...], chains: [...]}` (§14.6) |
 | `themes` | 12 theme objects, sorted by beta (§14.5) |
 | `altseason` | `index`, `history` (`[stamp, %, n]` — n = alts counted, 50 normally), `n` (50), `three_months_ago` (the newest point ≥ 13 weeks before the last stamp), `universe`, `alt50`, `universe_mcap`, `alt_4w_median`, `btc_1m`, `btc_3m`, `btc_index` |
+| `cycle` | the Altseason panel (§13.8) |
 | `theme_prices` | `stamps` (53 weekly), `live_ts`, `coins` (id → 53 prices), `live` (id → price) — every coin any stored theme number was computed from |
 | `coin_meta` | id → `{sym, name, logo}` for basket members |
 | `theme_anomalies` | `[{id, k, kind: spike|break, jump}]` from price cleaning |
@@ -1117,6 +1228,26 @@ past. It is offline (its HTTP cache lives in `backtest_cache/`), not part of CI.
   `snapshot.backtest_summary`), `backtest_report.html`. `python backtest.py
   --selftest` runs the statistics on synthetic data only.
 
+### 17.1 The Altseason index check (`cycle_backtest.py`)
+
+Adam's requirement: the index must sit on the 2017/18 and 2021 altseason peaks.
+Two peaks allow no statistics and the design already knew both cycles, so this
+is a **consistency check, not an out-of-sample test**, and says so. `PREREG` is
+hashed into `backtest_cache/cycle_prereg.lock` before any index value is computed
+on real data (the design was debugged on synthetic series); a changed PREREG is
+refused. Peaks are dated by rules: P1/P2 = the BTC.D low within 26 weeks before to
+13 weeks after the BTC tops of 2017-12-17 / 2021-04-14; P0 (the June 2017 alt top)
+and P2b (the Nov 2021 USD top of alts) are reported. Pass: a `prehrate` week in
+[P − 8 w, P + 2 w] for P1 and P2; each cycle's highest week within [P − 12 w, P + 4 w];
+≤ 10 % of weeks at I ≥ T; ≤ 2 `prehrate` episodes away from the peaks that were
+not followed by a ≥ 40 % alt drawdown within 8 weeks. Four variants (breadth gate
+raw / 4-week mean × T = 0.9 / 0.85 of the index at P1, clamped to 80–90) and the
+rule that picks one are fixed in PREREG; all four are in the report. Also
+reported, never used to pick: what alts did 13/26 weeks after each phase episode,
+and a 104/156/260-week window sensitivity. The collector reads the chosen rules
+from `cycle_backtest_summary.json`; audit §37 checks the lock and that the
+snapshot's rules equal the choice.
+
 ## 18. Quality gates: audits and equivalence proofs
 
 The audits are the acceptance tests. They read `snapshot.json` (and
@@ -1124,7 +1255,7 @@ The audits are the acceptance tests. They read `snapshot.json` (and
 repository root**, recompute stored numbers with a second implementation, and
 **exit 1 on any hard failure** (warnings never fail). Judge them by exit code.
 
-### 18.1 `audit.py` — 36 sections
+### 18.1 `audit.py` — 37 sections
 
 | § | Checks |
 |---|---|
@@ -1143,7 +1274,8 @@ repository root**, recompute stored numbers with a second implementation, and
 | 31–33 | CoinGecko market fields, liquidity decisions, unlocks and risk tags |
 | 34 | the seven degen gates, shortlist, near misses, exit flags — recomputed; every reason has viewer text |
 | 35 | the backtest verdict comes from the locked pre-registration |
-| 36 | **this document covers the data contract**: every snapshot key, row key, theme key and theme field appears in ARCHITECTURE.md |
+| 36 | **this document covers the data contract**: every snapshot key, row key, theme key and theme field appears in ARCHITECTURE.md (the `cycle` block included) |
+| 37 | the Altseason panel: index, pillars, phases re-implemented from the stored series with thresholds written in the audit; verdicts; retail mean; the OTHERS.D breakout by brute force; the backtest lock; every phase and verdict has viewer text |
 
 ### 18.2 `audit_sectors.py` and `audit_static.js`
 
@@ -1174,7 +1306,10 @@ changes. `tools/compare_snap.py` diffs two snapshots keyed by entity. The v14
 change was proven this way: old vs new code on one recording → the 11 existing
 themes, every metric, sector and chain identical; the only differences were the
 67 newly themed apps (and their Test 30×/degen fields), Infrastruktura, the
-shrunken `unmapped`, `theme_join` and the new `gates_version`.
+shrunken `unmapped`, `theme_join` and the new `gates_version`. The Altseason
+panel (2026-09-27) likewise: main vs the new code on one recording → the only
+differences were `altseason.three_months_ago` (20 → 42, the fixed bug), the new
+`cycle` block and the wall-clock `generated_at_iso`.
 
 ### 18.4 Definition of done for a change
 
@@ -1203,6 +1338,11 @@ Standing decisions (the product owner's, not incidental):
   rule it broke.
 - **Czech first** (decimal commas everywhere), English switch; the shareable
   static build opens in English on Apps.
+- **Altseason panel (2026-09-26):** only series with history across both
+  altseasons enter the index; retail measures actions (apps, on-chain trading,
+  Korean exchange turnover, new stablecoin dollars), not lookups; CMC's web API is
+  the source of BTC.D / OTHERS.D history (Adam's decision); nothing before 2016 is
+  drawn ("2013 me nezajímá").
 - **~Ten themes**, now twelve: Infrastruktura was added (2026-09-23) so that every
   app has a sector.
 
@@ -1222,6 +1362,10 @@ Tried and rejected — do not reintroduce without new evidence:
 | Test 30× `larger_of` ceiling | HYPE / ZEC / DOGE in a basket let almost anything through. |
 | Hiding the theme chip when it repeats the category | Rows without a chip read as rows without a theme (v14: always shown). |
 | A grey "Mimo témata" chip for the ~20 infra apps | Chosen instead: a real 12th theme with its own basket and fundament. |
+| Wikipedia pageviews as the retail signal | Adam: "nikdo tam nechodí" — the AI era moves lookups into chatbots, so the series decays for reasons unrelated to crypto. |
+| CMC trading volume inside the index | 2019–20 fake exchange volume breaks it (alt volume / mcap 0.05 in 2018, 0.49 in 2020, 0.04 today). Shown as the Objem tile instead. |
+| Calling the composite "Altseason index" | CMC and Blockchaincenter publish an "Altcoin Season Index" (breadth); "38 here vs 74 there" would read as a bug. Composite = Altseason cyklus, breadth keeps the known name. |
+| Fixed anchors from the 2017 cycle for the index | 2021 was smaller on every measure; May 2021 would score ~70 and miss by construction. Trailing percentiles + raw gates instead. |
 | CoinGecko membership 250 deep for the join | Unmeasured; CoinGecko tags liberally at depth. The join uses the cached top 30 per category. |
 
 ## 20. Invariants and traps — do not regress
@@ -1258,6 +1402,13 @@ Each of these broke once.
 - **Rows arrive in thread-completion order**; sort before comparing, and keep
   derived lists (like `theme_join.changed`) sorted.
 - **`generated_at_iso` is wall-clock** (gmtime): ignore it in replays.
+- **One NaN kills `JSON.parse`**: `build_cycle` ends with `json.dumps(block,
+  allow_nan=False)`.
+- **CMC's web API answers HTTP 200 with an error inside the body** (and refuses
+  `date=today`); `cmc_get` treats both as failures.
+- **The panel lives in two hosts at once** (`#startAlt`, `#altStrip`): no fixed
+  ids inside it.
+- **Never overwrite `cycle_history.json` with less**: the seed costs ~40 minutes.
 - **Only delete CSS that the audit flags** as unused; class names built at
   runtime (`t5`, `p-…`, `q-…`) look dead to a grep.
 
@@ -1330,5 +1481,8 @@ Each of these broke once.
   H3 used the category-only theme join.
 - CoinGecko's free tier rate-limits hard: a cold basket rebuild takes ~5 minutes;
   set `COINGECKO_DEMO_KEY` in CI.
+- The Altseason index was checked on two peaks — a thermometer, not a signal. Retail
+  rows without history (App Store, YouTube, AI) start their own ledgers on the day
+  the panel shipped; Upbit's old weeks miss delisted coins.
 - The exe does not bundle `backtest_summary.json`; without it next to the exe,
   Start says the backtest has not run.
