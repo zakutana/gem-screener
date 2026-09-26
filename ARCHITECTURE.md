@@ -830,7 +830,7 @@ collector writes is missing from this section.
 | `apps` / `chains` | the rows (§14.2–14.4) |
 | `sectors` | `{apps: [...], chains: [...]}` (§14.6) |
 | `themes` | 12 theme objects, sorted by beta (§14.5) |
-| `altseason` | `index`, `history` (`[stamp, %]`), `n` (50), `three_months_ago`, `universe`, `alt50`, `universe_mcap`, `alt_4w_median`, `btc_1m`, `btc_3m`, `btc_index` |
+| `altseason` | `index`, `history` (`[stamp, %, n]` — n = alts counted, 50 normally), `n` (50), `three_months_ago` (the newest point ≥ 13 weeks before the last stamp), `universe`, `alt50`, `universe_mcap`, `alt_4w_median`, `btc_1m`, `btc_3m`, `btc_index` |
 | `theme_prices` | `stamps` (53 weekly), `live_ts`, `coins` (id → 53 prices), `live` (id → price) — every coin any stored theme number was computed from |
 | `coin_meta` | id → `{sym, name, logo}` for basket members |
 | `theme_anomalies` | `[{id, k, kind: spike|break, jump}]` from price cleaning |
