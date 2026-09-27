@@ -1392,7 +1392,7 @@ repository root**, recompute stored numbers with a second implementation, and
 | 34 | the seven degen gates, shortlist, near misses, exit flags — recomputed; every reason has viewer text |
 | 35 | the backtest verdict comes from the locked pre-registration |
 | 36 | **this document covers the data contract**: every snapshot key, row key, theme key and theme field appears in ARCHITECTURE.md (the `cycle` block included) |
-| 37 | the Altseason panel v2: rotation, BTC heat, every retail row's four-year log score (from the stored weekly samples), euphoria, index and phases re-implemented with thresholds written in the audit; the OTHERS.D and BTC.D lines by brute force (pivots, the hull tried pivot by pivot, status, breakout events); verdicts; the v2 lock hash; every phase, verdict and line status has viewer text |
+| 37 | the Altseason panel v2: rotation, BTC heat, every retail row's four-year log score (from the stored weekly samples), euphoria, index and phases re-implemented with thresholds written in the audit; the OTHERS.D and BTC.D lines by brute force (pivots, the hull tried pivot by pivot, status, breakout events) and every number the page prints from them (anchor/touch/bottom values, line_now, dist_pct, since_v, the daily point's line and distance); verdicts; the v2 lock hash; every phase, verdict and line status has viewer text |
 
 ### 18.2 `audit_sectors.py` and `audit_static.js`
 
@@ -1427,6 +1427,9 @@ shrunken `unmapped`, `theme_join` and the new `gates_version`. The Altseason
 panel (2026-09-27) likewise: main vs the new code on one recording → the only
 differences were `altseason.three_months_ago` (20 → 42, the fixed bug), the new
 `cycle` block and the wall-clock `generated_at_iso`.
+Altseason v2 (2026-09-27): 54302a6 vs v2 on one recording → only the `cycle`
+block, `generated_at_iso`, the first `cycle_ledger.jsonl` line and the history's
+dropped `yt` differed; `cbx` (seeded beforehand) was identical in both.
 
 ### 18.4 Definition of done for a change
 
