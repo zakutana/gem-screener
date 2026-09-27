@@ -101,10 +101,11 @@ MEME_CATS = ("Launchpad", "Telegram Bot", "Trading App")   # = the Memecoiny fun
 # taxonomy changed in Jun 2026, so it is a fact on the page, never a live signal).
 AI_CLAUDE = [["2025-03", 0.355], ["2025-08", 0.218], ["2025-11", 0.477], ["2026-02", 0.497]]
 
-# Default rules. The backtest's summary overrides `breadth_gate` and `T` with the
-# pre-registered variant it picked; the page reads every threshold from `rules`.
-DEFAULT_RULES = {
-    "window": WINDOW, "min_window": MIN_WINDOW,
+# v1's rules as literals. cycle_backtest's v1 PREREG is locked, and v1 is still
+# evaluated and reported (FAIL), so trend_break, pick_lines and compute_index — v1's
+# code path — read only these: a v2 edit of DEFAULT_RULES must not move v1's result.
+V1_RULES = {
+    "window": 208, "min_window": 104,
     "T": 85.0, "t_factor": 0.9, "breadth_gate": "mean4",
     "prehrate_breadth": 75, "prehrate_dd": 25.0,
     "bezi_rotation": 60, "bezi_breadth_hi": 75, "bezi_breadth_lo": 50, "bezi_dd": 25.0,
@@ -119,6 +120,10 @@ DEFAULT_RULES = {
     "trend_break": 0.03, "trend_fail": 0.03, "trend_min_weeks": 40, "trend_max_weeks": 156,
     "trend_pivot": 4, "trend_touch_gap": 8,
 }
+
+# Default rules. The backtest's summary overrides `breadth_gate` and `T` with the
+# pre-registered variant it picked; the page reads every threshold from `rules`.
+DEFAULT_RULES = dict(V1_RULES)
 
 
 # ================================================================== small helpers
@@ -441,7 +446,7 @@ def trend_break(vals, mode="down", rules=None):
     breakout and freezes the line. A close 3 % under a frozen line within 26 weeks
     is a failed breakout. mode="up" mirrors it for BTC.D (rising support from lows).
     Returns every line found, oldest anchor first."""
-    R = dict(DEFAULT_RULES, **(rules or {}))
+    R = dict(V1_RULES, **(rules or {}))
     d = 1.0 if mode == "down" else -1.0      # all comparisons go through d: "higher" means "more extreme"
     c = list(vals)
     n = len(c)
@@ -575,7 +580,7 @@ def compute_index(weeks, series, rules):
 
     series: btcd, othersd, breadth (raw %, None when unknown), heat metrics.
     Returns a dict of lists aligned with `weeks`."""
-    R = dict(DEFAULT_RULES, **(rules or {}))
+    R = dict(V1_RULES, **(rules or {}))
     n = len(weeks)
     bd4 = roll_mean(series["btcd"], 4)
     od4 = roll_mean(series["othersd"], 4)

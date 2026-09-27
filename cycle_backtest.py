@@ -75,9 +75,12 @@ PREREG = {
     "selection": "passes all -> fewest false episodes -> fewest weeks >= T -> (mean4, 0.9)",
     "reported_only": ["forward 13/26-week OTHERS USD return and vs BTC per phase, by episode",
                       "window sensitivity 104/156/260 weeks"],
-    "trendline": {k: cycle.DEFAULT_RULES[k] for k in ("trend_break", "trend_fail", "trend_min_weeks",
-                                                       "trend_max_weeks", "trend_pivot", "trend_touch_gap")},
+    # a literal: this used to read cycle.DEFAULT_RULES at import, so a v2 edit of the
+    # defaults would have changed v1's hash and its lock would have refused every run
+    "trendline": {"trend_break": 0.03, "trend_fail": 0.03, "trend_min_weeks": 40,
+                  "trend_max_weeks": 156, "trend_pivot": 4, "trend_touch_gap": 8},
 }
+V1_SHA256 = "2fb9e3884563f40bcddbab7660595eb4a8b91b2119d59f07c0d82aad449917c7"   # = the v1 lock
 
 
 def prereg_hash():
@@ -177,6 +180,10 @@ def selftest():
         print(("  ok   " if cond else "  FAIL ") + msg)
         ok = ok and cond
 
+    # v1 is locked and still reported: its registration and its rules must not move
+    check(prereg_hash() == V1_SHA256, "v1 PREREG hash unchanged (%s…)" % prereg_hash()[:12])
+    check(all(cycle.V1_RULES[k] == v for k, v in PREREG["trendline"].items()),
+          "v1 trendline rules = the registered literals")
     # percentile: mid-rank, ties split
     check(cycle.pct_rank([1, 2, 3, 4], 3) == 62.5, "mid-rank percentile with a tie")
     tp = cycle.trailing_pct(list(range(300)), 208, 104)
@@ -362,7 +369,7 @@ def main():
     weeks = cycle.week_axis(now)
     s = cycle.series_from_history(H, weeks)
     evi = cycle.find_events(weeks, s)
-    base = dict(cycle.DEFAULT_RULES)
+    base = dict(cycle.V1_RULES)
     probe = cycle.compute_index(weeks, s, base)
     I = probe["index"]
     eval_i = next((i for i, v in enumerate(I) if v is not None), None)
