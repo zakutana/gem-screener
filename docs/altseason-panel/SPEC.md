@@ -14,6 +14,8 @@ Everything else (layout, tiles, the slider, chart style and the logic behind eve
 > **SCOPE — READ FIRST.** Build or replace **only the Altseason panel** (the card with the five tiles *Altseason cycle · OTHERS · BTC.D · Retail · Volume*, its slider, its detail charts and info popovers). **Do not change anything else** on cymetica.com/gem-screener — no other sections, tables, tabs, filters, navigation or styles. The reference repository contains the whole Gem Screener; everything outside the files and sections named in §0 (the apps/chains screener, themes, sectors, degen view, backtest.py, liquidity, unlocks, etc.) is **out of scope — ignore it.**
 >
 > **The repository is a REFERENCE, not code to copy.** Read it to understand the method, the exact arithmetic and the intended look, and run it to compare. Then build the panel natively in your own stack, with your own data pipeline, components and design system. Do not copy the repository, its files or its single-file HTML template into your product.
+>
+> **Data sources are your choice.** Pull the data from wherever you judge best — your existing feeds, paid APIs, your own indexers. The sources the reference uses (free CMC web API, Coin Metrics community, Upbit, Coinbase candles, DeFiLlama, Apple RSS) are only examples of what works; §4 lists what the data must satisfy, not where it must come from.
 
 ---
 
