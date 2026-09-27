@@ -291,6 +291,61 @@ def r1(x):
     return None if x is None else round(x, 1)
 
 
+def ts_utc(y, m, d):
+    return int(datetime.datetime(y, m, d, tzinfo=datetime.timezone.utc).timestamp())
+
+
+def evaluate_v2(weeks, s, rows, ev):
+    """PREREG_V2: the four pass criteria and the reported-only numbers."""
+    R = dict(cycle.V2_RULES)
+    res = cycle.compute_index_v2(weeks, s, rows, R)
+    I, ph = res["index"], res["phase"]
+    T = R["T"]
+    n = len(weeks)
+    in_win = lambda i, P, lo, hi: P is not None and P - lo <= i <= P + hi
+    ev_idx = [i for i in range(n) if I[i] is not None]
+    e0 = ev_idx[0] if ev_idx else None
+    out = {"T": T, "eval_start": weeks[e0] if e0 is not None else None, "weeks_evaluated": len(ev_idx)}
+    # 1. "Blíží se konec" around each altseason end
+    for P in ("P0", "P1", "P2"):
+        out["hit_" + P] = any(ph[i] == "prehrate" for i in range(n) if in_win(i, ev.get(P), 8, 2))
+    # 2. each cycle's highest week near its tops (ties: the earliest)
+    for name, lo, hi, Ps in (("c1", weeks[e0] if e0 is not None else 0, ts_utc(2019, 12, 31), ("P0", "P1")),
+                             ("c2", ts_utc(2020, 1, 1), ts_utc(2022, 12, 31), ("P2",))):
+        idx = [i for i in ev_idx if lo <= weeks[i] <= hi]
+        top = max(idx, key=lambda i: (I[i], -i)) if idx else None
+        out["max_" + name] = top
+        out["max_ok_" + name] = top is not None and any(in_win(top, ev.get(P), 12, 4) for P in Ps)
+    # 3. rare: at most 10 % of the weeks at I >= T
+    out["weeks_ge_T"] = sum(1 for i in ev_idx if I[i] >= T)
+    out["share_ge_T"] = 100.0 * out["weeks_ge_T"] / max(1, len(ev_idx))
+    # 4. false alarms: prehrate episodes starting away from every event
+    eps = [e for e in cycle.phase_episodes(weeks, ph) if e[0] == "prehrate"]
+    near = [e for e in eps if any(in_win(e[1], ev.get(P), 16, 8) for P in ("P0", "P1", "P2", "P2b"))]
+    false = [e for e in eps if e not in near]
+    out["episodes_near"] = [[weeks[e[1]], weeks[e[2]]] for e in near]
+    out["episodes_false"] = [[weeks[e[1]], weeks[e[2]]] for e in false]
+    out["pass"] = bool(out["hit_P0"] and out["hit_P1"] and out["hit_P2"] and out["max_ok_c1"] and out["max_ok_c2"]
+                       and out["share_ge_T"] <= 10.0 and len(false) <= 2)
+    # reported only: how early the warning came, the recent years, each year's max
+    lead = {}
+    for P in ("P0", "P1", "P2"):
+        p = ev.get(P)
+        hit = [e for e in eps if any(in_win(i, p, 8, 2) for i in range(e[1], e[2] + 1))]
+        lead[P] = (p - min(e[1] for e in hit)) if hit else None
+    out["lead_weeks"] = lead
+    recent = [i for i in ev_idx if weeks[i] >= ts_utc(2023, 1, 1)]
+    top = max(recent, key=lambda i: (I[i], -i)) if recent else None
+    out["max_since_2023"] = {"week": weeks[top], "index": r1(I[top])} if top is not None else None
+    yearly = {}
+    for i in ev_idx:
+        y = str(datetime.datetime.fromtimestamp(weeks[i], datetime.timezone.utc).year)
+        yearly[y] = max(yearly.get(y, -1.0), I[i])
+    out["yearly_max"] = {y: r1(v) for y, v in sorted(yearly.items())}
+    out["_res"] = res
+    return out
+
+
 def forward_by_phase(weeks, s, phase):
     """What alts did after each phase episode started: 13/26 weeks, OTHERS USD
     and OTHERS vs BTC. Episodes, not weeks — neighbouring weeks are one event."""
@@ -513,7 +568,96 @@ PH_COL = {"zima": "#8c8175", "btc_sezona": "#5c82c4", "zacina": "#3fa37e", "bezi
           "prehrate": "#d97158", "po_vrcholu": "#a8432f"}
 
 
-def report_html(summary, weeks, s, chosen, all_res):
+REPORT_HEAD = """<!doctype html><meta charset="utf-8"><title>Altseason cyklus — backtest</title>
+<style>body{background:#131110;color:#f3eee5;font:14px 'IBM Plex Sans',system-ui;max-width:1040px;margin:24px auto;padding:0 16px}
+td,th{padding:4px 10px;border-bottom:1px solid #2c2723;text-align:left}h1,h2,h3{font-weight:600}.v{font-size:22px;font-weight:700}
+.note{color:#c9bfb2;border-left:3px solid #b98a34;padding:4px 12px}svg{max-width:100%;height:auto}</style>
+<h1>Altseason cyklus — pre-registrovaný backtest</h1>
+"""
+
+
+def report_html(summary, weeks, s, chosen, all_res, v2=None):
+    """v2 first (the page runs it), then v1 as it was locked and failed."""
+    return REPORT_HEAD + (report_v2_html(summary, weeks, s, v2) if v2 else "") + \
+        report_v1_html(summary, weeks, s, chosen, all_res)
+
+
+def _yn(b):
+    return "ano" if b else "NE"
+
+
+def report_v2_html(summary, weeks, s, v2):
+    S2 = summary["v2"]
+    res = v2["_res"]
+    I = res["index"]
+    evi = {k: v for k, v in summary["events_idx"].items() if v is not None}
+    first = next((i for i, t in enumerate(weeks) if t >= cycle.DISPLAY_FROM), 0)
+    W = weeks[first:]
+    cut = lambda a: a[first:]
+    marks = [(i - first, I[i], "#d97158", "%s %s" % (k, r1(I[i]))) for k, i in evi.items()
+             if k in ("P0", "P1", "P2") and i >= first and I[i] is not None]
+    idx_svg = svg_line(W, [(cut(res["rotation"]), "#5c82c4"), (cut(res["euphoria"]), "#b98a34"), (cut(I), "#f3eee5")],
+                       bands=[(v2["T"], 100, "#d97158")], marks=marks, ymin=0, ymax=100, h=360)
+
+    def line_svg(vals, mode, col):
+        n = len(vals)
+        L = cycle.trend_line(vals, mode, n - 1)
+        a0 = first
+        lines, mk = [], []
+        if L["anchor"] is not None:
+            v0 = vals[L["anchor"]]
+            lines.append((L["anchor"] - a0, v0, n - 1 - a0, L["line_t"], col))
+            mk.append((L["touch"] - a0, vals[L["touch"]], "#8fb0e6", "dotek %s" % cycle.iso(weeks[L["touch"]])))
+            if L["break_first"] is not None:
+                mk.append((L["break_first"] - a0, vals[L["break_first"]], "#3fa37e",
+                           "průlom %s" % cycle.iso(weeks[L["break_first"]])))
+        svg = svg_line(weeks[a0:], [(vals[a0:], "#8fb0e6")], y_fmt=lambda v: "%.1f %%" % v, lines=lines, marks=mk, h=360)
+        txt = ("kotva %s (%.2f %%), dotek %s, dno %s — %s; linie dnes %.2f %%, poslední týden %.2f %%"
+               % (cycle.iso(weeks[L["anchor"]]), vals[L["anchor"]], cycle.iso(weeks[L["touch"]]), cycle.iso(weeks[L["opp"]]),
+                  L["status"], L["line_t"], vals[n - 1] or 0)) if L["anchor"] is not None else L["status"]
+        return svg, txt
+    od_svg, od_txt = line_svg(s["othersd"], "down", "#d97158")
+    bd_svg, bd_txt = line_svg(s["btcd"], "up", "#3fa37e")
+    crit = [
+        ("„Blíží se konec“ v [P − 8, P + 2] týdnů u P0 / P1 / P2",
+         "%s / %s / %s" % (_yn(S2["hit_P0"]), _yn(S2["hit_P1"]), _yn(S2["hit_P2"]))),
+        ("maximum cyklu 1 u P0 nebo P1 · cyklu 2 u P2",
+         "%s (%s) · %s (%s)" % (_yn(S2["max_ok_c1"]), S2["max_c1"] and cycle.iso(S2["max_c1"]),
+                                _yn(S2["max_ok_c2"]), S2["max_c2"] and cycle.iso(S2["max_c2"]))),
+        ("týdnů s indexem ≥ T (nejvýš 10 %)", "%d z %d (%.1f %%)" % (S2["weeks_ge_T"], S2["weeks_evaluated"], S2["share_ge_T"])),
+        ("epizody „Blíží se konec“ mimo vrcholy (nejvýš 2)",
+         "%d %s" % (len(S2["episodes_false"]), ", ".join("%s–%s" % (cycle.iso(a), cycle.iso(b)) for a, b in S2["episodes_false"]))),
+    ]
+    fwd = []
+    for p in ("prehrate", "po_vrcholu"):
+        for e in (S2["forward_by_phase"].get(p) or []):
+            fwd.append("<tr><td style='color:%s'>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td></tr>" % (
+                PH_COL.get(p, "#ccc"), p, cycle.iso(e["start"]), e.get("usd13"), e.get("vbtc13"), e.get("usd26")))
+    lead = " · ".join("%s %s" % (k, "—" if v is None else "%d t" % v) for k, v in S2["lead_weeks"].items())
+    m23 = S2["max_since_2023"]
+    return """<h2>v2 — %s (zaregistrováno %s)</h2>
+<p class="v">Verdikt v2: %s · T = %s</p>
+<p>PREREG_V2 sha256 %s… · zamčeno %s · %s</p>
+<p class="note">v2 byla navržena až po selhání v1, s oběma altseasony před očima, a plánovací běh 2026-09-27
+spočítal tyto vzorce na skutečné historii ještě před registrací. Projde tedy z konstrukce: je to kontrola
+konzistence, ne test. Test je dopředný: <code>cycle_ledger.jsonl</code>, řádek za každý uzavřený týden.</p>
+<h3>Index 2016 → dnes</h3><p>bílá = index, modrá = rotace do altů, zlatá = euforie (retail + BTC cyklus);
+pruh = T (konec altseasonu); body = P0, P1, P2</p>%s
+<table><tr><th>kritérium</th><th>výsledek</th></tr>%s</table>
+<p>Náskok varování (od prvního týdne „Blíží se konec“ k vrcholu): %s</p>
+<p>Maximum od 2023: %s · roční maxima: %s</p>
+<h3>OTHERS.D — linie od vrcholu (týden vidí jen data do sebe)</h3>%s<p>%s</p>
+<h3>BTC.D — support ode dna</h3>%s<p>%s</p>
+<h3>Co alty udělaly po „Blíží se konec“ a „Po vrcholu“ (13 t v USD · 13 t proti BTC · 26 t v USD)</h3><table>%s</table>
+<h2>v1 — zamčená 2026-09-26, beze změny</h2>
+""" % (S2["prereg_id"], PREREG_V2["registered"], S2["verdict"], v2["T"], S2["prereg_sha256"][:12], S2["locked_utc"],
+       "PREREG beze změny" if S2["prereg_ok"] else "PREREG ZMĚNĚN", idx_svg,
+       "".join("<tr><td>%s</td><td>%s</td></tr>" % r for r in crit), lead,
+       ("%s (%s)" % (m23["index"], cycle.iso(m23["week"]))) if m23 else "—",
+       ", ".join("%s: %s" % kv for kv in S2["yearly_max"].items()), od_svg, od_txt, bd_svg, bd_txt, "".join(fwd))
+
+
+def report_v1_html(summary, weeks, s, chosen, all_res):
     res = chosen["_res"]
     I = res["index"]
     ev = summary["events"]
@@ -561,20 +705,16 @@ def report_html(summary, weeks, s, chosen, all_res):
         cycle.iso(weeks[L["anchor"]]), od[L["anchor"]], cycle.iso(weeks[L["touch"]]),
         L["status"], (" " + cycle.iso(weeks[L["breakout"]])) if L["breakout"] is not None else "",
         L["line_now"], L["dist_pct"] or 0) for L in picked)
-    return """<!doctype html><meta charset="utf-8"><title>Altseason cyklus — backtest</title>
-<style>body{background:#131110;color:#f3eee5;font:14px 'IBM Plex Sans',system-ui;max-width:1040px;margin:24px auto;padding:0 16px}
-td,th{padding:4px 10px;border-bottom:1px solid #2c2723;text-align:left}h1,h2{font-weight:600}.v{font-size:22px;font-weight:700}</style>
-<h1>Altseason cyklus — pre-registrovaný backtest</h1>
-<p class="v">Verdikt: %s · vybraná varianta %s (T = %.0f)</p>
+    return """<p class="v">Verdikt v1: %s · vybraná varianta %s (T = %.0f)</p>
 <p>PREREG %s · sha256 %s… · zamčeno %s · %s</p>
-<h2>Index 2016 → dnes</h2><p>bílá = index, modrá = rotace do altů, zlatá = BTC cyklus; červeně okna vrcholů 2018 a 2021, zlatě P0/P2b; pruh = práh T</p>%s
+<h3>Index v1 2016 → dnes</h3><p>bílá = index, modrá = rotace do altů, zlatá = BTC cyklus; červeně okna vrcholů 2018 a 2021, zlatě P0/P2b; pruh = práh T</p>%s
 <table><tr><th>událost</th><th>týden</th><th>index</th></tr>%s</table>
-<h2>Varianty</h2><table><tr><th>varianta</th><th>výsledek</th><th>T</th><th>P1</th><th>P2</th><th>max cyklů</th><th>týdnů ≥ T</th><th>falešné epizody</th></tr>%s</table>
+<h3>Varianty</h3><table><tr><th>varianta</th><th>výsledek</th><th>T</th><th>P1</th><th>P2</th><th>max cyklů</th><th>týdnů ≥ T</th><th>falešné epizody</th></tr>%s</table>
 <p>Falešné epizody vybrané varianty: %s · zachycené lokální vrcholy: %s</p>
-<h2>OTHERS.D — downtrend a průlom</h2>%s<ul>%s</ul><p>poslední den: %s</p>
-<h2>BTC dominance</h2>%s
-<h2>Co alty udělaly po začátku fáze (13 t v USD · 13 t proti BTC · 26 t v USD)</h2><table>%s</table>
-<h2>Citlivost na okno percentilu</h2><pre>%s</pre>
+<h3>OTHERS.D — linie v1 (trend_break)</h3>%s<ul>%s</ul><p>poslední den: %s</p>
+<h3>BTC dominance</h3>%s
+<h3>Co alty udělaly po začátku fáze v1 (13 t v USD · 13 t proti BTC · 26 t v USD)</h3><table>%s</table>
+<h3>Citlivost na okno percentilu</h3><pre>%s</pre>
 """ % (summary["verdict"], summary["chosen"], chosen["T"], summary["prereg_id"], summary["prereg_sha256"][:12],
        summary["locked_utc"], "PREREG beze změny" if summary["prereg_ok"] else "PREREG ZMĚNĚN",
        idx_svg, evrows, "".join(rows), summary["variants"][summary["chosen"]]["episodes_false"],
@@ -587,6 +727,14 @@ def main():
     lk, same = prereg_lock()          # FIRST: before any index value exists
     if not same:
         print("PREREG se změnil proti zámku %s — v1 je zamčená, změna potřebuje nové id" % LOCK)
+        return 2
+    lk2, same2 = prereg_lock(PREREG_V2, LOCK_V2)
+    if not same2:
+        print("PREREG_V2 se změnil proti zámku %s — v2 je zamčená, změna potřebuje nové id" % LOCK_V2)
+        return 2
+    drift = sorted(k for k in PREREG_V2["rules"] if cycle.V2_RULES.get(k) != PREREG_V2["rules"][k])
+    if drift:
+        print("cycle.V2_RULES se liší od PREREG_V2 (%s) — kód už nepočítá zaregistrovanou v2" % ", ".join(drift))
         return 2
     H, _ = cycle.load_history(os.getcwd())
     if not H:
@@ -640,13 +788,31 @@ def main():
     for k in ("max_c1", "max_c2"):
         for v in summary["variants"].values():
             v[k] = weeks[v[k]] if isinstance(v[k], int) else None
+    # v2 on the same weekly series and events; the collector reads summary["v2"]
+    rows, _ = cycle.retail_rows(H, weeks)
+    v2 = evaluate_v2(weeks, s, rows, evi)
+    r2 = v2["_res"]
+    S2 = {"prereg_id": PREREG_V2["id"], "prereg_sha256": lk2["sha256"], "locked_utc": lk2["locked_utc"],
+          "prereg_ok": same2, "verdict": "PASS" if v2["pass"] else "FAIL", "rules": {"T": v2["T"]},
+          "note": PREREG_V2["honesty"]}
+    S2.update({k: v for k, v in v2.items() if k not in ("_res", "T", "pass")})
+    for k in ("max_c1", "max_c2"):
+        S2[k] = weeks[S2[k]] if isinstance(S2[k], int) else None
+    S2["index_at"] = {k: r1(r2["index"][i]) for k, i in evi.items() if i is not None}
+    S2["forward_by_phase"] = forward_by_phase(weeks, s, r2["phase"])
+    S2["latest"] = {"week": weeks[-1], "index": r1(r2["index"][-1]), "phase": r2["phase"][-1]}
+    summary["v2"] = S2
     with io.open("cycle_backtest_summary.json", "w", encoding="utf-8") as f:
         json.dump(summary, f, ensure_ascii=False, indent=1, allow_nan=False)
     with io.open("cycle_backtest_report.html", "w", encoding="utf-8") as f:
-        f.write(report_html(summary, weeks, s, ch, variants))
-    print("verdikt %s · varianta %s · T %.0f · index P1 %s P2 %s · dnes %s (%s)" % (
+        f.write(report_html(summary, weeks, s, ch, variants, v2))
+    print("v1: verdikt %s · varianta %s · T %.0f · index P1 %s P2 %s · dnes %s (%s)" % (
         summary["verdict"], chosen, ch["T"], summary["index_at"].get("P1"), summary["index_at"].get("P2"),
         summary["latest"]["index"], summary["latest"]["phase"]))
+    print("v2: verdikt %s · T %s · index P0 %s P1 %s P2 %s · týdnů ≥ T %.1f %% · náskok %s · max od 2023 %s · dnes %s (%s)" % (
+        S2["verdict"], v2["T"], S2["index_at"].get("P0"), S2["index_at"].get("P1"), S2["index_at"].get("P2"),
+        S2["share_ge_T"], S2["lead_weeks"], (S2["max_since_2023"] or {}).get("index"), S2["latest"]["index"],
+        S2["latest"]["phase"]))
     return 0
 
 
