@@ -4,7 +4,7 @@
 **From:** Adam (product owner, Gem Screener)
 **Scope:** rebuild ONE component, the Altseason panel with all its subsections, on Cymetica's infrastructure at https://cymetica.com/gem-screener.
 
-The look is defined by the reference code; run it to see every chart (§0). Two screenshots sit next to this file (`tiles-collapsed.webp`, `cycle-breakdown.webp`; Czech version of the reference — English copy is in §7). **The result must look and behave like the screenshots.** There are two deliberate differences:
+The look is defined by the reference code (`template.html`) and this spec; running it is optional, if you want to see the charts live (§0). Two screenshots sit next to this file (`tiles-collapsed.webp`, `cycle-breakdown.webp`; Czech version of the reference — English copy is in §7). **The result must look and behave like the reference.** There are two deliberate differences:
 
 1. **Language:** all texts in English. Exact copy is in §7.
 2. **Colours and fonts:** use your platform's existing design system. The screenshots show layout, hierarchy and chart style, not a palette to copy.
@@ -15,7 +15,7 @@ Everything else (layout, tiles, the slider, chart style) should match; the logic
 >
 > **SCOPE — READ FIRST.** Build or replace **only the Altseason panel** (the card with the five tiles *Altseason cycle · OTHERS · BTC.D · Retail · Volume*, its slider, its detail charts and info popovers). **Do not change anything else** on cymetica.com/gem-screener — no other sections, tables, tabs, filters, navigation or styles. The reference repository contains the whole Gem Screener; everything outside the files and sections named in §0 (the apps/chains screener, themes, sectors, degen view, backtest.py, liquidity, unlocks, etc.) is **out of scope — ignore it.**
 >
-> **The repository is a REFERENCE, not code to copy.** Use it mainly for the intended look, then for how we compute everything; run it to compare. Then build the panel natively in your own stack, with your own data pipeline, components and design system. Do not copy the repository, its files or its single-file HTML template into your product.
+> **The repository is a REFERENCE, not code to copy.** Use it mainly for the intended look, then for how we compute everything; you may run it to compare. Then build the panel natively in your own stack, with your own data pipeline, components and design system. Do not copy the repository, its files or its single-file HTML template into your product.
 >
 > **English only — ignore all Czech.** The reference is Czech-first: Czech UI text, Czech data keys (`zima`, `prehrate`, `pruraz`, `spi`…), Czech comments, commit messages and log lines, and screenshots in Czech. None of it goes into your build. Every user-visible string is English (§7 has the copy); name your own keys and code in English too (the Czech keys map to the English labels in §5.4, §7.1).
 >
