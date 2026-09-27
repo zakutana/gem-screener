@@ -502,10 +502,6 @@ tbody tr:hover .msparkline .mb.partial{opacity:.45}
 .rt-row:not(.rt-hdr):hover{background:var(--surface-2)}
 .rt-s{text-align:right}
 .rt-p.cy-how{grid-column:2 / 4; white-space:normal; color:var(--ink-2); font-size:13px}
-.rt-row.cy-sig{grid-template-columns:minmax(0, 1.25fr) minmax(0, 0.6fr) minmax(0, 1.35fr) auto}
-.cy-sig .rt-s{white-space:nowrap; font-size:13px}
-.rt-head.cy-tip b{font-family:inherit; font-size:inherit}
-.rt-head.cy-tip{font-size:13px; margin-top:14px}
 .rt-n{font-weight:600; color:var(--ink); white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
 .rt-v{font-family:"IBM Plex Mono",monospace; color:var(--ink); white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
 .rt-p{display:flex; align-items:center; gap:8px; min-width:0; white-space:nowrap; overflow:hidden}
@@ -561,8 +557,6 @@ tbody tr:hover .msparkline .mb.partial{opacity:.45}
   .rt-n{grid-area:n} .rt-s{grid-area:s} .rt-v{grid-area:v; font-size:12px} .rt-p{grid-area:p; justify-content:flex-end}
   .rt-p{gap:6px} .rt-bar{flex-basis:34px}
   .rt-p.cy-how{grid-area:auto; grid-column:1 / -1; grid-row:2; justify-content:flex-start}
-  .rt-row.cy-sig{grid-template-columns:minmax(0, 1fr) auto; grid-template-areas:"n v" "p s"}
-  .cy-sig .rt-v{text-align:right} .cy-sig .rt-p{justify-content:flex-start}
 }
 
 .scatter .pt, .scatter .plabel{cursor:pointer}
@@ -2614,7 +2608,7 @@ function detailCycle(el){
     crow('<b>' + L('Altseason cyklus', 'Altseason cycle') + '</b>',
       L('⅔ peníze do altů + ⅓ euforie. Od ', '⅔ money into alts + ⅓ euphoria. From ') + num0(T) +
       L(' (a euforie od ', ' (with euphoria from ') + num0(E) + L('): „Blíží se konec“.', '): “End is near”.'), c.index) +
-    '</div>' + signalsHtml();
+    '</div>';
   cycleChart(el.querySelector('.ap-chart'), {weeks: ws, from: dsp(), y: {min: 0, max: 100, top: 108, fmt: num0},
     series: [{v: S.index, cls: 'c-acc', area: true}], y2: [{v: S.others_usd, cls: 'c-coral', fmt: usdBn}],
     hlines: [{v: T, cls: 'c-coral', label: L('zóna vrcholů', 'top zone') + ' · ' + num0(T)}],
@@ -2625,25 +2619,6 @@ function detailCycle(el){
         '<br><span class="t2">OTHERS ' + usdBn((S.others_usd || [])[i]) + '</span>';
     },
     legend: [[L('Altseason cyklus', 'Altseason cycle'), 'c-acc'], [L('OTHERS v $ (log)', 'OTHERS in $ (log)'), 'c-coral']]});
-}
-
-/* The honest part for an exit: when the warning lit in the past and what alts did
-   next (the backtest's own numbers), and the rule of thumb they teach. */
-function signalsHtml(){
-  var sig = ((CYC.backtest || {}).signals || []).slice().sort(function(a, b){ return a.start - b.start; });
-  var rows = sig.map(function(e){
-    var ph = ALT_PHASE[e.phase] || {};
-    var ret = function(v){ return v === null || v === undefined ? '—' : '<span class="' + (v >= 0 ? 'pos' : 'neg') + '">' + fmtPct(v, 0) + '</span>'; };
-    return '<div class="rt-row cy-sig"><span class="rt-n"><span class="ap-w ' + (ph.cls || 'flat') + '">' + esc(L(ph.cs || '', ph.en || '')) +
-      '</span></span><span class="rt-v">' + monthOf(e.start) + '</span><span class="rt-p">' + L('alty za 3 měs. ', 'alts in 3 mo ') + ret(e.usd13) +
-      '</span><span class="rt-s">' + L('6 měs. ', '6 mo ') + ret(e.usd26) + '</span></div>';
-  });
-  return '<div class="rt-head cy-tip">' + L('<b>Jak to číst:</b> prodávej postupně už při „Blíží se konec“. „Po vrcholu“ se hlásí ' +
-      's měsíčním až dvouměsíčním zpožděním a v roce 2017 přišel ještě jeden velký vrchol.',
-      '<b>How to read it:</b> sell gradually from “End is near”. “Past the top” comes one to two months late, ' +
-      'and in 2017 one more big top followed.') + '</div>' +
-    (rows.length ? '<div class="rt-list"><div class="rt-row rt-hdr"><span>' + L('dřív svítilo', 'lit before') + '</span><span>' +
-      L('od', 'from') + '</span><span>' + L('OTHERS v $', 'OTHERS in $') + '</span><span></span></div>' + rows.join('') + '</div>' : '');
 }
 
 /* A TradingView line: from its anchor with its weekly slope, into the future space. */
@@ -2787,7 +2762,8 @@ function detailVolume(el){
   cycleChart(el.querySelector('.ap-chart'), {weeks: ch.weeks, y: {fit: true, floor: 0, fmt: function(x){ return '$' + num0(x); }},
     series: [{v: ch.avg7_bn, cls: 'c-acc', area: true}],
     y2: [{v: ch.btc, cls: 'c-gold', fmt: BTC_FMT}],
-    shade: [{t0: v.fake_volume_span[0], t1: v.fake_volume_span[1], cls: 'sh-muted', label: L('burzy tehdy nafukovaly objem (wash trading)', 'exchanges inflated volume then (wash trading)')}],
+    shade: [{t0: v.fake_volume_span[0], t1: v.fake_volume_span[1], cls: 'sh-muted', label: L('burzy tehdy nafukovaly objem (wash trading)', 'exchanges inflated volume then (wash trading)'),
+      short: L('wash trading burz', 'exchange wash trading')}],
     pill: {fmt: function(x){ return '$' + num0(x) + L(' mld', 'bn'); }},
     tip: function(i){ return '<b>' + fmtDate(ch.weeks[i]) + '</b><br>' + L('objem $', 'volume $') + num0(ch.avg7_bn[i]) + L(' mld/den', 'bn/day') +
       '<br><span class="t2">BTC $' + grp(ch.btc[i] || 0, ' ') + '</span>'; },
@@ -2882,7 +2858,9 @@ function cycleChart(host, spec){
     var x0 = X(Math.max(t0, s.t0)), x1 = X(Math.min(tData, s.t1));
     if (x1 < pL) return;
     svg.appendChild(svgEl('rect', {x: x0, y: pT, width: Math.max(2, x1 - x0), height: Hd - pT - pB, 'class': s.cls}));
-    if (s.label) { var tl = svgEl('text', {x: x0 + 3, y: pT + 11, 'class': 'cyc-lbl'}); tl.textContent = s.label; svg.appendChild(tl); }
+    // a phone gets the short label: the wash-trading one ran 54 px past a 375 px screen
+    var lb = Wd < 560 && s.short ? s.short : s.label;
+    if (lb) { var tl = svgEl('text', {x: x0 + 3, y: pT + 11, 'class': 'cyc-lbl'}); tl.textContent = lb; svg.appendChild(tl); }
   });
   var nt = niceTicks(lo, tickHi);
   nt.ticks.forEach(function(v){
