@@ -1851,6 +1851,21 @@ else:
                      if a_ != b_]
             if got.get("slope_week") is None or abs(got["slope_week"] - want["slope"]) > 5e-6:
                 diffs.append("slope")
+            # the numbers the page prints (a +0,5 pp line_now passed the date checks above)
+            a_, sl_ = want["anchor"], want["slope"]
+            ln_ = lambda x: series[a_] + sl_ * (x - a_)
+            close = lambda g, w, tol: (g is None) == (w is None) and (w is None or abs(g - w) <= tol)
+            for f, w, tol in (("anchor_v", series[a_], 0.0011), ("touch_v", series[want["touch"]], 0.0011),
+                              ("opp_v", series[want["opp"]], 0.0011), ("line_now", ln_(t), 0.002),
+                              ("dist_pct", (series[t] / ln_(t) - 1) * 100, 0.06),
+                              ("since_v", series[want["since"]] if want["since"] is not None else None, 0.0011),
+                              ("latest_line", ln_(latest[0]) if latest else None, 0.002),
+                              ("latest_dist_pct", (latest[1] / ln_(latest[0]) - 1) * 100
+                               if latest and ln_(latest[0]) > 0 else None, 0.06)):
+                if not close(got.get(f), w, tol):
+                    diffs.append(f)
+            if got.get("week") != WK[t]:
+                diffs.append("week")
             print("  linie %s: kotva %s, dotek %s, dno/vrchol %s → %s%s (přepočet %s)"
                   % (name, datetime.datetime.utcfromtimestamp(WK[want["anchor"]]).strftime("%Y-%m-%d"),
                      datetime.datetime.utcfromtimestamp(WK[want["touch"]]).strftime("%Y-%m-%d"),
