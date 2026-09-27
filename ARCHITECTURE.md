@@ -774,7 +774,10 @@ altseasons enter the index; everything else is shown beside it.**
   26, I ≥ 15 below their max), `prehrate` (I ≥ T, breadth ≥ 75, BTC.D drawdown ≥ 25 %),
   `bezi` (rotation ≥ 60 and breadth ≥ 75, or ≥ 50 with drawdown ≥ 25 %), `zacina`
   (rotation ≥ 40 and up 15 in 13 weeks, or an OTHERS.D breakout within 13 weeks),
-  `btc_sezona` (heat ≥ 50, rotation < 40), `zima` (everything else; the page calls it "Bez signálu" — at index 47 on 2026-09-21 "winter" read wrong). The raw gates are market
+  `btc_sezona` (heat ≥ 50, rotation < 40), `zima` (everything else). The page names
+  them in plain words (Adam, 2026-09-27: "Bez signálu" and "Zima" told him nothing):
+  Alty zatím nejedou · Jede jen BTC · Alty se rozjíždí · Altseason jede · Vrchol
+  blízko · Po vrcholu. The raw gates are market
   conventions (75 % breadth = altseason; both real altseasons took BTC.D 42–61 %
   below its yearly high, 2024–26 never more than 12 %). T and the breadth gate are
   the pre-registered variant the backtest picked (§17.1), read from
@@ -787,13 +790,33 @@ altseasons enter the index; everything else is shown beside it.**
   CMC day is tested too and labelled unconfirmed. BTC.D uses the mirror (rising
   support). audit §37 re-derives the breakout week by brute force.
 - **Retail** measures what people do, not what they look up (Wikipedia and Google
-  lose readers to chatbots): Korean Upbit turnover (13-week change, percentile —
-  delisted coins make old levels too low), the memecoin economy's 30-day revenue
-  (Launchpad + Telegram Bot + Trading App), the best-ranked crypto app in the US
-  App Store (`app_score`, anchored on Coinbase's published ranks at past tops), the
-  90-day growth of USDT+USDC. Facts beside it: exchange traffic (Tranco), YouTube,
-  rating-count growth (a downloads proxy), AI (Anthropic Economic Index; Cloudflare
-  Radar with a token). Not an index input.
+  lose readers to chatbots): Korean Upbit 4-week turnover, the memecoin economy's
+  30-day revenue (Launchpad + Telegram Bot + Trading App), the 90-day growth of
+  USDT+USDC — each scored as a trailing 208-week percentile of its level (min 52) —
+  and the best-ranked crypto app in the US App Store (`app_score`, anchored on
+  Coinbase's published ranks at past tops). Upbit's old weeks miss delisted coins
+  (mostly 2018–19, outside today's window). The memecoin economy is scored only from
+  its first $5M month (`MEME_START_USD`, 2023-05): before that the category barely
+  existed, a percentile of zeros read 50 through 2019–22 and a series growing from
+  nothing read 100 every week after. The index is the mean of the rows present; its
+  weekly `series` (from 2016, `null` where fewer than `RETAIL_MIN_ROWS` = 2 rows exist —
+  the stablecoin row alone jumped 20 ↔ 85 with Tether's batch prints, so the history
+  starts with Upbit's first scored week, 2018-10) is drawn as a blue area next to BTC
+  and OTHERS. Facts beside it: Coinbase traffic (Tranco), YouTube,
+  rating growth (a downloads proxy), AI (Anthropic Economic Index; Cloudflare Radar
+  with a token). Not an index input.
+- **BTC.D altseason-lows line** (`lows_line`): the straight line through BTC.D at P1
+  (32,8 %) and P2 (40,1 %), extended to today (51,7 % on 2026-09-21) — where the last
+  two altseasons topped.
+- **Spike cleaner** (`clean_spikes`): a week more than 25 % off two neighbours that
+  agree within 10 % is a bad snapshot (2020-11-30: OTHERS.D 5,95 % between 10,75 and
+  10,83); that week's OTHERS.D, OTHERS $ and breadth and the breadth 13 weeks later
+  are dropped and listed in `anomalies`.
+- **Page** (Adam, 2026-09-27, "degen friendly 10/10"): five tiles (Altseason cyklus,
+  OTHERS, BTC.D, Retail, Objem), each a name, a number and one word; the slider always
+  visible; a click opens one chart from 2016 (blue area = the index, a line = the
+  price) and, for retail, one table. Breadth and BTC heat have no tiles — they are
+  inside the index.
 - **Volume** (Adam's add): CMC's adjusted daily volume, 7-day mean ÷ the 1-year
   median, and the alts' share of volume. Spikes on crashes too → beside the index.
 - Inputs live in `cycle_history.json` (gitignored), built by `tools/cycle_seed.py`;
@@ -821,7 +844,8 @@ Snapshot block `cycle`: `version`, `prereg_sha256`, `as_of`, `generated`,
 
 `components`:
 - `btcd`: `value` (newest day), `day`, `week`, `chg13_pp`, `dd52`, `verdict`
-  (`klesa` / `roste` / `bokem`), `lows` (`P1`, `P2`), `trend`, `source`.
+  (`klesa` / `roste` / `bokem`), `lows` (`P1`, `P2`), `lows_line` (`t0`, `v0`, `t1`,
+  `v1`, `slope_week`, `line_now`, `dist_pp`), `trend`, `source`.
 - `othersd`: `value`, `day`, `week`, `verdict` (`pruraz`, `pruraz_nepotvrzeny`,
   `downtrend`, `zpet_pod`, `bez_trendu`), `trend`, `unconfirmed`, `usd_bn`,
   `usd_peak_2021_bn`, `usd_low_26w_bn`, `rise_score`, `source`. A trend line:
@@ -834,13 +858,12 @@ Snapshot block `cycle`: `version`, `prereg_sha256`, `as_of`, `generated`,
   `cbbi`, `parts` (`mvrv`, `puell`, `mayer`, `pi`: `name`, `value`, `score`,
   `top2017`, `top2021`, `hit`).
 - `retail`: `value`, `verdict` (`spi`, `probouzi`, `hrne`), `tempo`, `tempo_word`
-  (`naval`, `postupne`, `odliv`, `stoji`), `n_scored`, `parts`: `upbit` (`score`,
-  `week`, `sum4_t_krw`, `peak_t_krw`, `peak_week`, `pct_of_peak`, `chg13_pct`,
-  `score_4w`, `series`), `degen` (`score`, `day`, `rev30d`, `peak`, `peak_day`,
-  `pct_of_peak`, `score_4w`, `movers`, `series`), `stables` (`score`, `day`,
-  `supply_bn`, `g90`, `score_4w`, `series`), `apps` (`score`, `best`,
-  `best_overall`, `best_finance`, `day`, `apps`, `score_4w`, `ledger_days`),
-  `traffic` (`score`, `day`, `ranks`, `ranks_4w`, `monthly`, `best`), `youtube`
+  (`naval`, `postupne`, `odliv`, `stoji`), `n_scored`, `series` (weekly from 2016),
+  `parts`: `upbit` (`score`, `week`, `sum4_t_krw`, `peak_t_krw`, `peak_week`,
+  `pct_of_peak`), `degen` (`score`, `day`, `rev30d`, `peak`, `peak_day`,
+  `pct_of_peak`, `movers`), `stables` (`score`, `day`, `supply_bn`, `g90`), `apps`
+  (`score`, `best`, `best_overall`, `best_finance`, `day`, `apps`, `ledger_days`),
+  `traffic` (`score`, `day`, `ranks`, `ranks_4w`, `best`), `youtube`
   (`score`, `day`, `kind`, `views_per_day`, `median_views`, `channels`,
   `ledger_days`), `ai` (`score`, `claude`, `cloudflare`, `needs`).
 - `volume`: `day`, `vol24h`, `avg7`, `ratio_1y`, `verdict` (`slaby`, `normalni`,

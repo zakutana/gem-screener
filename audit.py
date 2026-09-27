@@ -1709,6 +1709,20 @@ else:
         want = "slaby" if r_ < A["vol_lo"] else "normalni" if r_ < A["vol_mid"] else "zvyseny" if r_ < A["vol_hi"] else "extremni"
         if want != vo.get("verdict"):
             fail("cycle", "volume verdict %s, expected %s" % (vo.get("verdict"), want))
+    # the BTC.D line through the altseason lows, recomputed
+    ll = C["btcd"].get("lows_line")
+    ev = CY.get("events") or {}
+    if ll and ev.get("P1") and ev.get("P2"):
+        i1, i2 = WK.index(ev["P1"]), WK.index(ev["P2"])
+        bd_ = S["btcd"]
+        want = bd_[i2] + (bd_[i2] - bd_[i1]) / (i2 - i1) * (n - 1 - i2)
+        if abs(want - ll["line_now"]) > 0.011:
+            fail("cycle", "BTC.D lows line %s, recomputed %.2f" % (ll["line_now"], want))
+        else:
+            print("  linie minim BTC.D dnes %.2f %% (přepočet sedí)" % want)
+    rs = rt.get("series") or []
+    if rs and any(x is not None and not (0 <= x <= 100) for x in rs):
+        fail("cycle", "retail history outside 0-100")
     # OTHERS.D line: brute force — every week tested against the flattest line
     # through the anchor and all earlier closes, recomputed from scratch
     od = S["othersd"]

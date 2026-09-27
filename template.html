@@ -454,64 +454,61 @@ tbody tr:hover .msparkline .mb.partial{opacity:.45}
 .namecell .logostack .ico, .namecell .logostack .ico-fb{width:22px; height:22px}
 .panel-ico .logostack .ico, .panel-ico .logostack .ico-fb{width:30px; height:30px}
 
-/* the altseason panel: seven tiles, each one number and one word; click = the
-   chosen tile's chart opens under the row (cycle.py decides every verdict) */
+/* the altseason panel: five tiles, each a name, a number and one word; the slider
+   is always visible; a click opens one chart (cycle.py decides every verdict) */
 .altpanel{background:var(--surface); border:1px solid var(--rule); border-radius:12px; padding:14px 16px; margin-bottom:26px}
 .ap-head{display:flex; gap:10px; align-items:stretch}
-.ap-tiles{flex:1; display:grid; grid-template-columns:1.6fr repeat(6, minmax(0, 1fr)); gap:8px; min-width:0}
+.ap-tiles{flex:1; display:grid; grid-template-columns:1.5fr repeat(4, minmax(0, 1fr)); gap:8px; min-width:0}
 .ap-tile{
   appearance:none; font-family:inherit; text-align:left; cursor:pointer; color:var(--ink-2);
-  background:var(--surface-2); border:1px solid var(--rule-soft); border-radius:9px; padding:9px 11px;
-  display:flex; flex-direction:column; gap:2px; min-width:0; transition:border-color .12s;
+  background:var(--surface-2); border:1px solid var(--rule-soft); border-radius:9px; padding:10px 12px;
+  display:flex; flex-direction:column; gap:3px; min-width:0; transition:border-color .12s;
 }
 .ap-tile:hover{border-color:var(--accent)}
 .ap-tile.sel{border-color:var(--accent); box-shadow:inset 0 0 0 1px var(--accent)}
 .ap-k{font-family:"IBM Plex Mono",monospace; font-size:9.5px; letter-spacing:.1em; text-transform:uppercase; color:var(--muted);
   white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
-.ap-v{font-family:"IBM Plex Mono",monospace; font-size:1.35rem; font-weight:700; color:var(--ink); line-height:1.15;
+.ap-v{font-family:"IBM Plex Mono",monospace; font-size:1.5rem; font-weight:700; color:var(--ink); line-height:1.15;
   font-variant-numeric:tabular-nums; white-space:nowrap}
-.ap-v small{font-size:.62em; color:var(--muted); font-weight:500}
+.ap-v small{font-size:.6em; color:var(--muted); font-weight:500}
 .ap-main .ap-v{font-size:1.9rem}
-.ap-w{font-size:12.5px; font-weight:700; white-space:nowrap}
+.ap-w{font-size:13px; font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
 .ap-w.pos, .altpanel .pos{color:var(--gem)} .ap-w.neg, .altpanel .neg{color:var(--copper)}
-.ap-w.warn, .altpanel .warn{color:var(--warn)} .ap-w.flat{color:var(--muted)}
-.ap-s{font-size:11px; color:var(--muted); white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+.ap-w.warn, .altpanel .warn{color:var(--warn)} .ap-w.flat{color:var(--ink-2)}
 .ap-toggle{appearance:none; font-family:"IBM Plex Mono",monospace; font-size:11px; cursor:pointer; color:var(--accent-ink);
   background:transparent; border:1px solid var(--rule); border-radius:8px; padding:0 10px; white-space:nowrap}
 :root[data-theme="dark"] .ap-toggle, :root:not([data-theme="light"]) .ap-toggle{color:var(--accent)}
 .ap-toggle:hover{border-color:var(--accent)}
+.ap-gwrap{margin:12px 2px 4px}
+.ap-gauge{position:relative; height:8px; border-radius:4px; background:var(--surface-sunk)}
+.ap-gauge i{position:absolute; left:0; top:0; bottom:0; border-radius:4px; background:var(--accent)}
+.ap-gauge .mk{position:absolute; top:-4px; bottom:-4px; width:2px; background:var(--copper)}
+.ap-gticks{position:relative; height:16px; font-family:"IBM Plex Mono",monospace; font-size:9.5px; letter-spacing:.06em;
+  text-transform:uppercase; color:var(--muted); margin-top:4px}
+.ap-gticks span{position:absolute; top:0; white-space:nowrap}
+.ap-gticks span + span{transform:translateX(-100%)}
 .ap-note{font-size:12px; color:var(--warn); margin-top:8px}
 .ap-empty{font-size:13px; color:var(--muted)}
-.ap-detail{margin-top:14px; border-top:1px solid var(--rule-soft); padding-top:12px; position:relative}
-.ap-dhead{position:absolute; right:0; top:10px}
-.ap-hero{display:flex; gap:16px; align-items:center; margin-bottom:10px}
-.ap-big{font-family:"IBM Plex Mono",monospace; font-size:3rem; font-weight:700; line-height:1; flex:none}
-.ap-big.pos, .ap-phase.pos{color:var(--gem)} .ap-big.neg, .ap-phase.neg{color:var(--copper)}
-.ap-big.warn, .ap-phase.warn{color:var(--warn)} .ap-big.flat, .ap-phase.flat{color:var(--ink-2)}
-.ap-phase{font-size:17px; font-weight:700}
-.ap-line{font-size:13.5px; color:var(--ink-2)}
-.ap-hint{font-size:12.5px; color:var(--muted); margin-top:2px}
-.ap-gauge{position:relative; height:8px; border-radius:4px; background:var(--surface-sunk); margin:4px 0 12px}
-.ap-gauge i{position:absolute; left:0; top:0; bottom:0; border-radius:4px; background:var(--warn)}
-.ap-gauge .mk{position:absolute; top:-4px; bottom:-4px; width:2px; background:var(--copper)}
-.ap-proof, .ap-stats{font-size:12.5px; color:var(--ink-2); margin-top:8px; line-height:1.7}
-.ap-stats b, .ap-proof b{color:var(--ink)}
-.ap-chips{margin-top:4px}
-.ap-chip{display:inline-block; font-family:"IBM Plex Mono",monospace; font-size:11.5px; background:var(--surface-2);
-  border:1px solid var(--rule-soft); border-radius:99px; padding:1px 8px; margin:2px 4px 2px 0}
-.ap-rhead{font-size:13px; margin-bottom:8px; padding-right:28px}
-.rt-row{display:grid; grid-template-columns:minmax(150px, 1.1fr) minmax(120px, .9fr) 2fr 120px 34px; gap:10px;
-  align-items:center; padding:6px 0; border-bottom:1px solid var(--rule-soft); font-size:12.5px}
-.rt-n{font-weight:600; color:var(--ink)}
-.rt-v{font-family:"IBM Plex Mono",monospace; color:var(--ink)}
-.rt-c{color:var(--muted)}
-.rt-s{color:var(--accent)}
-.rt-spark{display:block}
-.rt-sc{font-family:"IBM Plex Mono",monospace; font-weight:700; text-align:right; color:var(--ink-2)}
-.ap-more summary{cursor:pointer; font-size:12px; color:var(--muted); margin-top:8px}
-.ap-tbl{font-size:12.5px; border-collapse:collapse; margin-bottom:6px}
-.ap-tbl td, .ap-tbl th{padding:4px 12px 4px 0; text-align:left; border-bottom:1px solid var(--rule-soft)}
-.ap-tbl th{font-weight:500; color:var(--muted)}
+.ap-detail{margin-top:10px; border-top:1px solid var(--rule-soft); padding-top:12px; position:relative}
+.ap-dhead{position:absolute; right:0; top:10px; z-index:1}
+.rt-head{font-size:14px; margin:12px 0 6px; color:var(--ink-2)}
+.rt-head b{font-family:"IBM Plex Mono",monospace; font-size:17px; color:var(--ink)}
+.rt-list{font-size:13.5px}
+.rt-row{display:grid; grid-template-columns:minmax(0, 1.25fr) minmax(0, 1fr) minmax(0, 1.35fr) 48px; gap:14px; align-items:center;
+  padding:8px 4px; border-top:1px solid var(--rule-soft)}
+.rt-row.rt-hdr{border-top:0; padding-top:2px; padding-bottom:4px; font-family:"IBM Plex Mono",monospace; font-size:10px;
+  letter-spacing:.08em; text-transform:uppercase; color:var(--muted)}
+.rt-row:not(.rt-hdr):hover{background:var(--surface-2)}
+.rt-s{text-align:right}
+.rt-n{font-weight:600; color:var(--ink); white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+.rt-v{font-family:"IBM Plex Mono",monospace; color:var(--ink); white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
+.rt-p{display:flex; align-items:center; gap:8px; min-width:0; white-space:nowrap; overflow:hidden}
+.rt-bar{flex:0 0 80px; height:6px; border-radius:3px; background:var(--surface-sunk); position:relative}
+.rt-bar i{position:absolute; left:0; top:0; bottom:0; border-radius:3px; background:var(--accent)}
+.rt-pk{font-size:12px; color:var(--muted); overflow:hidden; text-overflow:ellipsis}
+.rt-chip{display:inline-block; min-width:34px; text-align:center; font-family:"IBM Plex Mono",monospace; font-weight:700; font-size:12.5px;
+  border-radius:99px; padding:1px 8px; background:var(--surface-2); border:1px solid var(--rule-soft)}
+.rt-chip.pos{color:var(--gem)} .rt-chip.warn{color:var(--warn)} .rt-chip.neg{color:var(--copper)} .rt-chip.flat{color:var(--muted)}
 .cyc-svg{display:block; max-width:100%; height:auto; touch-action:pan-y}
 .cyc-grid{stroke:var(--rule-soft)}
 .cyc-ax, .cyc-lbl{font-family:"IBM Plex Mono",monospace; font-size:10px; fill:var(--muted)}
@@ -519,35 +516,36 @@ tbody tr:hover .msparkline .mb.partial{opacity:.45}
   stroke:var(--surface); stroke-width:3px}
 .cyc-line{fill:none; stroke-linejoin:round}
 .cyc-area{stroke:none; opacity:.14}
-.cyc-trend{stroke-width:1.6; stroke-dasharray:6 4}
-.cyc-line.faint{opacity:.4}
-.cyc-y2{fill:none; stroke-width:1; opacity:.45}
+.cyc-trend{stroke-width:1.8; stroke-dasharray:6 4}
+.cyc-y2{fill:none; stroke-width:1.4; opacity:.9}
+.cyc-ax2{fill:var(--warn)}
 .cyc-cross{stroke:var(--muted); stroke-dasharray:2 3}
-.c-main{stroke:var(--ink); fill:var(--ink)} .c-acc{stroke:var(--accent); fill:var(--accent)}
+.c-acc{stroke:var(--accent); fill:var(--accent)}
 .c-gold{stroke:var(--warn); fill:var(--warn)} .c-coral{stroke:var(--copper); fill:var(--copper)}
-.cyc-line.c-main, .cyc-line.c-acc, .cyc-line.c-gold, .cyc-line.c-coral, .cyc-y2{fill:none}
+.c-gem{stroke:var(--gem); fill:var(--gem)}
+.cyc-line.c-acc, .cyc-line.c-gold, .cyc-line.c-coral, .cyc-line.c-gem, .cyc-y2{fill:none}
 .cyc-mk.mk-gem{fill:var(--gem)} .cyc-mk.mk-acc{fill:var(--accent)} .cyc-mk.mk-warn{fill:var(--warn)}
 .cyc-mk.mk-hollow{fill:var(--surface); stroke:var(--copper); stroke-width:1.6}
-.bd-coral{fill:var(--copper); opacity:.08} .bd-gem{fill:var(--gem); opacity:.08}
-.sh-coral{fill:var(--copper); opacity:.13} .sh-muted{fill:var(--muted); opacity:.10}
+.cyc-mk.mk-hollow-gem{fill:var(--surface); stroke:var(--gem); stroke-width:1.8}
+.sh-muted{fill:var(--muted); opacity:.10}
 .cyc-legend{display:flex; gap:14px; flex-wrap:wrap; font-size:11px; color:var(--muted); margin-top:4px}
 .cyc-legend i{display:inline-block; width:12px; height:3px; border-radius:2px; margin-right:5px; vertical-align:middle; background:currentColor}
-.cyc-legend i.c-main{background:var(--ink)} .cyc-legend i.c-acc{background:var(--accent)}
-.cyc-legend i.c-gold{background:var(--warn)}
+.cyc-legend i.c-acc{background:var(--accent)}
+.cyc-legend i.c-gold{background:var(--warn)} .cyc-legend i.c-coral{background:var(--copper)} .cyc-legend i.c-gem{background:var(--gem)}
 @media (max-width:900px){
-  .ap-tiles{grid-template-columns:repeat(3, minmax(0, 1fr))}
+  .ap-tiles{grid-template-columns:repeat(2, minmax(0, 1fr))}
   .ap-main{grid-column:1 / -1}
 }
 @media (max-width:720px){
   .ap-head{flex-direction:column}
-  .ap-tiles{grid-template-columns:repeat(2, minmax(0, 1fr))}
   .ap-toggle{padding:6px 10px}
-  .ap-tile{padding:7px 9px; gap:1px}
-  .ap-tile:not(.ap-main) .ap-s{display:none}
-  .ap-v{font-size:1.1rem} .ap-main .ap-v{font-size:1.6rem}
-  .rt-row{grid-template-columns:1fr 1fr; row-gap:2px}
-  .rt-c{grid-column:1 / -1} .rt-s{display:none} .rt-sc{display:none}
-  .ap-big{font-size:2.4rem}
+  .ap-tile{padding:8px 10px}
+  .ap-v{font-size:1.2rem} .ap-main .ap-v{font-size:1.6rem}
+  /* a phone row is two lines: name + score, then today + how far from the top */
+  .rt-row{grid-template-columns:minmax(0, 1.4fr) minmax(0, 1fr) auto; grid-template-areas:"n n s" "v p p"; row-gap:4px; column-gap:8px}
+  .rt-row.rt-hdr{display:none}
+  .rt-n{grid-area:n} .rt-s{grid-area:s} .rt-v{grid-area:v; font-size:12px} .rt-p{grid-area:p; justify-content:flex-end}
+  .rt-p{gap:6px} .rt-bar{flex-basis:34px}
 }
 
 .scatter .pt, .scatter .plabel{cursor:pointer}
@@ -2366,52 +2364,34 @@ function showTip(ev, html){
 }
 function hideTip(){ tipEl.style.opacity = '0'; }
 
-/* ---------- the altseason strip ---------- */
-function sparkline(vals, W, H, cls){
-  var pts = vals.filter(function(v){ return v !== null && v !== undefined; });
-  if (pts.length < 2) return '';
-  var lo = Math.min.apply(null, pts), hi = Math.max.apply(null, pts), span = (hi - lo) || 1;
-  var d = pts.map(function(v, i){
-    return (i ? 'L' : 'M') + (i / (pts.length - 1) * W).toFixed(1) + ' ' +
-      (H - 2 - (v - lo) / span * (H - 4)).toFixed(1);
-  }).join('');
-  return '<svg class="' + (cls || '') + '" width="' + W + '" height="' + H + '" viewBox="0 0 ' + W + ' ' + H + '">' +
-    '<path d="' + d + '" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"/></svg>';
-}
 
 /* ================= Altseason panel (cycle.py) =================
    One component in two hosts (#startAlt on Start, #altStrip on Sektory) — both sit
    in the DOM at once, so nothing inside carries an id except ones derived from the
-   host's. Collapsed: seven tiles, each one number and one word. Expanded: the tiles
-   become tabs and the chosen one's chart opens under them. Every threshold and
-   every verdict comes from the collector (DATA.cycle.rules, *.verdict): the page
-   only draws. */
+   host's. Degen rule (Adam, 2026-09-27): a tile is a name, a number and one plain
+   word; the slider is always visible; a click opens ONE simple chart (blue area =
+   the index, a line = the price) and no paragraph. Every threshold and verdict
+   comes from the collector (DATA.cycle): the page only draws. */
 var CYC = DATA.cycle || null;
 
 var ALT_PHASE = {
-  'zima': {cs: 'Bez signálu', en: 'No signal', cls: 'flat',
-    line_cs: 'Ani rotace do altů, ani horečka — žádná fáze altseasonu.', line_en: 'Neither rotation into alts nor heat — no altseason phase.'},
-  'btc_sezona': {cs: 'BTC sezóna', en: 'BTC season', cls: 'flat',
-    line_cs: 'Běží Bitcoin, peníze do altů zatím netečou.', line_en: 'Bitcoin runs; money is not rotating into alts yet.'},
-  'zacina': {cs: 'Začíná', en: 'Starting', cls: 'pos',
-    line_cs: 'Rotace do altů začala, dav ještě nedorazil.', line_en: 'Rotation into alts has started; the crowd is not here yet.'},
-  'bezi': {cs: 'Běží', en: 'Running', cls: 'warn',
-    line_cs: 'Altseason běží. Sleduj přehřátí.', line_en: 'Altseason is running. Watch the heat.'},
-  'prehrate': {cs: 'Přehřáté', en: 'Overheated', cls: 'neg',
-    line_cs: 'Takhle vypadaly vrcholy altů v lednu 2018 a květnu 2021.', line_en: 'This is what the alt tops of Jan 2018 and May 2021 looked like.'},
-  'po_vrcholu': {cs: 'Po vrcholu', en: 'Past the top', cls: 'neg',
-    line_cs: 'Vrchol je nejspíš za námi.', line_en: 'The top is most likely behind us.'}
+  'zima': {cs: 'Alty zatím nejedou', en: 'Alts not moving yet', cls: 'flat'},
+  'btc_sezona': {cs: 'Jede jen BTC', en: 'Only BTC runs', cls: 'flat'},
+  'zacina': {cs: 'Alty se rozjíždí', en: 'Alts are starting', cls: 'pos'},
+  'bezi': {cs: 'Altseason jede', en: 'Altseason is on', cls: 'warn'},
+  'prehrate': {cs: 'Vrchol blízko', en: 'Top is near', cls: 'neg'},
+  'po_vrcholu': {cs: 'Po vrcholu', en: 'Past the top', cls: 'neg'}
 };
 
 var CYCLE_VERDICT = {
   'klesa': {cs: 'klesá', en: 'falling', cls: 'pos'},
   'roste': {cs: 'roste', en: 'rising', cls: 'neg'},
   'bokem': {cs: 'bokem', en: 'sideways', cls: 'flat'},
-  'pruraz': {cs: 'průlom', en: 'breakout', cls: 'pos'},
-  'pruraz_nepotvrzeny': {cs: 'průlom?', en: 'breakout?', cls: 'warn'},
-  'downtrend': {cs: 'v downtrendu', en: 'in downtrend', cls: 'flat'},
-  'zpet_pod': {cs: 'zpět pod linií', en: 'back under', cls: 'neg'},
-  'bez_trendu': {cs: 'bez linie', en: 'no line', cls: 'flat'},
+  'pruraz': {cs: 'průlom trendu', en: 'trend broken', cls: 'pos'},
+  'pruraz_nepotvrzeny': {cs: 'prolamuje trend', en: 'breaking the trend', cls: 'warn'},
+  'downtrend': {cs: 'klesá', en: 'falling', cls: 'flat'},
+  'zpet_pod': {cs: 'falešný průlom', en: 'false breakout', cls: 'neg'},
+  'bez_trendu': {cs: 'bez trendu', en: 'no trend', cls: 'flat'},
   'alty_vedou': {cs: 'alty vedou', en: 'alts lead', cls: 'pos'},
   'smisene': {cs: 'smíšené', en: 'mixed', cls: 'flat'},
   'btc_vede': {cs: 'BTC vede', en: 'BTC leads', cls: 'neg'},
@@ -2435,10 +2415,8 @@ var ALT_TILES = [
   {key: 'cycle', info: 'cycIndex'},
   {key: 'othersd', info: 'cycOthers'},
   {key: 'btcd', info: 'cycBtcd'},
-  {key: 'breadth', info: 'cycBreadth'},
   {key: 'retail', info: 'cycRetail'},
-  {key: 'volume', info: 'cycVolume'},
-  {key: 'heat', info: 'cycHeat'}
+  {key: 'volume', info: 'cycVolume'}
 ];
 
 function vword(code){
@@ -2448,63 +2426,46 @@ function vword(code){
 function lvl(v, d){
   return (v === null || v === undefined) ? '—' : czNum(Number(v).toFixed(d === undefined ? 1 : d)) + L(' %', '%');
 }
-function ppStr(v){
-  return (v === null || v === undefined) ? '—' : (v < 0 ? '−' : '+') + czNum(Math.abs(v).toFixed(1)) + L(' b.', ' pp');
-}
 function num0(v){ return (v === null || v === undefined) ? '—' : czNum(Math.round(v)); }
-function krw(v){ return (v === null || v === undefined) ? '—' : czNum(Number(v).toFixed(0)) + L(' bil. KRW', 'tn KRW'); }
-function monthYear(ts){
-  var d = new Date(ts * 1000);
-  return L(['leden', 'únor', 'březen', 'duben', 'květen', 'červen', 'červenec', 'srpen', 'září', 'říjen',
-    'listopad', 'prosinec'][d.getUTCMonth()] + ' ' + d.getUTCFullYear(), MONTHS_EN[d.getUTCMonth()] + ' ' + d.getUTCFullYear());
-}
+function yearOf(ts){ return new Date(ts * 1000).getUTCFullYear(); }
 
 function tileHtml(t, sel){
   var c = CYC, comp = (c && c.components) || {};
-  var k = '', v = '—', w = '<span class="ap-w flat">—</span>', sub = '';
+  var k = '', v = '—', w = '<span class="ap-w flat">—</span>';
   if (t.key === 'cycle') {
     var p = ALT_PHASE[c && c.phase];
     k = L('Altseason cyklus', 'Altseason cycle');
     v = (c && c.index !== null && c.index !== undefined) ? num0(c.index) + '<small>/100</small>' : '—';
-    w = p ? '<span class="ap-w ' + p.cls + '">' + esc(L(p.cs, p.en)) + '</span>' : '<span class="ap-w flat">' + L('bez historie', 'no history') + '</span>';
-    if (c && c.rotation !== null && c.rotation !== undefined)
-      sub = L('Rotace ', 'Rotation ') + num0(c.rotation) + ' · ' + L('BTC cyklus ', 'BTC cycle ') + num0(c.heat) +
-        (c.index_3m_ago !== null && c.index_3m_ago !== undefined ? ' · ' + L('před 3 m ', '3 m ago ') + num0(c.index_3m_ago) : '');
+    w = p ? '<span class="ap-w ' + p.cls + '">' + esc(L(p.cs, p.en)) + '</span>'
+      : '<span class="ap-w flat">' + L('bez historie', 'no history') + '</span>';
   } else if (t.key === 'othersd') {
     var o = comp.othersd || {};
-    k = 'OTHERS.D'; v = lvl(o.value, 2);
-    w = vword(o.verdict);
-    var tr = (o.trend || []).slice(-1)[0];
-    if (tr) sub = (tr.breakout ? L('průlom ', 'broke ') + fmtDate(tr.breakout, true) + ' · ' : '') + tr.weeks + L(' t trendu', ' w trend');
+    k = 'OTHERS'; v = lvl(o.value, 2); w = vword(o.verdict);
   } else if (t.key === 'btcd') {
     var b = comp.btcd || {};
     k = 'BTC.D'; v = lvl(b.value, 1); w = vword(b.verdict);
-    if (b.chg13_pp !== null && b.chg13_pp !== undefined) sub = L('13 t ', '13 w ') + ppStr(b.chg13_pp);
-  } else if (t.key === 'breadth') {
-    var br = comp.breadth || {};
-    k = 'Alt Season Index'; v = br.value === null || br.value === undefined ? '—' : num0(br.value) + '<small>/100</small>';
-    w = vword(br.verdict);
-    if (br.n) sub = br.beat + L(' z ', ' of ') + br.n + L(' altů > BTC', ' alts > BTC');
   } else if (t.key === 'retail') {
     var r = comp.retail || {};
     k = 'Retail'; v = r.value === null || r.value === undefined ? '—' : num0(r.value) + '<small>/100</small>';
     w = vword(r.verdict);
-    if (r.tempo_word) sub = L('tempo: ', 'pace: ') + esc(L(CYCLE_VERDICT[r.tempo_word].cs, CYCLE_VERDICT[r.tempo_word].en));
   } else if (t.key === 'volume') {
     var vo = comp.volume || {};
     k = L('Objem', 'Volume'); v = vo.avg7 ? '$' + czNum(Math.round(vo.avg7)) + '<small>' + L(' mld', 'bn') + '</small>' : '—';
     w = vword(vo.verdict);
-    if (vo.ratio_1y) sub = czNum(vo.ratio_1y.toFixed(1)) + L('× normálu', '× normal');
-  } else if (t.key === 'heat') {
-    var h = comp.btc_heat || {};
-    k = L('BTC cyklus', 'BTC cycle'); v = h.value === null || h.value === undefined ? '—' : num0(h.value) + '<small>/100</small>';
-    w = vword(h.verdict);
-    if (h.of) sub = h.hits + '/' + h.of + L(' vrcholových signálů', ' top signals');
   }
   return '<button type="button" class="ap-tile' + (t.key === 'cycle' ? ' ap-main' : '') + (sel ? ' sel' : '') +
     '" data-tile="' + t.key + '" aria-pressed="' + (sel ? 'true' : 'false') + '">' +
-    '<span class="ap-k">' + esc(k) + '</span><span class="ap-v">' + v + '</span>' + w +
-    (sub ? '<span class="ap-s">' + sub + '</span>' : '') + '</button>';
+    '<span class="ap-k">' + esc(k) + '</span><span class="ap-v">' + v + '</span>' + w + '</button>';
+}
+
+/* The slider stays visible collapsed: where today sits between calm and the level
+   the 2018 and 2021 tops reached (the red tick is the threshold T). */
+function gaugeHtml(){
+  var c = CYC, T = (c.rules || {}).T || 85, ix = c.index || 0;
+  return '<div class="ap-gwrap"><div class="ap-gauge"><i style="width:' +
+    Math.max(1, Math.min(100, ix)) + '%"></i><span class="mk" style="left:' + T + '%"></span></div>' +
+    '<div class="ap-gticks"><span>' + L('klid', 'calm') + '</span><span style="left:' + T + '%">' +
+    L('vrchol 2018 / 2021', '2018 / 2021 top') + '</span></div></div>';
 }
 
 function renderAltPanel(hostId){
@@ -2516,15 +2477,16 @@ function renderAltPanel(hostId){
     return;
   }
   var open = !!state.altOpen, tile = state.altTile || 'cycle';
+  if (!ALT_TILES.some(function(t){ return t.key === tile; })) tile = 'cycle';
   var did = hostId + '-detail';
   host.innerHTML =
     '<div class="ap-head"><div class="ap-tiles">' +
       ALT_TILES.map(function(t){ return tileHtml(t, open && t.key === tile); }).join('') + '</div>' +
       '<button type="button" class="ap-toggle" aria-expanded="' + open + '" aria-controls="' + did + '">' +
         (open ? L('Sbalit ▴', 'Collapse ▴') : L('Rozbalit ▾', 'Expand ▾')) + '</button></div>' +
-    (CYC.history_missing ? '<div class="ap-note">' + L('Historie chybí — spusť <code>python tools/cycle_seed.py</code>. ' +
-      'Dlaždice ukazují jen dnešní hodnoty.', 'History missing — run <code>python tools/cycle_seed.py</code>. ' +
-      'Tiles show today’s values only.') + '</div>' : '') +
+    (CYC.index !== null && CYC.index !== undefined ? gaugeHtml() : '') +
+    (CYC.history_missing ? '<div class="ap-note">' + L('Historie chybí — spusť <code>python tools/cycle_seed.py</code>.',
+      'History missing — run <code>python tools/cycle_seed.py</code>.') + '</div>' : '') +
     (CYC.stale ? '<div class="ap-note">' + L('Data panelu jsou z minulého běhu.', 'The panel data is from the previous run.') + '</div>' : '') +
     '<div class="ap-detail" id="' + did + '"' + (open ? '' : ' hidden') + '></div>';
   host.querySelectorAll('.ap-tile').forEach(function(b){
@@ -2554,8 +2516,7 @@ function bindInfo(root){
 }
 
 function renderAltDetail(el, tile){
-  var fn = {cycle: detailCycle, othersd: detailOthers, btcd: detailBtcd, breadth: detailBreadth,
-            retail: detailRetail, volume: detailVolume, heat: detailHeat}[tile] || detailCycle;
+  var fn = {cycle: detailCycle, othersd: detailOthers, btcd: detailBtcd, retail: detailRetail, volume: detailVolume}[tile] || detailCycle;
   var info = (ALT_TILES.filter(function(t){ return t.key === tile; })[0] || {}).info;
   el.innerHTML = '<div class="ap-dhead">' + (info ? infoBtn(info) : '') + '</div><div class="ap-dbody"></div>';
   fn(el.querySelector('.ap-dbody'));
@@ -2567,224 +2528,135 @@ function dsp(){
   while (i < ws.length && ws[i] < (CYC.display_from || 0)) i++;
   return i;
 }
-function wIdx(ts){
-  var ws = CYC.weeks || [];
-  for (var i = ws.length - 1; i >= 0; i--) if (ws[i] <= ts) return i;
-  return 0;
-}
+
+var BTC_Y2 = function(){ return {v: CYC.series.btc, cls: 'c-gold', fmt: function(x){ return '$' + (x >= 1000 ? czNum(Math.round(x / 1000)) + 'k' : num0(x)); }}; };
 
 function detailCycle(el){
-  var c = CYC, p = ALT_PHASE[c.phase] || null, R = c.rules || {}, S = c.series || {};
-  var ev = c.events || {}, ia = c.index_at_events || {};
-  var hint = c.hint, hl = '';
-  if (hint && p) {
-    var eps = hint.episodes || [];
-    if (!eps.length) hl = L('V historii od 2016 poprvé.', 'A first since 2016.');
-    else hl = L('Naposledy: ', 'Last time: ') + eps.map(function(e){
-      return monthYear(e.start) + (e.usd13 !== undefined && e.usd13 !== null
-        ? ' → ' + L('alty za 3 m ', 'alts in 3 m ') + fmtPct(e.usd13, 0) +
-          (e.vbtc13 !== undefined && e.vbtc13 !== null ? L(' (proti BTC ', ' (vs BTC ') + fmtPct(e.vbtc13, 0) + ')' : '') : '');
-    }).join(' · ');
-  }
-  var T = R.T || 85;
-  el.innerHTML =
-    '<div class="ap-hero"><div class="ap-big ' + (p ? p.cls : 'flat') + '">' + (c.index === null ? '—' : num0(c.index)) + '</div>' +
-      '<div><div class="ap-phase ' + (p ? p.cls : 'flat') + '">' + (p ? esc(L(p.cs, p.en)) : '—') +
-        ' <span class="sub">' + L('k ', 'as of ') + fmtDate(c.as_of, true) + '</span></div>' +
-        '<div class="ap-line">' + (p ? esc(L(p.line_cs, p.line_en)) : '') + '</div>' +
-        (hl ? '<div class="ap-hint">' + hl + '</div>' : '') + '</div></div>' +
-    '<div class="ap-gauge"><i style="width:' + Math.max(1, Math.min(100, c.index || 0)) + '%"></i>' +
-      '<span class="mk" style="left:' + T + '%"></span></div>' +
-    '<div class="ap-chart"></div>' +
-    '<div class="ap-proof">' + (ia.P1 !== undefined ? L('Leden 2018: ', 'Jan 2018: ') + '<b>' + num0(ia.P1) + '</b>' : '') +
-      (ia.P2 !== undefined ? ' · ' + L('Květen 2021: ', 'May 2021: ') + '<b>' + num0(ia.P2) + '</b>' : '') +
-      (c.backtest ? ' · backtest <b>' + esc(c.backtest.verdict || '—') + '</b>' : '') + '</div>';
-  var ws = c.weeks, shade = [];
+  var c = CYC, S = c.series, ws = c.weeks, ev = c.events || {}, ia = c.index_at_events || {};
+  var marks = [];
   ['P1', 'P2'].forEach(function(k){
-    if (ev[k]) shade.push({t0: ev[k] - 8 * 604800, t1: ev[k] + 2 * 604800, cls: 'sh-coral',
-      label: k === 'P1' ? L('vrchol 2018', 'top 2018') : L('vrchol 2021', 'top 2021')});
+    var i = ev[k] ? ws.indexOf(ev[k]) : -1;
+    if (i >= 0 && S.index[i] !== null) marks.push({t: ev[k], v: S.index[i], cls: 'mk-warn', label: yearOf(ev[k]) + ': ' + num0(ia[k])});
   });
+  el.innerHTML = '<div class="ap-chart"></div>';
   cycleChart(el.querySelector('.ap-chart'), {weeks: ws, from: dsp(), y: {min: 0, max: 100, fmt: function(v){ return num0(v); }},
-    bands: [{y0: T, y1: 100, cls: 'bd-coral'}], shade: shade,
-    series: [{v: S.rotation, cls: 'c-acc faint', w: 1.1}, {v: S.heat, cls: 'c-gold faint', w: 1.1}, {v: S.index, cls: 'c-main', w: 2.4}],
+    series: [{v: S.index, cls: 'c-acc', w: 1.6, area: true}], y2: [BTC_Y2()], marks: marks,
     tip: function(i){
       var ph = ALT_PHASE[S.phase[i]];
       return '<b>' + fmtDate(ws[i]) + '</b><br>' + L('index ', 'index ') + num0(S.index[i]) + (ph ? ' · ' + esc(L(ph.cs, ph.en)) : '') +
-        '<br><span class="t2">' + L('rotace ', 'rotation ') + num0(S.rotation[i]) + ' · ' + L('BTC cyklus ', 'BTC cycle ') + num0(S.heat[i]) + '</span>';
+        '<br><span class="t2">BTC $' + grp(Math.round(S.btc[i] || 0), ' ') + '</span>';
     },
-    legend: [[L('index', 'index'), 'c-main'], [L('rotace do altů', 'rotation into alts'), 'c-acc'], [L('BTC cyklus', 'BTC cycle'), 'c-gold']]});
+    legend: [[L('Altseason cyklus', 'Altseason cycle'), 'c-acc'], ['BTC', 'c-gold']]});
 }
 
 function detailOthers(el){
   var o = CYC.components.othersd || {}, S = CYC.series, ws = CYC.weeks;
-  var tr = o.trend || [];
-  var first = tr.length ? Math.max(0, wIdx(Math.min.apply(null, tr.map(function(L2){ return L2.anchor; }))) - 26) : Math.max(0, ws.length - 156);
-  first = Math.min(first, Math.max(0, ws.length - 104));
-  var W = ws.slice(first), V = S.othersd.slice(first);
-  var lines = [], marks = [], main = tr.slice(-1)[0];
+  var tr = o.trend || [], lines = [], marks = [];
+  var tEnd = o.day && o.day > ws[ws.length - 1] ? o.day : ws[ws.length - 1];
   tr.forEach(function(t){
-    var t1 = o.day && o.day > ws[ws.length - 1] ? o.day : ws[ws.length - 1];
-    var v1 = t.anchor_v + t.slope_week * (t1 - t.anchor) / 604800;
-    lines.push({t0: t.anchor, v0: t.anchor_v, t1: t1, v1: v1, cls: 'c-coral'});
-    marks.push({t: t.anchor, v: t.anchor_v, cls: 'mk-hollow', label: lvl(t.anchor_v, 2)});
+    lines.push({t0: t.anchor, v0: t.anchor_v, t1: tEnd, v1: t.anchor_v + t.slope_week * (tEnd - t.anchor) / 604800, cls: 'c-coral'});
+    marks.push({t: t.anchor, v: t.anchor_v, cls: 'mk-hollow'});
     marks.push({t: t.touch, v: t.touch_v, cls: 'mk-hollow'});
-    if (t.breakout) marks.push({t: t.breakout, v: t.breakout_v, cls: 'mk-gem', label: L('průlom ', 'breakout ') + fmtDate(t.breakout, true)});
+    if (t.breakout) marks.push({t: t.breakout, v: t.breakout_v, cls: 'mk-gem', label: L('průlom', 'breakout')});
   });
   if (o.day && o.value) marks.push({t: o.day, v: o.value, cls: o.unconfirmed ? 'mk-warn' : 'mk-acc',
-    label: o.unconfirmed ? L('nepotvrzený průlom', 'unconfirmed') : lvl(o.value, 2)});
-  var shade = main ? [{t0: main.anchor, t1: main.breakout || ws[ws.length - 1], cls: 'sh-muted'}] : [];
-  var st = [];
-  if (main) {
-    st.push(L('Downtrend ', 'Downtrend ') + '<b>' + main.weeks + L(' týdnů', ' weeks') + '</b>' + L(' od ', ' since ') + fmtDate(main.anchor) +
-      ' (' + lvl(main.anchor_v, 2) + ')');
-    st.push(L('Linie dnes ', 'Line now ') + '<b>' + lvl(main.latest_line || main.line_now, 2) + '</b> · ' +
-      L('týdenní close ', 'weekly close ') + lvl(o.week, 2) + (main.dist_pct !== null ? ' (' + fmtPct(main.dist_pct, 1) + ')' : '') +
-      (o.day ? ' · ' + fmtDate(o.day, true) + ' ' + lvl(o.value, 2) + (main.latest_dist_pct !== undefined && main.latest_dist_pct !== null ? ' (' + fmtPct(main.latest_dist_pct, 1) + ')' : '') : ''));
-    tr.forEach(function(t2){
-      if (t2 === main) return;
-      st.push(L('Delší linie ', 'The longer line ') + t2.weeks + L(' týdnů od ', ' weeks since ') + fmtDate(t2.anchor) + ' (' + lvl(t2.anchor_v, 2) + '): ' +
-        (t2.breakout ? L('prolomena ', 'broken ') + fmtDate(t2.breakout) : L('dnes ', 'now ') + lvl(t2.latest_line || t2.line_now, 2) +
-          (t2.latest_dist_pct !== undefined && t2.latest_dist_pct !== null ? ' (' + L('poslední den ', 'latest day ') + fmtPct(t2.latest_dist_pct, 1) + ')' : '')));
-    });
-    if (o.unconfirmed) st.push('<span class="warn">' + L('Průlom zatím nepotvrdila týdenní svíčka.', 'The weekly close has not confirmed the breakout yet.') + '</span>');
-  }
-  st.push('OTHERS $' + num0(o.usd_bn) + L(' mld', 'bn') + ' · ' + L('vrchol 2021 ', '2021 top ') + '$' + num0(o.usd_peak_2021_bn) + L(' mld', 'bn') +
-    ' · ' + L('od dna 26 t ', 'off the 26-w low ') + (o.usd_low_26w_bn ? fmtPct(100 * (o.usd_bn / o.usd_low_26w_bn - 1), 0) : '—'));
-  el.innerHTML = '<div class="ap-chart"></div><div class="ap-stats">' + st.map(function(s){ return '<div>' + s + '</div>'; }).join('') + '</div>';
-  cycleChart(el.querySelector('.ap-chart'), {weeks: W, area: true, y: {fmt: function(v){ return lvl(v, 1); }},
-    series: [{v: V, cls: 'c-acc', w: 2, area: true}], lines: lines, marks: marks, shade: shade, extendTo: o.day,
-    tip: function(i){ return '<b>' + fmtDate(W[i]) + '</b><br>OTHERS.D ' + lvl(V[i], 2); }});
+    label: o.unconfirmed ? L('prolamuje', 'breaking') : lvl(o.value, 2)});
+  el.innerHTML = '<div class="ap-chart"></div>';
+  cycleChart(el.querySelector('.ap-chart'), {weeks: ws, from: dsp(), y: {min: 0, fmt: function(v){ return lvl(v, 0); }},
+    series: [{v: S.othersd, cls: 'c-acc', w: 1.8, area: true}], lines: lines, marks: marks, extendTo: o.day,
+    tip: function(i){ return '<b>' + fmtDate(ws[i]) + '</b><br>OTHERS ' + lvl(S.othersd[i], 2); }});
 }
 
 function detailBtcd(el){
-  var b = CYC.components.btcd || {}, S = CYC.series, ws = CYC.weeks;
-  var marks = [];
+  var b = CYC.components.btcd || {}, S = CYC.series, ws = CYC.weeks, ll = b.lows_line;
+  var marks = [], lines = [];
   ['P1', 'P2'].forEach(function(k){
     var lo = (b.lows || {})[k];
-    if (lo) marks.push({t: lo[0], v: lo[1], cls: 'mk-gem', label: lvl(lo[1], 1) + ' ' + new Date(lo[0] * 1000).getUTCFullYear()});
+    if (lo) marks.push({t: lo[0], v: lo[1], cls: 'mk-gem', label: lvl(lo[1], 1)});
   });
-  var lines = (b.trend || []).map(function(t){
-    return {t0: t.anchor, v0: t.anchor_v, t1: ws[ws.length - 1], v1: t.anchor_v + t.slope_week * (ws[ws.length - 1] - t.anchor) / 604800, cls: 'c-coral'};
-  });
-  el.innerHTML = '<div class="ap-chart"></div><div class="ap-stats">' +
-    '<div>' + L('Dnes ', 'Now ') + '<b>' + lvl(b.value, 1) + '</b> · ' + L('za 13 týdnů ', 'over 13 weeks ') +
-      ppStr(b.chg13_pp) +
-      ' · ' + L('od ročního maxima ', 'off its 1-year high ') + (b.dd52 === null ? '—' : '−' + czNum(b.dd52.toFixed(0)) + L(' %', '%')) + '</div>' +
-    '<div class="sub">' + L('Na vrcholech altů klesla o 42–61 % od ročního maxima; altseason podle indexu chce aspoň 25 %.',
-      'At the alt tops it fell 42–61% from its 1-year high; the index wants at least 25% for an altseason.') + '</div></div>';
+  if (ll) {
+    var tEnd = ws[ws.length - 1];
+    lines.push({t0: ll.t0, v0: ll.v0, t1: tEnd, v1: ll.line_now, cls: 'c-gem'});
+    marks.push({t: tEnd, v: ll.line_now, cls: 'mk-hollow-gem', label: lvl(ll.line_now, 1)});
+  }
+  el.innerHTML = '<div class="ap-chart"></div>';
   cycleChart(el.querySelector('.ap-chart'), {weeks: ws, from: dsp(), y: {fmt: function(v){ return lvl(v, 0); }},
-    series: [{v: S.btcd, cls: 'c-gold', w: 1.8}], marks: marks, lines: lines,
-    tip: function(i){ return '<b>' + fmtDate(ws[i]) + '</b><br>BTC.D ' + lvl(S.btcd[i], 1); }});
+    series: [{v: S.btcd, cls: 'c-acc', w: 1.8, area: true}], marks: marks, lines: lines,
+    tip: function(i){ return '<b>' + fmtDate(ws[i]) + '</b><br>BTC.D ' + lvl(S.btcd[i], 1); },
+    legend: [['BTC.D', 'c-acc'], [L('linie vrcholů altseasonu', 'altseason tops line'), 'c-gem']]});
 }
 
-function detailBreadth(el){
-  var br = CYC.components.breadth || {}, S = CYC.series, ws = CYC.weeks, R = CYC.rules || {};
-  var lead = (br.leaders || []).map(function(x){
-    return '<span class="ap-chip">' + esc(x[0]) + ' <b class="' + (x[2] >= 0 ? 'pos' : 'neg') + '">' + fmtPct(100 * x[2], 0) + '</b></span>';
-  }).join('');
-  el.innerHTML = '<div class="ap-chart"></div><div class="ap-stats"><div>' + (br.n ? '<b>' + br.beat + L(' z ', ' of ') + br.n + '</b>' +
-    L(' největších altů porazilo BTC za 13 týdnů', ' largest alts beat BTC over 13 weeks') : '') + '</div>' +
-    (lead ? '<div class="ap-chips">' + L('Vedou: ', 'Leading: ') + lead + '</div>' : '') + '</div>';
-  cycleChart(el.querySelector('.ap-chart'), {weeks: ws, from: dsp(), y: {min: 0, max: 100, fmt: function(v){ return num0(v); }},
-    bands: [{y0: R.breadth_hi || 75, y1: 100, cls: 'bd-gem'}, {y0: 0, y1: R.breadth_lo || 25, cls: 'bd-coral'}],
-    series: [{v: S.breadth4, cls: 'c-acc', w: 1.8}],
-    tip: function(i){ return '<b>' + fmtDate(ws[i]) + '</b><br>' + num0(S.breadth[i]) + L(' % altů > BTC', '% of alts > BTC') +
-      '<br><span class="t2">' + L('4t průměr ', '4-w mean ') + num0(S.breadth4[i]) + '</span>'; }});
+function scoreChip(s){
+  if (s === null || s === undefined) return '<span class="rt-chip flat">—</span>';
+  var cls = s < 35 ? 'pos' : (s < 70 ? 'warn' : 'neg');
+  return '<span class="rt-chip ' + cls + '">' + num0(s) + '</span>';
+}
+function peakBar(pct, label){
+  if (pct === null || pct === undefined) return '';
+  return '<span class="rt-bar"><i style="width:' + Math.max(2, Math.min(100, pct)) + '%"></i></span>' +
+    '<span class="rt-pk">' + num0(pct) + L(' % ', '% ') + esc(label) + '</span>';
 }
 
-function retailRow(name, value, ctx, series, score, cls){
-  return '<div class="rt-row"><div class="rt-n">' + name + '</div><div class="rt-v">' + value + '</div>' +
-    '<div class="rt-c">' + (ctx || '') + '</div><div class="rt-s">' + (series ? sparkline(series, 110, 26, 'rt-spark') : '') + '</div>' +
-    '<div class="rt-sc ' + (cls || '') + '">' + (score === null || score === undefined ? '' : num0(score)) + '</div></div>';
-}
-
+/* Retail detail: the chart, then one row per signal — name, today, how far from its
+   top, the 0–100 score. A grid, not a <table>: the page's table rules (min-width
+   820 px, right-aligned cells, row hover) belong to the screener tables. */
 function detailRetail(el){
-  var r = CYC.components.retail || {}, P = r.parts || {};
+  var r = CYC.components.retail || {}, P = r.parts || {}, S = CYC.series, ws = CYC.weeks;
+  var f0 = dsp();
   var rows = [];
+  var row = function(name, today, bar, score){
+    rows.push('<div class="rt-row"><span class="rt-n">' + name + '</span><span class="rt-v">' + today + '</span>' +
+      '<span class="rt-p">' + bar + '</span><span class="rt-s">' + scoreChip(score) + '</span></div>');
+  };
+  var note = function(s){ return '<span class="rt-pk">' + esc(s) + '</span>'; };
+  if (P.degen) row(L('Memecoiny on-chain', 'Memecoins on-chain'), fmtUsd(P.degen.rev30d) + L(' / měsíc', ' / month'),
+    peakBar(P.degen.pct_of_peak, L('vrcholu ', 'of the ') + yearOf(P.degen.peak_day) + L('', ' top')), P.degen.score);
+  if (P.upbit) row(L('Korejská burza Upbit', 'Korean exchange Upbit'), czNum(Math.round(P.upbit.sum4_t_krw)) + L(' bil. KRW / měsíc', 'tn KRW / month'),
+    peakBar(P.upbit.pct_of_peak, L('vrcholu ', 'of the ') + yearOf(P.upbit.peak_week) + L('', ' top')), P.upbit.score);
+  if (P.apps) row(L('Nejlepší krypto appka', 'Top crypto app'), esc(P.apps.best) + ' #' + (P.apps.best_overall ? P.apps.best_overall
+      : P.apps.best_finance + ' Finance'),
+    note(L('vrcholy: Coinbase #1', 'tops: Coinbase #1')), P.apps.score);
+  if (P.stables) row(L('Nové peníze (stablecoiny)', 'New money (stablecoins)'), fmtPct(P.stables.g90, 1) + L(' / 3 měsíce', ' / 3 months'),
+    note(L('vrchol 2021: +104 %', '2021 top: +104%')), P.stables.score);
+  if (P.traffic && P.traffic.ranks && P.traffic.ranks['coinbase.com']) {
+    var cb = P.traffic.ranks['coinbase.com'];
+    row(L('Návštěvnost Coinbase', 'Coinbase traffic'), '#' + grp(cb, ' '), peakBar(100 * 818 / cb, L('vrcholu 2021', 'of the 2021 top')), null);
+  }
+  var cl = ((P.ai || {}).claude || []).slice(-1)[0];
+  if (cl) row(L('AI dotazy na krypto', 'AI questions on crypto'), czNum(cl[1].toFixed(2)) + L(' % chatů', '% of chats'),
+    note(L('Claude, únor 2026', 'Claude, Feb 2026')), null);
   var tw = r.tempo_word ? CYCLE_VERDICT[r.tempo_word] : null;
-  var head = '<div class="ap-rhead">' + vword(r.verdict) + (tw ? ' · ' + L('tempo ', 'pace ') + '<b>' + esc(L(tw.cs, tw.en)) + '</b>' +
-    (r.tempo !== null ? ' (' + (r.tempo >= 0 ? '+' : '−') + num0(Math.abs(r.tempo)) + L(' za 4 t', ' in 4 w') + ')' : '') : '') +
-    ' · <span class="sub">' + L('měříme, co lidi dělají, ne co hledají', 'what people do, not what they search') + '</span></div>';
-  if (P.upbit) rows.push(retailRow(L('Korejský retail (Upbit)', 'Korean retail (Upbit)'),
-    krw(P.upbit.sum4_t_krw) + L(' / 4 t', ' / 4 w'), czNum(Math.round(P.upbit.pct_of_peak)) + L(' % vrcholu (', '% of the peak (') + monthYear(P.upbit.peak_week) +
-    ') · ' + L('13 t ', '13 w ') + fmtPct(P.upbit.chg13_pct, 0), (P.upbit.series || []).slice(-104).map(function(x){ return x[1]; }), P.upbit.score));
-  if (P.degen) rows.push(retailRow(L('Degeni on-chain', 'Degens on-chain'),
-    fmtUsd(P.degen.rev30d) + L(' / 30 d', ' / 30d'), czNum(Math.round(P.degen.pct_of_peak)) + L(' % vrcholu (', '% of the peak (') + monthYear(P.degen.peak_day) + ')' +
-    ((P.degen.movers || []).length ? ' · ' + P.degen.movers.slice(0, 2).map(function(m){
-      return esc(m.name) + ' ' + fmtUsd(m.rev30d) + (m.chg_pct !== null ? ' (' + fmtPct(m.chg_pct, 0) + ')' : ''); }).join(', ') : ''),
-    (P.degen.series || []).slice(-104).map(function(x){ return x[1]; }), P.degen.score));
-  if (P.apps) {
-    var best = P.apps;
-    var shown = (best.apps || []).filter(function(a){ return a.overall || a.finance; }).slice(0, 5).map(function(a){
-      return esc(a.name) + ' ' + (a.overall ? '#' + a.overall : L('Fin. #', 'Fin. #') + a.finance); }).join(' · ');
-    rows.push(retailRow(L('Appky (US App Store)', 'Apps (US App Store)'),
-      esc(best.best) + ' ' + (best.best_overall ? '#' + best.best_overall : L('Finance #', 'Finance #') + best.best_finance),
-      shown + ' · ' + L('na vrcholech 2017/21: Coinbase #1', '2017/21 tops: Coinbase #1'), null, best.score));
-  }
-  if (P.stables) rows.push(retailRow(L('Nové peníze (stablecoiny)', 'New money (stablecoins)'),
-    fmtPct(P.stables.g90, 1) + L(' za 90 d', ' in 90d'), '$' + czNum(Math.round(P.stables.supply_bn)) + L(' mld USDT+USDC', 'bn USDT+USDC') +
-    ' · ' + L('duben 2021: +104 %', 'Apr 2021: +104%'), (P.stables.series || []).slice(-104).map(function(x){ return x[1]; }), P.stables.score));
-  if (P.traffic && P.traffic.ranks) {
-    var cb = P.traffic.ranks['coinbase.com'], cb4 = (P.traffic.ranks_4w || {})['coinbase.com'];
-    rows.push(retailRow(L('Návštěvnost burz', 'Exchange traffic'), 'coinbase.com #' + grp(cb, ' '),
-      (cb4 ? (cb < cb4 ? L('lepší než před 4 t (#', 'better than 4 w ago (#') : L('horší než před 4 t (#', 'worse than 4 w ago (#')) + grp(cb4, ' ') + ')' : '') +
-      ' · ' + L('nejlíp #818 (listopad 2021)', 'best #818 (Nov 2021)'),
-      (P.traffic.monthly || []).map(function(x){ return -Math.log(x[1]); }), null));
-  }
-  var extra = [];
-  if (P.ai) {
-    var cl = P.ai.claude || [], lastc = cl[cl.length - 1];
-    var cf = P.ai.cloudflare;
-    extra.push(retailRow('AI', lastc ? czNum(lastc[1].toFixed(2)) + L(' % konverzací s Claudem', '% of Claude chats') : '—',
-      L('nejvíc po propadu, ne na vrcholu (Anthropic Economic Index)', 'most after a crash, not at a top (Anthropic Economic Index)') +
-      (cf && cf.share ? ' · ' + L('AI → krypto weby ', 'AI → crypto sites ') + lvl(cf.share[cf.share.length - 1], 2)
-        : (P.ai.needs ? ' · ' + L('Cloudflare řádek potřebuje token CLOUDFLARE_API_TOKEN', 'the Cloudflare row needs CLOUDFLARE_API_TOKEN') : '')),
-      cf && cf.share ? cf.share : cl.map(function(x){ return x[1]; }), null));
-  }
-  if (P.youtube) extra.push(retailRow('YouTube', P.youtube.views_per_day ? grp(P.youtube.views_per_day, ' ') + L(' zhl./den', ' views/day')
-      : (P.youtube.median_views ? grp(P.youtube.median_views, ' ') + L(' zhl./video', ' views/video') : '—'),
-    P.youtube.channels + L(' krypto kanálů · vlastní záznam od ', ' crypto channels · own record since ') + P.youtube.ledger_days + L(' dní', ' days'), null, null));
-  if (P.apps) {
-    var gr = (P.apps.apps || []).filter(function(a){ return a.ratings_7d; }).map(function(a){
-      return esc(a.name) + ' +' + grp(a.ratings_7d, ' '); }).join(' · ');
-    extra.push(retailRow(L('Stahování (odhad)', 'Downloads (proxy)'), gr ? '' : '—',
-      gr ? gr + L(' hodnocení za týden', ' ratings a week') : L('záznam hodnocení teprve začal', 'the ratings record has just started'), null, null));
-  }
-  el.innerHTML = head + '<div class="rt">' + rows.join('') + '</div>' +
-    '<details class="ap-more"><summary>' + L('Doplňkové', 'More') + '</summary><div class="rt">' + extra.join('') + '</div></details>';
+  el.innerHTML = '<div class="ap-chart"></div>' +
+    '<div class="rt-head">Retail <b>' + num0(r.value) + '</b> ' + vword(r.verdict) +
+      (tw ? ' · ' + L('tempo ', 'pace ') + '<span class="ap-w ' + tw.cls + '">' + esc(L(tw.cs, tw.en)) + '</span>' : '') + '</div>' +
+    '<div class="rt-list"><div class="rt-row rt-hdr"><span></span><span>' + L('dnes', 'today') + '</span><span>' +
+      L('proti vrcholu', 'vs the top') + '</span><span>' + L('skóre', 'score') + '</span></div>' + rows.join('') + '</div>';
+  var full = [];
+  for (var i = 0; i < f0; i++) full.push(null);
+  var rs = full.concat(r.series || []);
+  var r0 = rs.findIndex(function(x){ return x !== null && x !== undefined; });
+  cycleChart(el.querySelector('.ap-chart'), {weeks: ws, from: f0, y: {min: 0, max: 100, fmt: function(v){ return num0(v); }},
+    series: [{v: rs, cls: 'c-acc', w: 1.6, area: true}],
+    shade: r0 > f0 ? [{t0: ws[f0], t1: ws[r0], cls: 'sh-muted', label: L('retail data od ', 'retail data from ') + yearOf(ws[r0])}] : [],
+    y2: [BTC_Y2(), {v: S.others_usd, cls: 'c-coral'}],
+    tip: function(i){ var rv = (r.series || [])[i - f0];
+      return '<b>' + fmtDate(ws[i]) + '</b><br>Retail ' + num0(rv) + '<br><span class="t2">BTC $' + grp(Math.round(S.btc[i] || 0), ' ') +
+        ' · OTHERS $' + num0((S.others_usd[i] || 0) / 1e9) + L(' mld', 'bn') + '</span>'; },
+    legend: [['Retail', 'c-acc'], ['BTC', 'c-gold'], ['OTHERS', 'c-coral']]});
 }
 
 function detailVolume(el){
   var v = CYC.components.volume;
   if (!v) { el.innerHTML = '<div class="sub">' + L('Objem zatím nemá data.', 'No volume data yet.') + '</div>'; return; }
   var ch = v.chart;
-  el.innerHTML = '<div class="ap-chart"></div><div class="ap-stats"><div>' + L('24 h ', '24h ') + '<b>$' + czNum(v.vol24h.toFixed(0)) + L(' mld', 'bn') + '</b> · ' +
-    L('7denní průměr ', '7-day avg ') + '<b>$' + czNum(v.avg7.toFixed(0)) + L(' mld', 'bn') + '</b> · <b>' + czNum(v.ratio_1y.toFixed(2)) + '×</b> ' +
-    L('ročního normálu', 'the 1-year norm') + '</div><div>' + L('Alty bez stablecoinů: ', 'Alts ex stablecoins: ') + '<b>' + lvl(v.alt_share, 0) + '</b>' +
-    L(' objemu (před 13 t ', ' of volume (13 w ago ') + lvl(v.alt_share_13w, 0) + L('; v květnu 2021 až ', '; up to ') + lvl(v.alt_share_2021, 0) +
-    L(')', ' in May 2021)') + '</div></div>';
+  el.innerHTML = '<div class="ap-chart"></div>';
   cycleChart(el.querySelector('.ap-chart'), {weeks: ch.weeks, y: {min: 0, fmt: function(x){ return '$' + num0(x); }},
-    series: [{v: ch.avg7_bn, cls: 'c-acc', w: 1.6, area: true}], y2: {v: ch.btc, cls: 'c-gold', log: true},
+    series: [{v: ch.avg7_bn, cls: 'c-acc', w: 1.6, area: true}],
+    y2: [{v: ch.btc, cls: 'c-gold', fmt: BTC_Y2().fmt}],
     shade: [{t0: v.fake_volume_span[0], t1: v.fake_volume_span[1], cls: 'sh-muted', label: L('falešný objem burz', 'fake exchange volume')}],
-    tip: function(i){ return '<b>' + fmtDate(ch.weeks[i]) + '</b><br>' + L('7d průměr $', '7-d avg $') + num0(ch.avg7_bn[i]) + L(' mld', 'bn') +
+    tip: function(i){ return '<b>' + fmtDate(ch.weeks[i]) + '</b><br>' + L('objem $', 'volume $') + num0(ch.avg7_bn[i]) + L(' mld/den', 'bn/day') +
       '<br><span class="t2">BTC $' + grp(ch.btc[i] || 0, ' ') + '</span>'; },
-    legend: [[L('objem (7d průměr)', 'volume (7-d avg)'), 'c-acc'], ['BTC (log)', 'c-gold']]});
-}
-
-function detailHeat(el){
-  var h = CYC.components.btc_heat || {}, P = h.parts || {}, S = CYC.series, ws = CYC.weeks;
-  var rows = ['mvrv', 'puell', 'mayer', 'pi'].map(function(k){
-    var p = P[k] || {};
-    var f = function(x){ return x === null || x === undefined ? '—' : czNum(x.toFixed(2)); };
-    return '<tr><td>' + esc(p.name || k) + '</td><td><b>' + f(p.value) + '</b></td><td>' + f(p.top2017) + '</td><td>' + f(p.top2021) +
-      '</td><td class="' + (p.hit ? 'neg' : 'pos') + '">' + (p.hit ? '✓' : '✗') + '</td></tr>';
-  }).join('');
-  el.innerHTML = '<table class="ap-tbl"><tr><th></th><th>' + L('dnes', 'now') + '</th><th>' + L('vrchol 2017', '2017 top') + '</th><th>' +
-    L('vrchol 2021', '2021 top') + '</th><th>' + L('nad 2021', 'above 2021') + '</th></tr>' + rows + '</table>' +
-    '<div class="ap-stats"><div><b>' + h.hits + '/' + h.of + '</b>' + L(' signálů nad úrovní vrcholu 2021', ' signals above their 2021-top level') +
-    (h.cbbi ? ' · CBBI ' + num0(h.cbbi.value) + '/100 <span class="sub">(colintalkscrypto.com)</span>' : '') + '</div></div><div class="ap-chart"></div>';
-  cycleChart(el.querySelector('.ap-chart'), {weeks: ws, from: dsp(), y: {min: 0, max: 100, fmt: function(v){ return num0(v); }},
-    series: [{v: S.heat, cls: 'c-gold', w: 1.8}], tip: function(i){ return '<b>' + fmtDate(ws[i]) + '</b><br>' + L('BTC cyklus ', 'BTC cycle ') + num0(S.heat[i]); }});
+    legend: [[L('objem v $ mld/den (7denní průměr)', 'volume, $bn/day (7-day avg)'), 'c-acc'], ['BTC', 'c-gold']]});
 }
 
 /* One chart for every detail: weekly x axis, optional area, bands, shaded spans,
@@ -2798,10 +2670,11 @@ function cycleChart(host, spec){
   var ws = cut(spec.weeks || []);
   if (ws.length < 2) { host.innerHTML = ''; return; }
   (spec.series || []).forEach(function(s){ s.v = cut(s.v); });
-  if (spec.y2) spec.y2.v = cut(spec.y2.v);
+  var y2s = spec.y2 ? (spec.y2.length !== undefined ? spec.y2 : [spec.y2]) : [];
+  y2s.forEach(function(s){ s.v = cut(s.v); });
   var Wd = Math.max(280, Math.min(1360, host.clientWidth || 700));
   var Hd = Wd < 560 ? 170 : 230;
-  var pL = 44, pR = spec.y2 ? 44 : 12, pT = 12, pB = 24;
+  var pL = 44, pR = y2s.length ? 48 : 12, pT = 12, pB = 24;
   var tEnd = Math.max(ws[ws.length - 1], spec.extendTo || 0);
   var X = function(t){ return pL + (t - ws[0]) / ((tEnd - ws[0]) || 1) * (Wd - pL - pR); };
   var vals = [];
@@ -2852,25 +2725,38 @@ function cycleChart(host, spec){
       }
     });
   }
-  if (spec.y2 && spec.y2.v) {
-    var v2 = spec.y2.v.filter(function(v){ return v; });
+  y2s.forEach(function(s2, n){
+    var v2 = (s2.v || []).filter(function(v){ return v; });
+    if (v2.length < 2) return;
     var l2 = Math.log(Math.min.apply(null, v2)), h2 = Math.log(Math.max.apply(null, v2));
     var Y2 = function(v){ return pT + (1 - (Math.log(v) - l2) / ((h2 - l2) || 1)) * (Hd - pT - pB); };
     var d2 = '';
-    spec.y2.v.forEach(function(v, i){ if (v) d2 += (d2 ? 'L' : 'M') + X(ws[i]).toFixed(1) + ' ' + Y2(v).toFixed(1); });
-    svg.appendChild(svgEl('path', {d: d2, 'class': 'cyc-y2 ' + spec.y2.cls}));
-  }
+    s2.v.forEach(function(v, i){ if (v) d2 += (d2 ? 'L' : 'M') + X(ws[i]).toFixed(1) + ' ' + Y2(v).toFixed(1); });
+    svg.appendChild(svgEl('path', {d: d2, 'class': 'cyc-y2 ' + s2.cls}));
+    if (n === 0 && s2.fmt) {
+      [0, 0.5, 1].forEach(function(q){
+        var v = Math.exp(l2 + q * (h2 - l2));
+        var tx = svgEl('text', {x: Wd - pR + 6, y: Y2(v) + 3, 'class': 'cyc-ax cyc-ax2'});
+        tx.textContent = s2.fmt(v);
+        svg.appendChild(tx);
+      });
+    }
+  });
   (spec.series || []).forEach(function(s){
-    var d = '', pen = false, first = null, lastX = null;
+    // a gap of one or two weeks (a dropped bad snapshot, 2020-11-30) is bridged; the
+    // area is one polygon whatever the gaps, or its fill closes across the chart
+    var d = '', da = '', first = null, lastX = null, lastI = null;
     (s.v || []).forEach(function(v, i){
-      if (v === null || v === undefined) { pen = false; return; }
-      d += (pen ? 'L' : 'M') + X(ws[i]).toFixed(1) + ' ' + Y(v).toFixed(1);
+      if (v === null || v === undefined) return;
+      var pt = X(ws[i]).toFixed(1) + ' ' + Y(v).toFixed(1);
+      d += (lastI !== null && i - lastI <= 3 ? 'L' : 'M') + pt;
+      da += (first === null ? 'M' : 'L') + pt;
       if (first === null) first = X(ws[i]);
       lastX = X(ws[i]);
-      pen = true;
+      lastI = i;
     });
     if (s.area && first !== null) {
-      svg.appendChild(svgEl('path', {d: d + 'L' + lastX.toFixed(1) + ' ' + Y(lo).toFixed(1) + 'L' + first.toFixed(1) + ' ' + Y(lo).toFixed(1) + 'Z', 'class': 'cyc-area ' + s.cls}));
+      svg.appendChild(svgEl('path', {d: da + 'L' + lastX.toFixed(1) + ' ' + Y(lo).toFixed(1) + 'L' + first.toFixed(1) + ' ' + Y(lo).toFixed(1) + 'Z', 'class': 'cyc-area ' + s.cls}));
     }
     svg.appendChild(svgEl('path', {d: d, 'class': 'cyc-line ' + s.cls, 'stroke-width': s.w || 1.6}));
   });
@@ -3933,18 +3819,14 @@ var INFO_TEXT = {
       'otherwise a bounce off the bottom after a collapse would look just like a breakout.</span>');
   },
   cycIndex: function(){
-    return L('<b>Kde jsme v altseasonu.</b> 0 = zima, 100 = jako vrcholy altů v lednu 2018 a květnu 2021.' +
-      '<span class="pk">Půl čísla je <b>rotace do altů</b> (pokles BTC dominance, růst OTHERS.D, kolik altů poráží BTC), ' +
-      'půl <b>BTC cyklus</b> (MVRV, Puell, Mayer, Pi Cycle). Každá část se měří proti posledním 4 letům. Do indexu jde ' +
-      'jen to, co má historii přes oba cykly.</span>' +
-      '<span class="pk">Pravidla i prahy byly zapsané a zamčené před výpočtem (backtest). Vrcholy altů byly jen dva, ' +
-      'takže je to teploměr, ne signál k nákupu.</span>',
-      '<b>Where we are in the altseason.</b> 0 = winter, 100 = like the alt tops of Jan 2018 and May 2021.' +
-      '<span class="pk">Half of it is <b>rotation into alts</b> (BTC dominance falling, OTHERS.D rising, how many alts beat BTC), ' +
-      'half the <b>BTC cycle</b> (MVRV, Puell, Mayer, Pi Cycle). Each part is measured against the last 4 years. Only data ' +
-      'with history across both cycles goes in.</span>' +
-      '<span class="pk">Rules and thresholds were written down and locked before the calculation (backtest). There were only ' +
-      'two alt tops, so this is a thermometer, not a buy signal.</span>');
+    return L('<b>Kde jsme v altseasonu.</b> 0 = klid, 100 = jako vrcholy altů v lednu 2018 a květnu 2021. Modrá plocha = index, žlutá = cena BTC.' +
+      '<span class="pk">Půl čísla je přesun peněz do altů (klesající BTC dominance, rostoucí OTHERS, kolik altů poráží BTC), půl je ' +
+      'přehřátí Bitcoinu (MVRV, Puell, Mayer, Pi Cycle). Každá část se měří proti posledním 4 letům.</span>' +
+      '<span class="pk">Pravidla byla zamčená před výpočtem. Vrcholy byly jen dva, je to teploměr, ne signál k nákupu.</span>',
+      '<b>Where we are in the altseason.</b> 0 = calm, 100 = like the alt tops of Jan 2018 and May 2021. Blue area = the index, yellow = BTC price.' +
+      '<span class="pk">Half of it is money moving into alts (falling BTC dominance, rising OTHERS, how many alts beat BTC), half is ' +
+      'how overheated Bitcoin is (MVRV, Puell, Mayer, Pi Cycle). Each part is measured against the last 4 years.</span>' +
+      '<span class="pk">The rules were locked before the calculation. There were only two tops: a thermometer, not a buy signal.</span>');
   },
   cycOthers: function(){
     return L('<b>OTHERS.D</b> — podíl malých altů (mimo top 10) na trhu. Průlom dlouhé klesající linie = peníze jdou do malých altů.' +
@@ -3957,30 +3839,20 @@ var INFO_TEXT = {
       '3% above it after 40+ weeks. The daily value is shown, but only a week confirms the breakout.</span>');
   },
   cycBtcd: function(){
-    return L('<b>BTC dominance</b> — podíl Bitcoinu na celém trhu. Když klesá a trh neklesá, peníze tečou do altů.' +
-      '<span class="pk">Na vrcholech altů spadla na 32,8 % (leden 2018) a 40,1 % (květen 2021), tedy o 42–61 % pod roční maximum. ' +
-      'Data: CoinMarketCap, pondělní snímek.</span>',
-      '<b>BTC dominance</b> — Bitcoin’s share of the whole market. When it falls while the market does not, money flows into alts.' +
-      '<span class="pk">At the alt tops it fell to 32.8% (Jan 2018) and 40.1% (May 2021), 42–61% below its 1-year high. ' +
-      'Data: CoinMarketCap, Monday snapshot.</span>');
-  },
-  cycBreadth: function(){
-    return L('<b>Alt Season Index</b> — kolik z 50 největších altů porazilo BTC za 90 dní. Od 75 je altseason.' +
-      '<span class="pk">Každý týden z tehdejšího žebříčku CoinMarketCapu, takže počítá i coiny, které později zmizely. ' +
-      'Bez stablecoinů a zabalených tokenů. Na vrcholech: 91 (leden 2018), 94 (květen 2021).</span>',
-      '<b>Alt Season Index</b> — how many of the 50 largest alts beat BTC over 90 days. From 75 it is altseason.' +
-      '<span class="pk">Every week from that week’s CoinMarketCap ranking, so coins that later vanished still count. ' +
-      'No stablecoins or wrapped tokens. At the tops: 91 (Jan 2018), 94 (May 2021).</span>');
+    return L('<b>BTC dominance</b> — podíl Bitcoinu na trhu. Když klesá, peníze tečou do altů. Zelená linie vede přes minima ' +
+      'na vrcholech altů (2018 a 2021) až do dneška: tam se altseason v minulosti zastavila.',
+      '<b>BTC dominance</b> — Bitcoin\u2019s share of the market. When it falls, money flows into alts. The green line runs through the ' +
+      'lows at the alt tops (2018 and 2021) to today: that is where past altseasons stopped.');
   },
   cycRetail: function(){
-    return L('<b>Retail</b> — co lidi dělají, ne co hledají: korejské burzy, memecoiny on-chain, krypto appky, nové stablecoiny.' +
-      '<span class="pk">Google a Wikipedii v době AI nahrazují chatboty, takže jejich čísla klesají i bez vztahu ke kryptu. ' +
-      'Každý řádek se měří proti vlastní historii (0–100); appky proti známým pořadím Coinbase z vrcholů. Tempo = změna za 4 týdny.</span>' +
-      '<span class="pk">Kolik se lidi ptají AI, nikdo průběžně nezveřejňuje; řádek AI ukazuje jediná data, co existují.</span>',
-      '<b>Retail</b> — what people do, not what they search: Korean exchanges, memecoins on-chain, crypto apps, new stablecoins.' +
-      '<span class="pk">In the AI era chatbots replace Google and Wikipedia, so their numbers fall regardless of crypto. ' +
-      'Each row is scored against its own history (0–100); apps against Coinbase’s known ranks at past tops. Pace = change over 4 weeks.</span>' +
-      '<span class="pk">Nobody publishes how much people ask AIs about crypto on an ongoing basis; the AI row shows the only data there is.</span>');
+    return L('<b>Retail</b> — co lidi dělají, ne co hledají: memecoiny on-chain, korejská burza, krypto appky, nové stablecoiny. ' +
+      'Modrá plocha = retail index, žlutá = BTC, červená = OTHERS.' +
+      '<span class="pk">Google a Wikipedii nahrazují chatboti, proto se neměří. Skóre = jak vysoko je řádek proti svým posledním 4 letům ' +
+      '(0–100); appka proti pořadí Coinbase z vrcholů.</span>',
+      '<b>Retail</b> — what people do, not what they search: memecoins on-chain, the Korean exchange, crypto apps, new stablecoins. ' +
+      'Blue area = retail index, yellow = BTC, red = OTHERS.' +
+      '<span class="pk">Chatbots replace Google and Wikipedia, so those are not measured. Score = how high a row sits against its own ' +
+      'last 4 years (0–100); the app against Coinbase\u2019s ranks at past tops.</span>');
   },
   cycVolume: function(){
     return L('<b>Objem</b> — denní obchody celého trhu (7denní průměr) proti ročnímu normálu. Vrcholy mívaly 2–4×, ale krachy taky.' +
@@ -3989,14 +3861,6 @@ var INFO_TEXT = {
       '<b>Volume</b> — the whole market’s daily trading (7-day average) against its 1-year norm. Tops ran 2–4×, but so did crashes.' +
       '<span class="pk">Adjusted volume from CoinMarketCap. 2019–20 contains fake exchange volume. Alts’ share ex stablecoins: ' +
       'up to 76% in May 2021.</span>');
-  },
-  cycHeat: function(){
-    return L('<b>BTC cyklus</b> — jak přehřátý je Bitcoin. Altcoiny vrcholily 3–4 týdny po jeho vrcholu.' +
-      '<span class="pk">MVRV (cena proti pořizovací ceně všech coinů), Puell (příjem těžařů proti ročnímu průměru), Mayer ' +
-      '(cena proti 200dennímu průměru), Pi Cycle (111denní proti 2× 350dennímu). ✓ = výš než na vrcholu 2021. Data: Coin Metrics.</span>',
-      '<b>BTC cycle</b> — how overheated Bitcoin is. Alts topped 3–4 weeks after its top.' +
-      '<span class="pk">MVRV (price vs the cost basis of all coins), Puell (miner income vs its yearly mean), Mayer ' +
-      '(price vs the 200-day mean), Pi Cycle (111-day vs 2× 350-day mean). ✓ = above the 2021-top level. Data: Coin Metrics.</span>');
   }
 };
 

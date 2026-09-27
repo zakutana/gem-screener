@@ -51,6 +51,8 @@ START_WEEK = 1404691200            # Monday 2014-07-07: scoring 2017 needs a 52-
 DAILY_START = 1451606400           # 2016-01-01 for CMC daily (volume needs a 1-year median before 2017)
 CM_START = "2012-01-01"            # Coin Metrics BTC: Pi Cycle's 350-day mean needs a year before 2014-07
 DISPLAY_FROM = 1451865600          # 2016-01-04: nothing earlier is drawn ("2013 me nezajímá")
+MEME_START_USD = 5e6               # the memecoin economy is scored from its first $5M month (2023-05)
+RETAIL_MIN_ROWS = 2                # the retail history is drawn where at least two rows exist
 
 CMC = "https://api.coinmarketcap.com/data-api/v3"
 CM = "https://community-api.coinmetrics.io/v4/timeseries/asset-metrics"
@@ -1038,6 +1040,7 @@ def series_from_history(H, weeks, rules=None):
          "others_usd": [g(w, "ou") for w in weeks], "breadth": br,
          "btc": btc_weekly(H, weeks)}
     s.update(heat_metrics(cm_days(H), weeks))
+    s["anomalies"] = clean_spikes(weeks, s)
     # an OTHERS.D breakout is known at the week it happens (trend_break looks back only)
     lines = trend_break(s["othersd"], "down", rules)
     brk = [False] * len(weeks)
@@ -1046,6 +1049,30 @@ def series_from_history(H, weeks, rules=None):
             brk[L["breakout"]] = True
     s["breakouts"] = brk
     return s
+
+
+def clean_spikes(weeks, s, jump=0.25, agree=0.10):
+    """One bad CMC snapshot must not become a data point. A week that sits more than
+    25 % off two neighbours which agree within 10 % is a spike: 2020-11-30 read
+    OTHERS.D 5,95 % between 10,75 and 10,83 and "6 of 49 alts beat BTC". A listing
+    spike drops that week's OTHERS.D, OTHERS $ and breadth, and the breadth 13 weeks
+    later (it was measured against that week's prices). Listed in `anomalies`."""
+    out = []
+    for key in ("othersd", "btcd"):
+        v = s[key]
+        for i in range(1, len(v) - 1):
+            a, b, c = v[i - 1], v[i], v[i + 1]
+            if None in (a, b, c) or a <= 0 or c <= 0:
+                continue
+            if abs(a / c - 1) <= agree and abs(b / ((a + c) / 2) - 1) > jump:
+                out.append({"week": weeks[i], "series": key, "value": round(b, 4), "neighbours": [round(a, 4), round(c, 4)]})
+                v[i] = None
+                if key == "othersd":
+                    s["others_usd"][i] = None
+                    s["breadth"][i] = None
+                    if i + 13 < len(weeks):
+                        s["breadth"][i + 13] = None
+    return out
 
 
 def week_index(weeks, ts):
@@ -1147,31 +1174,44 @@ def volume_block(H, weeks, s, now_ts, R):
             "fake_volume_span": [1546300800, 1609459199]}
 
 
+def _trail_scores(pairs, window=WINDOW, min_n=52):
+    """[(t, value)] oldest first -> {t: trailing percentile of the value}."""
+    vals = [v for _, v in pairs]
+    sc = trailing_pct(vals, window, min_n)
+    return {t: s for (t, _), s in zip(pairs, sc) if s is not None}
+
+
 def retail_block(ctx, H, weeks, now_ts, R):
+    """Retail = what people DO, each row scored 0–100 against its own trailing four
+    years (the same percentile as the index), so the index has a history to draw
+    next to BTC and OTHERS since 2016. The history holds the rows that existed at
+    each week: Upbit from 2018, stablecoins from 2019, the memecoin economy from
+    2019 (tiny until 2023), the App Store ledger from the day the panel shipped."""
     parts = {}
-    # --- Upbit: 13-week change of the 4-week turnover, scored on its own history
+    hist = {}                                   # row -> {week stamp: score}
+    # --- Upbit: 4-week KRW turnover. Level, not change: the chart must show retail
+    # waves. Delisted coins are missing from old weeks; they were delisted mostly in
+    # 2018–19, outside today's four-year window.
     U = sorted((int(k), v) for k, v in (H.get("upbit") or {}).items())
-    if len(U) >= 80:
-        ut = [t for t, _ in U]
-        uv = [v for _, v in U]
-        s4 = [sum(uv[i - 3:i + 1]) if i >= 3 else None for i in range(len(uv))]
-        chg = [math.log(s4[i] / s4[i - 13]) if (i >= 16 and s4[i] and s4[i - 13]) else None for i in range(len(uv))]
-        sc = expanding_pct(chg, 52)
-        peak_i = max(range(len(s4)), key=lambda i: s4[i] or 0)
-        parts["upbit"] = {"score": _r(sc[-1], 1), "week": ut[-1], "sum4_t_krw": _r(s4[-1] / 1e12, 1),
-                          "peak_t_krw": _r(s4[peak_i] / 1e12, 1), "peak_week": ut[peak_i],
-                          "pct_of_peak": _r(100.0 * s4[-1] / s4[peak_i], 1) if s4[peak_i] else None,
-                          "chg13_pct": _r((math.exp(chg[-1]) - 1) * 100 if chg[-1] is not None else None, 1),
-                          "score_4w": _r(sc[-5] if len(sc) > 5 else None, 1),
-                          "series": [[t, _r(v / 1e12, 2)] for t, v in zip(ut, s4) if v]}
-    # --- memecoin economy: 30-day revenue, scored on its own history (weekly samples)
+    if len(U) >= 60:
+        s4 = [(U[i][0] + WEEK, sum(v for _, v in U[i - 3:i + 1])) for i in range(3, len(U))]
+        hist["upbit"] = _trail_scores(s4)
+        peak = max(s4, key=lambda x: x[1])
+        last = s4[-1]
+        parts["upbit"] = {"score": _r(hist["upbit"].get(last[0]), 1), "week": last[0],
+                          "sum4_t_krw": _r(last[1] / 1e12, 1), "peak_t_krw": _r(peak[1] / 1e12, 1),
+                          "peak_week": peak[0], "pct_of_peak": _r(100.0 * last[1] / peak[1], 1) if peak[1] else None}
+    # --- memecoin economy: 30-day revenue (Launchpad + Telegram Bot + Trading App)
+    # Scored only from the first 30 days above $5M (2023-05, the Telegram bots): before
+    # that the category barely existed, and a percentile of zeros read 50 through 2019–22
+    # while a series growing from nothing read 100 every week after.
     M = sorted((int(k), v) for k, v in (H.get("meme30") or {}).items())
-    if len(M) >= 120:
-        samples = [(t, v) for t, v in M if (t - M[0][0]) % WEEK == 0]
-        if samples[-1][0] != M[-1][0]:
-            samples.append(M[-1])
-        vals = [v for _, v in samples]
-        sc = expanding_pct(vals, 52)
+    m0 = next((t for t, v in M if v >= MEME_START_USD), None)
+    if len(M) >= 120 and m0 is not None:
+        md = dict(M)
+        wk = [(w, md.get(w - DAY)) for w in weeks if w - DAY >= m0 and md.get(w - DAY) is not None]
+        pairs = wk + ([M[-1]] if M[-1][0] > (wk[-1][0] if wk else 0) else [])
+        hist["degen"] = _trail_scores(pairs)
         peak = max(M, key=lambda x: x[1])
         movers = []
         fp = getattr(ctx, "fee_protocols", None) or []
@@ -1179,29 +1219,33 @@ def retail_block(ctx, H, weeks, now_ts, R):
             prev = p.get("total60dto30d") or 0
             movers.append({"name": p.get("displayName") or p.get("name"), "rev30d": p.get("total30d") or 0,
                            "chg_pct": _r(((p.get("total30d") or 0) / prev - 1) * 100, 0) if prev > 0 else None})
-        parts["degen"] = {"score": _r(sc[-1], 1), "day": M[-1][0], "rev30d": M[-1][1], "peak": peak[1],
-                          "peak_day": peak[0], "pct_of_peak": _r(100.0 * M[-1][1] / peak[1], 1) if peak[1] else None,
-                          "score_4w": _r(sc[-5] if len(sc) > 5 else None, 1), "movers": movers,
-                          "series": [[t, _r(v / 1e6, 1)] for t, v in samples]}
-    # --- stablecoins: 90-day growth, scored since 2018
+        parts["degen"] = {"score": _r(hist["degen"].get(pairs[-1][0]), 1), "day": M[-1][0], "rev30d": M[-1][1],
+                          "peak": peak[1], "peak_day": peak[0],
+                          "pct_of_peak": _r(100.0 * M[-1][1] / peak[1], 1) if peak[1] else None, "movers": movers}
+    # --- stablecoins: 90-day growth of USDT + USDC
     S = _daily_series((H.get("daily") or {}).get("st", {}), 0)
     if len(S) > 800:
-        sd = {t: v for t, v in S}
-        wk = [w for w in weeks if w >= 1514764800]
-        g = []
-        for w in wk:
+        sd = dict(S)
+        pairs = []
+        for w in weeks:
             a, b = sd.get(w - DAY), sd.get(w - DAY - 90 * DAY)
-            g.append((a / b - 1) * 100 if (a and b) else None)
-        sc = expanding_pct(g, 104)
+            if a and b:
+                pairs.append((w, (a / b - 1) * 100))
         last_d = S[-1][0]
         a, b = sd.get(last_d), sd.get(last_d - 90 * DAY)
-        parts["stables"] = {"score": _r(sc[-1], 1), "day": last_d, "supply_bn": _r(a / 1e9, 1) if a else None,
-                            "g90": _r((a / b - 1) * 100 if (a and b) else None, 1),
-                            "score_4w": _r(sc[-5] if len(sc) > 5 else None, 1),
-                            "series": [[w, _r(x, 1)] for w, x in zip(wk, g) if x is not None]}
+        if a and b and last_d > pairs[-1][0]:
+            pairs.append((last_d, (a / b - 1) * 100))
+        hist["stables"] = _trail_scores(pairs)
+        parts["stables"] = {"score": _r(hist["stables"].get(pairs[-1][0]), 1), "day": last_d,
+                            "supply_bn": _r(a / 1e9, 1) if a else None,
+                            "g90": _r((a / b - 1) * 100 if (a and b) else None, 1)}
     # --- App Store: the best-ranked crypto app, scored by published anchors
     led = H.get("apps") or []
     if led:
+        hist["apps"] = {}
+        for day, ent in led:
+            sc = max(app_score(*(ent.get(a) or [None, None])[:2]) for a, _, s_ in APPS if s_)
+            hist["apps"][day] = sc
         day, ent = led[-1]
         apps = []
         best = None
@@ -1214,12 +1258,8 @@ def retail_block(ctx, H, weeks, now_ts, R):
                          "ratings_7d": grow, "scored": scored})
             if scored and (best is None or sc > best[0]):
                 best = (sc, label, o, fin)
-        old = next((x for x in reversed(led) if x[0] <= day - 27 * DAY), None)
-        s4 = None
-        if old:
-            s4 = max(app_score(*(old[1].get(a) or [None, None])[:2]) for a, _, sc_ in APPS if sc_)
         parts["apps"] = {"score": _r(best[0], 1), "best": best[1], "best_overall": best[2], "best_finance": best[3],
-                         "day": day, "apps": apps, "score_4w": _r(s4, 1), "ledger_days": len(led)}
+                         "day": day, "apps": apps, "ledger_days": len(led)}
     # --- facts
     T = H.get("tranco") or {}
     if T.get("daily"):
@@ -1228,8 +1268,6 @@ def retail_block(ctx, H, weeks, now_ts, R):
         back = next((T["daily"][k] for k in reversed(dk) if k <= (datetime.date.fromisoformat(dk[-1])
                      - datetime.timedelta(days=28)).isoformat()), None)
         parts["traffic"] = {"score": None, "day": dk[-1], "ranks": cur, "ranks_4w": back,
-                            "monthly": sorted([[ym, r.get("coinbase.com")] for ym, r in (T.get("monthly") or {}).items()
-                                               if r.get("coinbase.com")]),
                             "best": {"coinbase.com": [818, "2021-11"]}}
     yt = H.get("yt") or []
     if yt:
@@ -1244,10 +1282,28 @@ def retail_block(ctx, H, weeks, now_ts, R):
                             "channels": len(ent["v"]), "ledger_days": len(yt)}
     parts["ai"] = {"score": None, "claude": AI_CLAUDE, "cloudflare": H.get("ai"),
                    "needs": None if os.environ.get("CLOUDFLARE_API_TOKEN") else "CLOUDFLARE_API_TOKEN"}
+
+    # --- the weekly history of the index: rows present at each week (a score dated
+    # inside the week before the stamp counts for that stamp), drawn only where at
+    # least two rows exist — before Upbit's first scored week (2018-10) the stablecoin
+    # row alone jumped 20 ↔ 85 with Tether's batch prints
+    series = []
+    for w in weeks:
+        if w < DISPLAY_FROM:
+            continue
+        xs = []
+        for row, h in hist.items():
+            best_t = None
+            for t in h:
+                if w - WEEK < t <= w and (best_t is None or t > best_t):
+                    best_t = t
+            if best_t is not None:
+                xs.append(h[best_t])
+        series.append(_r(mean(xs), 1) if len(xs) >= RETAIL_MIN_ROWS else None)
     scored = [p["score"] for k, p in parts.items() if k in ("upbit", "degen", "apps", "stables") and p.get("score") is not None]
     value = mean(scored)
-    tempo = mean([p["score"] - p["score_4w"] for k, p in parts.items()
-                  if k in ("upbit", "degen", "apps", "stables") and p.get("score") is not None and p.get("score_4w") is not None])
+    back4 = next((x for x in reversed(series[:-4]) if x is not None), None) if len(series) > 4 else None
+    tempo = (value - back4) if (value is not None and back4 is not None) else None
     verdict = None
     if value is not None:
         verdict = "spi" if value < R["retail_lo"] else ("probouzi" if value < R["retail_hi"] else "hrne")
@@ -1256,7 +1312,7 @@ def retail_block(ctx, H, weeks, now_ts, R):
         tword = ("naval" if tempo >= R["retail_rush"] else "postupne" if tempo >= 8
                  else "odliv" if tempo <= -8 else "stoji")
     return {"value": _r(value, 1), "verdict": verdict, "tempo": _r(tempo, 1), "tempo_word": tword,
-            "n_scored": len(scored), "parts": parts}
+            "n_scored": len(scored), "parts": parts, "series": series}
 
 
 def _line_out(L, weeks, vals):
@@ -1352,6 +1408,17 @@ def build_cycle(ctx, prev, now_ts, log=None, data_dir=None, fetch=True):
         i = ev.get(P)
         if i is not None:
             lows[P] = [weeks[i], _r(bd[i], 2)]
+    # the line through BTC.D's two altseason lows, extended to today: how far BTC.D
+    # would have to fall to reach the level the last two altseasons topped at
+    lows_line = None
+    if ev.get("P1") is not None and ev.get("P2") is not None:
+        i1, i2 = ev["P1"], ev["P2"]
+        sl = (bd[i2] - bd[i1]) / (i2 - i1)
+        now_v = bd[i2] + sl * (last - i2)
+        cur = bd_now[1] if bd_now else bd[last]
+        lows_line = {"t0": weeks[i1], "v0": _r(bd[i1], 3), "t1": weeks[i2], "v1": _r(bd[i2], 3),
+                     "slope_week": _r(sl, 5), "line_now": _r(now_v, 2),
+                     "dist_pp": _r(cur - now_v, 2) if cur is not None else None}
 
     # --- OTHERS.D
     od = s["othersd"]
@@ -1443,7 +1510,7 @@ def build_cycle(ctx, prev, now_ts, log=None, data_dir=None, fetch=True):
         "components": {
             "btcd": {"value": _r(bd_now[1], 2) if bd_now else _r(bd[last], 2), "day": bd_now[0] if bd_now else None,
                      "week": _r(bd[last], 2), "chg13_pp": _r(chg13, 2), "dd52": _r(res["dd"][last], 1),
-                     "verdict": bd_verdict, "lows": lows,
+                     "verdict": bd_verdict, "lows": lows, "lows_line": lows_line,
                      "trend": [_line_out(L, weeks, bd) for L in pick_lines(trend_break(bd, "up", R), len(weeks))],
                      "source": "cmc"},
             "othersd": {"value": _r((latest or {}).get("od") or od[last], 3), "day": (latest or {}).get("day"),
@@ -1463,7 +1530,7 @@ def build_cycle(ctx, prev, now_ts, log=None, data_dir=None, fetch=True):
         "hint": hint,
         "backtest": {k: (summ or {}).get(k) for k in ("verdict", "chosen", "index_at", "eval_start", "generated_utc")}
         if summ else None,
-        "anomalies": anomalies,
+        "anomalies": anomalies + s.get("anomalies", []),
     }
     json.dumps(block, allow_nan=False)        # one NaN would kill JSON.parse on the page
     return block
