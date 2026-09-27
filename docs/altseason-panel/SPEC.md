@@ -4,10 +4,10 @@
 **From:** Adam (product owner, Gem Screener)
 **Scope:** rebuild ONE component, the Altseason panel with all its subsections, on Cymetica's infrastructure at https://cymetica.com/gem-screener.
 
-The look is defined by the reference code (`template.html`) and this spec; running it is optional, if you want to see the charts live (§0). Two screenshots sit next to this file (`tiles-collapsed.webp`, `cycle-breakdown.webp`; Czech version of the reference — English copy is in §7). **The result must look and behave like the reference.** There are two deliberate differences:
+The look is defined by the reference code (`template.html`) and this spec; running it is optional, if you want to see the charts live (§0). **The result must look and behave like the reference.** There are two deliberate differences:
 
 1. **Language:** all texts in English. Exact copy is in §7.
-2. **Colours and fonts:** use your platform's existing design system. The screenshots show layout, hierarchy and chart style, not a palette to copy.
+2. **Colours and fonts:** use your platform's existing design system. The reference shows layout, hierarchy and chart style, not a palette to copy.
 
 Everything else (layout, tiles, the slider, chart style) should match; the logic behind the numbers is our reference method, which you may improve (see §0). The owner is very satisfied with this version, so treat it as the target, not a draft.
 
@@ -17,7 +17,7 @@ Everything else (layout, tiles, the slider, chart style) should match; the logic
 >
 > **The repository is a REFERENCE, not code to copy.** Use it mainly for the intended look, then for how we compute everything; you may run it to compare. Then build the panel natively in your own stack, with your own data pipeline, components and design system. Do not copy the repository, its files or its single-file HTML template into your product.
 >
-> **English only — ignore all Czech.** The reference is Czech-first: Czech UI text, Czech data keys (`zima`, `prehrate`, `pruraz`, `spi`…), Czech comments, commit messages and log lines, and screenshots in Czech. None of it goes into your build. Every user-visible string is English (§7 has the copy); name your own keys and code in English too (the Czech keys map to the English labels in §5.4, §7.1).
+> **English only — ignore all Czech.** The reference is Czech-first: Czech UI text, Czech data keys (`zima`, `prehrate`, `pruraz`, `spi`…), Czech comments, commit messages and log lines. None of it goes into your build. Every user-visible string is English (§7 has the copy); name your own keys and code in English too (the Czech keys map to the English labels in §5.4, §7.1).
 >
 > **Data sources are your choice.** Pull the data from wherever you judge best — your existing feeds, paid APIs, your own indexers. The sources the reference uses (free CMC web API, Coin Metrics community, Upbit, Coinbase candles, DeFiLlama, Apple RSS) are only examples of what works; §4 lists what the data must satisfy, not where it must come from.
 >
@@ -42,7 +42,7 @@ Everything else (layout, tiles, the slider, chart style) should match; the logic
   **To see the reference UI running** (the look to match), from the repo root on that branch: `pip install -r requirements.txt`, `python tools/cycle_seed.py` (one-time history build, ~40 min, resumable), `python collector.py` (3–6 min), then `python app.py` and open the Start tab (switch to EN top-right, expand the panel, click each tile). `python build_viewer.py --lang en --view start` writes a static `gem_screener.html` instead.
   Where this document and the code disagree, **this document states intent and the code states exact arithmetic.** Ask if they conflict.
 - **You own engineering choices:** stack, data vendors (paid APIs are welcome), storage, scheduling and caching. §4 says what the data must satisfy, not where it must come from.
-- **You have a free hand to review, change and improve anything** — method, data, architecture, robustness, UI details. The one thing to keep: the panel should look like the screenshots (in your colours, in English) and mean the same to a user. Recommendation, not a rule: if you change the index or phase rules, write the new rules down before computing them on history and compare against §9, so the result is not tuned to the two known altseasons.
+- **You have a free hand to review, change and improve anything** — method, data, architecture, robustness, UI details. The one thing to keep: the panel should look like the reference (in your colours, in English) and mean the same to a user. Recommendation, not a rule: if you change the index or phase rules, write the new rules down before computing them on history and compare against §9, so the result is not tuned to the two known altseasons.
 - Known weak spots worth your attention are listed in §10.
 
 ---
@@ -59,7 +59,7 @@ A user must understand the panel **at a glance**. It is aimed at crypto traders 
 
 ---
 
-## 2. Layout (see screenshots)
+## 2. Layout (see the reference)
 
 A card containing, top to bottom:
 
@@ -394,6 +394,6 @@ If your data vendor differs, small deviations are expected. Explain any deviatio
 
 ## 11. Deliverables
 
-1. The panel live at cymetica.com/gem-screener, in English, in your design system, matching the screenshots.
+1. The panel live at cymetica.com/gem-screener, in English, in your design system, matching the reference.
 2. The backend job with durable history, freshness, anomalies and the forward ledger.
 3. A short review note: what you changed or improved and why, which data vendors you chose, and the acceptance results from §9.
