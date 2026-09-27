@@ -4,7 +4,7 @@
 **From:** Adam (product owner, Gem Screener)
 **Scope:** rebuild ONE component, the Altseason panel with all its subsections, on Cymetica's infrastructure at https://cymetica.com/gem-screener.
 
-Screenshots of the working reference are attached (two also sit next to this file: `tiles-collapsed.webp`, `cycle-breakdown.webp`; they show the Czech version of the reference — English copy is in §7). **The result must look and behave like the screenshots.** There are two deliberate differences:
+The look is defined by the reference code; run it to see every chart (§0). Two screenshots sit next to this file (`tiles-collapsed.webp`, `cycle-breakdown.webp`; Czech version of the reference — English copy is in §7). **The result must look and behave like the screenshots.** There are two deliberate differences:
 
 1. **Language:** all texts in English. Exact copy is in §7.
 2. **Colours and fonts:** use your platform's existing design system. The screenshots show layout, hierarchy and chart style, not a palette to copy.
