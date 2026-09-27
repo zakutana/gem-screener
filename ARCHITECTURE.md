@@ -838,8 +838,10 @@ altseason, so a 3–12 % BTC.D dip scored 60–70 and v1 read 64 in 2024-03 and
   Facts beside it, never scored: new stablecoin dollars (USDT + USDC, 13-week
   change), Coinbase web traffic (Tranco), AI questions (Anthropic Economic Index;
   Cloudflare Radar with a token).
-- **BTC.D altseason-lows line** (`lows_line`): the straight line through BTC.D at P1
-  (32,8 %) and P2 (40,1 %), extended to today — where the last two altseasons topped.
+- **BTC.D lows line** (`lows_line`, green): from the 2018 altseason low (P1,
+  32,8 %) through the 2022 bear-market low (37,9 %), extended to today — the
+  rising floor under BTC.D (Adam, 2026-09-27: it used to run through the May 2021
+  low, 40,1 %, and sat too high). Display only.
 - **Spike cleaner** (`clean_spikes`): a week more than 25 % off two neighbours that
   agree within 10 % is a bad snapshot (2020-11-30: OTHERS.D 5,95 % between 10,75 and
   10,83); that week's OTHERS.D, OTHERS $ and breadth and the breadth 13 weeks later
@@ -892,7 +894,7 @@ breakout events), `retail_raw` (the weekly samples `coinbase`, `upbit`, `degen`,
 
 `components`:
 - `btcd`: `value` (newest day), `day`, `week`, `chg13_pp`, `dd52`, `verdict`
-  (the 13-week word: `klesa` / `roste` / `bokem`), `lows` (`P1`, `P2`),
+  (the 13-week word: `klesa` / `roste` / `bokem`), `lows` (`P1`, `L2022`),
   `lows_line` (`t0`, `v0`, `t1`, `v1`, `slope_week`, `line_now`, `dist_pp`),
   `line` (support, below), `source`.
 - `othersd`: `value`, `day`, `week`, `verdict` (= its `line` status, the newest
@@ -1181,7 +1183,13 @@ The page reads `DATA = JSON.parse(#snapshot-data)`; there is no `DATA` global.
   hosts sit in the DOM); trend lines 2 px from their anchor into an empty future
   margin (~8 %), clipped to the plot; the newest value as a tag on the right edge
   (inside the plot, left of the price axis); a log right axis; a crosshair tooltip.
-  The cycle chart adds the dashed T line and the P0/P1/P2 values; on a phone only
+  The cycle chart adds the dashed T line and the P0/P1/P2 values, and below it a
+  three-row breakdown (rotation ⅔ with its BTC.D drawdown, OTHERS.D score and
+  breadth; euphoria ⅓ = retail and BTC heat; the index and the "Blíží se konec"
+  rule) in this week's numbers. The retail chart draws only OTHERS in $ beside the
+  index; both 0–100 axes leave headroom above 100 (`top`), so a saturated row does
+  not look cut off. The volume chart labels 2019–20 as exchanges inflating their
+  volume (wash trading). On a phone only
   the labels that carry the story stay. A v1 block (served from memory by `app.py`)
   still draws: every renderer falls back.
 - Sektory: `renderAltStrip` (altseason index), `renderThemeScatter` (x = beta

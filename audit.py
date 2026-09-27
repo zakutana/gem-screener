@@ -1928,12 +1928,15 @@ else:
         want = "slaby" if r_ < A["vol_lo"] else "normalni" if r_ < A["vol_mid"] else "zvyseny" if r_ < A["vol_hi"] else "extremni"
         if want != vo.get("verdict"):
             fail("cycle", "volume verdict %s, expected %s" % (vo.get("verdict"), want))
-    # the BTC.D line through the altseason lows, recomputed
+    # the BTC.D line from the 2018 altseason low through the 2022 low, recomputed
     ll = C["btcd"].get("lows_line")
     ev = CY.get("events") or {}
-    if ll and ev.get("P1") and ev.get("P2"):
-        i1, i2 = WK.index(ev["P1"]), WK.index(ev["P2"])
-        bd_ = S["btcd"]
+    bd_ = S["btcd"]
+    y22 = sorted((bd_[i], i) for i, w in enumerate(WK) if 1640995200 <= w <= 1672444800 and bd_[i] is not None)
+    if ll and ev.get("P1") and y22:
+        i1, i2 = WK.index(ev["P1"]), y22[0][1]
+        if (ll.get("t0"), ll.get("t1")) != (WK[i1], WK[i2]):
+            fail("cycle", "BTC.D lows line points %s/%s, expected P1 and the 2022 low" % (ll.get("t0"), ll.get("t1")))
         want = bd_[i2] + (bd_[i2] - bd_[i1]) / (i2 - i1) * (n - 1 - i2)
         if abs(want - ll["line_now"]) > 0.011:
             fail("cycle", "BTC.D lows line %s, recomputed %.2f" % (ll["line_now"], want))

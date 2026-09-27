@@ -500,6 +500,7 @@ tbody tr:hover .msparkline .mb.partial{opacity:.45}
   letter-spacing:.08em; text-transform:uppercase; color:var(--muted)}
 .rt-row:not(.rt-hdr):hover{background:var(--surface-2)}
 .rt-s{text-align:right}
+.rt-p.cy-how{grid-column:2 / 4; white-space:normal; color:var(--ink-2); font-size:13px}
 .rt-n{font-weight:600; color:var(--ink); white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
 .rt-v{font-family:"IBM Plex Mono",monospace; color:var(--ink); white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
 .rt-p{display:flex; align-items:center; gap:8px; min-width:0; white-space:nowrap; overflow:hidden}
@@ -553,6 +554,7 @@ tbody tr:hover .msparkline .mb.partial{opacity:.45}
   .rt-row.rt-hdr{display:none}
   .rt-n{grid-area:n} .rt-s{grid-area:s} .rt-v{grid-area:v; font-size:12px} .rt-p{grid-area:p; justify-content:flex-end}
   .rt-p{gap:6px} .rt-bar{flex-basis:34px}
+  .rt-p.cy-how{grid-area:auto; grid-column:1 / -1; grid-row:2; justify-content:flex-start}
 }
 
 .scatter .pt, .scatter .plabel{cursor:pointer}
@@ -2562,8 +2564,24 @@ function detailCycle(el){
     if (i >= 0 && S.index && S.index[i] !== null && S.index[i] !== undefined)
       marks.push({t: ev[k], v: S.index[i], cls: 'mk-warn', side: p[1], label: yearOf(ev[k]) + ': ' + num0(ia[k])});
   });
-  el.innerHTML = '<div class="ap-chart"></div>';
-  cycleChart(el.querySelector('.ap-chart'), {weeks: ws, from: dsp(), y: {min: 0, max: 100, fmt: num0},
+  // how the number is made, with this week's own numbers (Adam: "stručně jako u retailu")
+  var comp = c.components || {}, bdc = comp.btcd || {}, odc = comp.othersd || {}, brc = comp.breadth || {};
+  var rtv = (comp.retail || {}).value, eu = c.euphoria, E = (c.rules || {}).prehrate_euphoria || 70;
+  var crow = function(name, how, score){
+    return '<div class="rt-row"><span class="rt-n">' + name + '</span><span class="rt-p cy-how">' + how + '</span>' +
+      '<span class="rt-s">' + scoreChip(score) + '</span></div>';
+  };
+  el.innerHTML = '<div class="ap-chart"></div>' +
+    '<div class="rt-list">' +
+    crow(L('Rotace do altů · ⅔', 'Rotation into alts · ⅔'),
+      L('BTC.D ', 'BTC.D ') + '−' + lvl(bdc.dd52, 0) + L(' od ročního maxima · OTHERS.D ', ' from its 1-year high · OTHERS.D ') +
+      L('skóre ', 'score ') + num0(odc.rise_score) + L(' · altů poráží BTC ', ' · alts beating BTC ') + lvl(brc.mean4, 0), c.rotation) +
+    (eu !== undefined ? crow(L('Euforie · ⅓', 'Euphoria · ⅓'),
+      L('retail ', 'retail ') + num0(rtv) + L(' a přehřátí BTC ', ' and BTC overheating ') + num0(c.heat) + L(', průměr', ', averaged'), eu) : '') +
+    crow('<b>' + L('Index', 'Index') + '</b>', L('⅔ rotace + ⅓ euforie. „Blíží se konec“ = index ≥ ', '⅔ rotation + ⅓ euphoria. “End is near” = index ≥ ') +
+      num0(T) + L(' a euforie ≥ ', ' and euphoria ≥ ') + num0(E), c.index) +
+    '</div>';
+  cycleChart(el.querySelector('.ap-chart'), {weeks: ws, from: dsp(), y: {min: 0, max: 100, top: 108, fmt: num0},
     series: [{v: S.index, cls: 'c-acc', area: true}], y2: [{v: S.others_usd, cls: 'c-coral', fmt: usdBn}],
     hlines: [{v: T, cls: 'c-coral', label: L('konec altseasonu', 'altseason end') + ' · ' + num0(T)}],
     marks: marks, pill: {fmt: num0},
@@ -2607,20 +2625,23 @@ function detailBtcd(el){
   var marks = [], lines = [], legend = [['BTC.D', 'c-acc']];
   if (Ln && Ln.anchor) {
     lines.push(lineOf(Ln, 'c-coral'));
-    marks.push({t: Ln.anchor, v: Ln.anchor_v, cls: 'mk-hollow', side: 'r', minor: true, label: L('dno ', 'low ') + yearOf(Ln.anchor)});
+    marks.push({t: Ln.anchor, v: Ln.anchor_v, cls: 'mk-hollow', side: 'r', minor: true,
+      label: L('dno ', 'low ') + yearOf(Ln.anchor) + ' · ' + lvl(Ln.anchor_v, 1)});
     marks.push({t: Ln.touch, v: Ln.touch_v, cls: 'mk-hollow'});
     if (Ln.since && (Ln.status === 'pruraz' || Ln.status === 'zpet_pod'))
       marks.push({t: Ln.since, v: Ln.since_v, cls: 'mk-gem', side: 'l', below: true, label: L('průlom ', 'break ') + monthOf(Ln.since)});
     legend.push([L('linie ode dna ', 'line from the low of ') + yearOf(Ln.anchor), 'c-coral']);
   }
-  ['P1', 'P2'].forEach(function(k){
+  ['P1', 'L2022', 'P2'].forEach(function(k){
     var lo = (b.lows || {})[k];
-    if (lo) marks.push({t: lo[0], v: lo[1], cls: 'mk-gem', minor: true, label: lvl(lo[1], 1)});
+    // the 2022 low is usually the red line's anchor, which already carries its value
+    if (lo) marks.push({t: lo[0], v: lo[1], cls: 'mk-gem', minor: true,
+      label: Ln && Ln.anchor === lo[0] ? '' : lvl(lo[1], 1)});
   });
   if (ll) {
     lines.push({t0: ll.t0, v0: ll.v0, slope: ll.slope_week, cls: 'c-gem'});
     marks.push({t: ws[ws.length - 1], v: ll.line_now, cls: 'mk-hollow-gem', side: 'l', below: true, label: lvl(ll.line_now, 1)});
-    legend.push([L('konce altseasonů 2018 a 2021', 'altseason ends 2018 and 2021'), 'c-gem']);
+    legend.push([L('minima 2018 a 2022', 'the 2018 and 2022 lows'), 'c-gem']);
   }
   el.innerHTML = '<div class="ap-chart"></div>';
   cycleChart(el.querySelector('.ap-chart'), {weeks: ws, from: dsp(), y: {fit: true, fmt: PCT_AXIS},
@@ -2695,15 +2716,14 @@ function detailRetail(el){
     rs = rs.concat(r.series || []);
   }
   var r0 = rs.findIndex(function(x){ return x !== null && x !== undefined; });
-  cycleChart(el.querySelector('.ap-chart'), {weeks: ws, from: f0, y: {min: 0, max: 100, fmt: num0},
+  cycleChart(el.querySelector('.ap-chart'), {weeks: ws, from: f0, y: {min: 0, max: 100, top: 108, fmt: num0},
     series: [{v: rs, cls: 'c-acc', area: true}],
     // shaded only when a year or more is missing (v2 starts 2016-08, v1 started 2018-10)
     shade: r0 - f0 >= 52 ? [{t0: ws[f0], t1: ws[r0], cls: 'sh-muted', label: L('retail data od ', 'retail data from ') + yearOf(ws[r0])}] : [],
-    y2: [{v: S.btc, cls: 'c-gold', fmt: BTC_FMT}, {v: S.others_usd, cls: 'c-coral'}], pill: {fmt: num0},
+    y2: [{v: S.others_usd, cls: 'c-coral', fmt: usdBn}], pill: {fmt: num0},
     tip: function(i){
-      return '<b>' + fmtDate(ws[i]) + '</b><br>Retail ' + num0(rs[i]) + '<br><span class="t2">BTC $' + grp(Math.round((S.btc || [])[i] || 0), ' ') +
-        ' · OTHERS ' + usdBn((S.others_usd || [])[i]) + '</span>'; },
-    legend: [['Retail', 'c-acc'], ['BTC', 'c-gold'], ['OTHERS', 'c-coral']]});
+      return '<b>' + fmtDate(ws[i]) + '</b><br>Retail ' + num0(rs[i]) + '<br><span class="t2">OTHERS ' + usdBn((S.others_usd || [])[i]) + '</span>'; },
+    legend: [['Retail', 'c-acc'], [L('OTHERS v $ (log)', 'OTHERS in $ (log)'), 'c-coral']]});
 }
 
 function detailVolume(el){
@@ -2714,7 +2734,7 @@ function detailVolume(el){
   cycleChart(el.querySelector('.ap-chart'), {weeks: ch.weeks, y: {fit: true, floor: 0, fmt: function(x){ return '$' + num0(x); }},
     series: [{v: ch.avg7_bn, cls: 'c-acc', area: true}],
     y2: [{v: ch.btc, cls: 'c-gold', fmt: BTC_FMT}],
-    shade: [{t0: v.fake_volume_span[0], t1: v.fake_volume_span[1], cls: 'sh-muted', label: L('falešný objem burz', 'fake exchange volume')}],
+    shade: [{t0: v.fake_volume_span[0], t1: v.fake_volume_span[1], cls: 'sh-muted', label: L('burzy tehdy nafukovaly objem (wash trading)', 'exchanges inflated volume then (wash trading)')}],
     pill: {fmt: function(x){ return '$' + num0(x) + L(' mld', 'bn'); }},
     tip: function(i){ return '<b>' + fmtDate(ch.weeks[i]) + '</b><br>' + L('objem $', 'volume $') + num0(ch.avg7_bn[i]) + L(' mld/den', 'bn/day') +
       '<br><span class="t2">BTC $' + grp(ch.btc[i] || 0, ' ') + '</span>'; },
@@ -2788,6 +2808,8 @@ function cycleChart(host, spec){
   } else {
     lo = y.min; hi = y.max;
   }
+  var tickHi = hi;
+  if (y.top !== undefined) hi = y.top;
   var Y = function(v){ return pT + (1 - (v - lo) / ((hi - lo) || 1)) * (Hd - pT - pB); };
   var svg = svgEl('svg', {width: Wd, height: Hd, viewBox: '0 0 ' + Wd + ' ' + Hd, 'class': 'cyc-svg'});
   var gid = (((host.closest && host.closest('[id]')) || {}).id || 'cyc') + '-grad';
@@ -2809,7 +2831,7 @@ function cycleChart(host, spec){
     svg.appendChild(svgEl('rect', {x: x0, y: pT, width: Math.max(2, x1 - x0), height: Hd - pT - pB, 'class': s.cls}));
     if (s.label) { var tl = svgEl('text', {x: x0 + 3, y: pT + 11, 'class': 'cyc-lbl'}); tl.textContent = s.label; svg.appendChild(tl); }
   });
-  var nt = niceTicks(lo, hi);
+  var nt = niceTicks(lo, tickHi);
   nt.ticks.forEach(function(v){
     svg.appendChild(svgEl('line', {x1: pL, x2: Wd - pR, y1: Y(v), y2: Y(v), 'class': 'cyc-grid'}));
     var t = svgEl('text', {x: pL - 6, y: Y(v) + 3, 'text-anchor': 'end', 'class': 'cyc-ax'});
@@ -3967,12 +3989,12 @@ var INFO_TEXT = {
   cycBtcd: function(){
     return L('<b>BTC dominance</b> — podíl Bitcoinu na trhu. Když klesá, peníze tečou do altů.' +
       '<span class="pk"><b>Jak se to počítá:</b> červená linie vede ode dna 2022 pod vyššími minimy (jako na TradingView), ' +
-      'průlom = dvě týdenní uzávěrky víc než 3 % pod ní. Zelená linie vede přes minima na koncích altseasonů 2018 a 2021 ' +
-      'až do dneška: tam se minulé altseasony zastavily.</span>',
+      'průlom = dvě týdenní uzávěrky víc než 3 % pod ní. Zelená linie vede z minima altseasonu 2018 přes dno 2022 ' +
+      'až do dneška: rostoucí podlaha BTC dominance.</span>',
       '<b>BTC dominance</b> — Bitcoin’s share of the market. When it falls, money flows into alts.' +
       '<span class="pk"><b>How it is calculated:</b> the red line runs from the 2022 low under the higher lows (as on TradingView); ' +
-      'a break = two weekly closes more than 3% below it. The green line runs through the lows at the ends of the 2018 and ' +
-      '2021 altseasons to today: that is where past altseasons stopped.</span>');
+      'a break = two weekly closes more than 3% below it. The green line runs from the 2018 altseason low through the 2022 ' +
+      'low to today: BTC dominance\u2019s rising floor.</span>');
   },
   cycRetail: function(){
     return L('<b>Retail</b> — kolik lidé opravdu obchodují, proti vlastnímu maximu za 4 roky. Vysoko = vrchol bývá blízko.' +

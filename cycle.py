@@ -1696,16 +1696,19 @@ def build_cycle(ctx, prev, now_ts, log=None, data_dir=None, fetch=True):
     chg13 = (bd4[last] - bd4[last - 13]) if (bd4[last] is not None and last >= 13 and bd4[last - 13] is not None) else None
     bd_verdict = None if chg13 is None else ("klesa" if chg13 <= -R["btcd_move_pp"]
                                              else "roste" if chg13 >= R["btcd_move_pp"] else "bokem")
+    # the green line (Adam, 2026-09-27): from the 2018 altseason low (P1, 32,8 %)
+    # through the 2022 bear-market low (37,9 %) — the rising floor under BTC.D —
+    # extended to today. It used to run through the May 2021 low (40,1 %) and sat
+    # too high. Display only: nothing in the index reads it.
+    y22 = [i for i, w in enumerate(weeks) if 1640995200 <= w <= 1672444800 and bd[i] is not None]
+    i22 = min(y22, key=lambda i: bd[i]) if y22 else None
     lows = {}
-    for P in ("P1", "P2"):
-        i = ev.get(P)
+    for P, i in (("P1", ev.get("P1")), ("L2022", i22)):
         if i is not None:
             lows[P] = [weeks[i], _r(bd[i], 2)]
-    # the line through BTC.D's two altseason lows, extended to today: how far BTC.D
-    # would have to fall to reach the level the last two altseasons topped at
     lows_line = None
-    if ev.get("P1") is not None and ev.get("P2") is not None:
-        i1, i2 = ev["P1"], ev["P2"]
+    if ev.get("P1") is not None and i22 is not None:
+        i1, i2 = ev["P1"], i22
         sl = (bd[i2] - bd[i1]) / (i2 - i1)
         now_v = bd[i2] + sl * (last - i2)
         cur = bd_now[1] if bd_now else bd[last]
