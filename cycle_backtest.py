@@ -740,6 +740,12 @@ def main():
     if not H:
         print("cycle_history.json chybí — nejdřív python tools/cycle_seed.py")
         return 2
+    # v2's retail starts with Coinbase (2015-07): without it the evaluation would begin
+    # at Upbit's first scored week (2018-10), after P0 and P1, and v2 would fail on a gap
+    first_cb = min((int(k) for k in ((H.get("cbx") or {}).get("BTC-USD") or {})), default=None)
+    if first_cb is None or first_cb > cycle.COINBASE_PAIRS[0][1] + 30 * cycle.DAY:
+        print("historie nemá denní data Coinbase od 2015-07 — nejdřív python tools/cycle_seed.py coinbase")
+        return 2
     import time
     now = int(time.time())
     weeks = cycle.week_axis(now)
