@@ -5,9 +5,11 @@ Build cycle_history.json once — the long history the Altseason panel needs.
 
 ~630 weekly CMC listings (paced, ~25 min), CMC daily global data, Coin Metrics
 BTC and stablecoins, DeFiLlama's per-protocol fee breakdown (one 23 MB call),
-Upbit weekly candles for every KRW market (~300-900 calls), Tranco monthly lists
-since 2019-03. Resumable: raw listings are cached in cycle_cache/listings/ and the
-history is saved after every step, so a rerun only fetches what is missing.
+Upbit weekly candles for every KRW market (~300-900 calls), Coinbase Exchange
+daily candles of BTC-USD and ETH-USD (~28 calls, under a minute), Tranco monthly
+lists since 2019-03. Resumable: raw listings are cached in cycle_cache/listings/
+and the history is saved after every step, so a rerun only fetches what is
+missing. One step alone: python tools/cycle_seed.py coinbase
 A collector Refresh never does this; it only adds the missing tail.
 """
 import datetime
@@ -32,7 +34,7 @@ def main():
     loaded = len(H["weeks"])
     cache = os.path.join(data_dir, "cycle_cache", "listings")
     os.makedirs(cache, exist_ok=True)
-    steps = sys.argv[1:] or ["global", "cm", "meme", "tranco", "upbit", "listings"]
+    steps = sys.argv[1:] or ["global", "cm", "meme", "tranco", "upbit", "coinbase", "listings"]
 
     def save():
         cycle.save_history(data_dir, H, loaded)
@@ -62,6 +64,9 @@ def main():
         save()
     if "upbit" in steps:
         cycle.update_upbit(ctx, H, now, ctx.log, full=True)
+        save()
+    if "coinbase" in steps:
+        cycle.update_coinbase(ctx, H, now, ctx.log, full=True)
         save()
     if "rebuild" in steps:
         cycle.rebuild_from_cache(H, cache, ctx.log)

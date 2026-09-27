@@ -56,6 +56,13 @@ RETAIL_MIN_ROWS = 2                # the retail history is drawn where at least 
 
 CMC = "https://api.coinmarketcap.com/data-api/v3"
 CM = "https://community-api.coinmetrics.io/v4/timeseries/asset-metrics"
+# Coinbase Exchange public candles: keyless, newest first, at most 300 per call
+# (a wider range is an HTTP 400), `end` inclusive, 10 requests/s
+COINBASE = "https://api.exchange.coinbase.com/products/%s/candles?granularity=86400&start=%s&end=%s"
+COINBASE_PAIRS = (("BTC-USD", 1437350400), ("ETH-USD", 1463529600))   # first days: 2015-07-20, 2016-05-18
+COINBASE_PAGE = 300
+COINBASE_PACE = 0.15
+COINBASE_TAIL_DAYS = 30            # re-fetched every run: the newest candles get revised
 LISTING_LIMIT = 500                # deep enough that a top-50 coin 13 weeks later still has its old price
 CMC_PACE = 1.6                     # CMC's web API throttles after ~10 fast calls
 MAX_NEW_LISTINGS = 12              # per collector run; the long history is the seed's job
@@ -217,7 +224,7 @@ def history_path(data_dir):
 def empty_history():
     return {"v": HISTORY_VERSION, "weeks": {}, "prices": {}, "daily": {}, "upbit": {}, "upbit_markets": [],
             "meme": {}, "tranco": {"monthly": {}, "daily": {}}, "apps": [], "yt": [], "ai": None, "cbbi": None,
-            "latest": None}
+            "cbx": {}, "latest": None}
 
 
 def load_history(data_dir, log=None):
@@ -840,6 +847,52 @@ def update_meme(ctx, H, now_ts, log, breakdown=None):
     return len(m)
 
 
+def _iso_z(ts):
+    return datetime.datetime.fromtimestamp(ts, datetime.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")
+
+
+def update_coinbase(ctx, H, now_ts, log, full=False):
+    """US retail: Coinbase Exchange daily USD turnover of BTC-USD and ETH-USD,
+    stored per pair as {day: base volume x close} under `cbx`.
+
+    CI restores cycle_history.json from its cache and seeds only when the file is
+    missing, so an old history without `cbx` must backfill itself here: a pair whose
+    stored days do not reach back to its first day is paged backwards from yesterday
+    to that day (~14 calls a pair); otherwise only the tail is re-fetched. Today's
+    partial candle is dropped. An empty page (a gap in Coinbase's data) is not the
+    end; a failed call is — what is stored stays (stale beats empty)."""
+    C = H.setdefault("cbx", {})
+    last = day0(now_ts) - DAY
+    got = 0
+    for pair, first in COINBASE_PAIRS:
+        P = C.setdefault(pair, {})
+        have = sorted(int(k) for k in P)
+        if full or not have or have[0] > first + 30 * DAY:
+            start = first
+        else:
+            start = max(first, min(have[-1], last) - COINBASE_TAIL_DAYS * DAY)
+        t1 = last
+        while t1 >= start:
+            t0 = max(start, t1 - (COINBASE_PAGE - 1) * DAY)
+            d = ctx.get(COINBASE % (pair, _iso_z(t0), _iso_z(t1)), timeout=30, warn=False, quiet_status=())
+            time.sleep(COINBASE_PACE)
+            if not isinstance(d, list):
+                ctx.warn("Coinbase %s: svíčky %s–%s nedostupné, zůstávají uložená data" % (pair, iso(t0), iso(t1)))
+                break
+            for c in d:
+                try:
+                    t, close, vol = int(c[0]), float(c[4]), float(c[5])
+                except (TypeError, ValueError, IndexError):
+                    continue
+                if t0 <= t <= last and t % DAY == 0 and close > 0 and vol >= 0:
+                    P[_dkey(t)] = round(vol * close)
+                    got += 1
+            t1 = t0 - DAY
+    log("cycle: Coinbase %d svíček, %s" % (got, ", ".join("%s %d dní" % (p, len(C.get(p) or {}))
+                                                       for p, _ in COINBASE_PAIRS)))
+    return got
+
+
 def upbit_weeks(ctx, market, since, count=200):
     """Weekly KRW turnover of one market back to `since`: {monday: krw}."""
     out = {}
@@ -1375,6 +1428,7 @@ def build_cycle(ctx, prev, now_ts, log=None, data_dir=None, fetch=True):
                  ("Coin Metrics", lambda: update_coinmetrics(ctx, H, now_ts, log)),
                  ("memecoinová ekonomika", lambda: update_meme(ctx, H, now_ts, log)),
                  ("Upbit", lambda: update_upbit(ctx, H, now_ts, log)),
+                 ("Coinbase", lambda: update_coinbase(ctx, H, now_ts, log)),
                  ("App Store", lambda: update_apps(ctx, H, now_ts, log)),
                  ("YouTube", lambda: update_youtube(ctx, H, now_ts, log)),
                  ("Tranco", lambda: update_tranco(ctx, H, now_ts, log)),
