@@ -13,11 +13,11 @@ Everything else (layout, tiles, the slider, chart style and the logic behind eve
 
 > **SCOPE — READ FIRST.** Build or replace **only the Altseason panel** (the card with the five tiles *Altseason cycle · OTHERS · BTC.D · Retail · Volume*, its slider, its detail charts and info popovers). **Do not change anything else** on cymetica.com/gem-screener — no other sections, tables, tabs, filters, navigation or styles. The reference repository contains the whole Gem Screener; everything outside the files and sections named in §0 (the apps/chains screener, themes, sectors, degen view, backtest.py, liquidity, unlocks, etc.) is **out of scope — ignore it.**
 >
-> **The repository is a REFERENCE, not code to copy.** Read it to understand the method, the exact arithmetic and the intended look, and run it to compare. Then build the panel natively in your own stack, with your own data pipeline, components and design system. Do not copy the repository, its files or its single-file HTML template into your product.
+> **The repository is a REFERENCE, not code to copy.** Use it mainly for the intended look, then for how we compute everything; run it to compare. Then build the panel natively in your own stack, with your own data pipeline, components and design system. Do not copy the repository, its files or its single-file HTML template into your product.
 >
 > **Data sources are your choice.** Pull the data from wherever you judge best — your existing feeds, paid APIs, your own indexers. The sources the reference uses (free CMC web API, Coin Metrics community, Upbit, Coinbase candles, DeFiLlama, Apple RSS) are only examples of what works; §4 lists what the data must satisfy, not where it must come from.
 >
-> **Architecture: translate, do not replicate.** The reference is a *local desktop app*: a Python script (`collector.py`) fetches everything and writes one `snapshot.json`, which is embedded into a single static HTML file; `app.py` serves it on localhost (or as a Windows exe), and CI publishes the static page. There is no real server, database or API. On your client–server platform, map it like this:
+> **Architecture is your choice.** The reference is a *local desktop app*: a Python script (`collector.py`) fetches everything and writes one `snapshot.json`, which is embedded into a single static HTML file; `app.py` serves it on localhost (or as a Windows exe), and CI publishes the static page. There is no real server, database or API. You will change it on your side as you see fit; one natural client–server mapping, only as a suggestion:
 > - **Backend worker (scheduled, e.g. every 6 h):** fetch, validate, compute the whole `cycle` result (§5) and append the weekly ledger. All computation happens here, never in the browser and never per request.
 > - **Storage:** the long weekly/daily history, the latest computed result, the forward ledger and per-source freshness — in your database or object store, durable (not an ephemeral cache).
 > - **API:** one read endpoint returning the latest computed result (the JSON contract of §8), cacheable; optionally a history endpoint.
@@ -38,9 +38,7 @@ Everything else (layout, tiles, the slider, chart style and the logic behind eve
   **To see the reference UI running** (the look to match), from the repo root on that branch: `pip install -r requirements.txt`, `python tools/cycle_seed.py` (one-time history build, ~40 min, resumable), `python collector.py` (3–6 min), then `python app.py` and open the Start tab (switch to EN top-right, expand the panel, click each tile). `python build_viewer.py --lang en --view start` writes a static `gem_screener.html` instead.
   Where this document and the code disagree, **this document states intent and the code states exact arithmetic.** Ask if they conflict.
 - **You own engineering choices:** stack, data vendors (paid APIs are welcome), storage, scheduling and caching. §4 says what the data must satisfy, not where it must come from.
-- **You are invited to review and improve.** Do a full independent review (method, data, UI, robustness) and fix what you find. Constraints:
-  - the visible result and its meaning stay as specified;
-  - any change to the index or phase rules must be written down before you compute it on history, and then pass the acceptance checks in §9. Do not tune thresholds until the backtest looks good.
+- **You have a free hand to review, change and improve anything** — method, data, architecture, robustness, UI details. The one thing to keep: the panel should look like the screenshots (in your colours, in English) and mean the same to a user. Recommendation, not a rule: if you change the index or phase rules, write the new rules down before computing them on history and compare against §9, so the result is not tuned to the two known altseasons.
 - Known weak spots worth your attention are listed in §10.
 
 ---
