@@ -9,7 +9,7 @@ Screenshots of the working reference are attached (two also sit next to this fil
 1. **Language:** all texts in English. Exact copy is in §7.
 2. **Colours and fonts:** use your platform's existing design system. The screenshots show layout, hierarchy and chart style, not a palette to copy.
 
-Everything else (layout, tiles, the slider, chart style and the logic behind every number) should match. The owner is very satisfied with this version, so treat it as the target, not a draft.
+Everything else (layout, tiles, the slider, chart style) should match; the logic behind the numbers is our reference method, which you may improve (see §0). The owner is very satisfied with this version, so treat it as the target, not a draft.
 
 > **SCOPE — READ FIRST.** Build or replace **only the Altseason panel** (the card with the five tiles *Altseason cycle · OTHERS · BTC.D · Retail · Volume*, its slider, its detail charts and info popovers). **Do not change anything else** on cymetica.com/gem-screener — no other sections, tables, tabs, filters, navigation or styles. The reference repository contains the whole Gem Screener; everything outside the files and sections named in §0 (the apps/chains screener, themes, sectors, degen view, backtest.py, liquidity, unlocks, etc.) is **out of scope — ignore it.**
 >
