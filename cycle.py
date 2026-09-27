@@ -31,6 +31,7 @@ app.py calls the collector repeatedly in one process.
 The thresholds are pre-registered in cycle_backtest.py (PREREG + lock); the
 chosen variant and the derived threshold T come from cycle_backtest_summary.json.
 """
+import bisect
 import datetime
 import gzip
 import io
@@ -126,6 +127,24 @@ V1_RULES = {
     "vol_lo": 0.8, "vol_mid": 1.5, "vol_hi": 2.5,
     "trend_break": 0.03, "trend_fail": 0.03, "trend_min_weeks": 40, "trend_max_weeks": 156,
     "trend_pivot": 4, "trend_touch_gap": 8,
+}
+
+# v2 (cycle_backtest.PREREG_V2, locked 2026-09-27). The first block must equal the
+# registration's "rules" — cycle_backtest refuses a drift; the second block only
+# words the tiles and never enters the index.
+V2_RULES = {
+    "T": 75, "window": 208, "min_window": 104,
+    "rot_dd_full": 50, "rot_rise_full": 3, "rot_breadth_lo": 25, "rot_breadth_hi": 90, "rot_min_parts": 2,
+    "rot_weight": 2, "euph_weight": 1,
+    "retail_window": 208, "retail_warmup": 52, "retail_span": 20, "retail_min_rows": 1,
+    "coinbase_days": 30, "coinbase_min_days": 20, "meme_start_usd": 5000000, "apps_max_age_days": 7,
+    "prehrate_euphoria": 70, "bezi_rotation": 60,
+    "zacina_rotation": 30, "zacina_rise": 15, "zacina_weeks": 13,
+    "btc_sezona_heat": 50, "btc_sezona_rotation": 30,
+    "po_vrcholu_drop": 15, "po_vrcholu_weeks": 26, "po_vrcholu_min": 2,
+    "trend_window": 312, "trend_pivot": 4, "trend_break": 0.03, "trend_confirm": 2, "trend_back_weeks": 13,
+    "breadth_hi": 75, "breadth_lo": 25, "btcd_move_pp": 1.5, "heat_lo": 40, "heat_hi": 75,
+    "retail_lo": 35, "retail_hi": 70, "retail_rush": 25, "vol_lo": 0.8, "vol_mid": 1.5, "vol_hi": 2.5,
 }
 
 # Default rules. The backtest's summary overrides `breadth_gate` and `T` with the
@@ -537,6 +556,131 @@ def pick_lines(lines, n_weeks, recent=13):
     return [longest] if longest is newest else [longest, newest]
 
 
+# ================================================================== trendline v2
+def pivot_flags(c, mode="down", k=4):
+    """A pivot high (mode down; a pivot low for up) is a close that is the most
+    extreme of ±k weeks and strictly more extreme than the k weeks before it (a
+    plateau's first week). It reads k weeks after itself; trend_line only ever uses
+    pivots that old, so flagging them over the whole series looks nothing ahead."""
+    d = 1.0 if mode == "down" else -1.0
+    n = len(c)
+    out = [False] * n
+    for j in range(n):
+        if c[j] is None:
+            continue
+        ok = True
+        for x in range(max(0, j - k), min(n, j + k + 1)):
+            if x == j or c[x] is None:
+                continue
+            if d * c[x] > d * c[j] or (x < j and d * c[x] >= d * c[j]):
+                ok = False
+                break
+        out[j] = ok
+    return out
+
+
+def trend_line(vals, mode="down", t=None, rules=None, latest=None, pivots=None):
+    """The line Adam draws on TradingView, as of week t (closes up to t only).
+
+    OTHERS.D (mode down, resistance): the anchor is the highest weekly close of the
+    last 312 weeks — six years, because with 260 the 2022-01-03 top (20,43 %) would
+    drop out on 2026-12-28 and the status would change with no price move. The line
+    runs from it over the confirmed pivot highs down to the bottom: the lowest close
+    since the anchor that is at least 4 weeks old, so the bounce highs after it are
+    not in the hull and a breakout does not redraw its own line. A new bottom after a
+    failed break puts the false-break highs inside the hull and redraws the line over
+    them. BTC.D (mode up) mirrors it: support from the lowest close (2022-11-28,
+    37,88 %) under the higher lows up to the top.
+
+    Status (PREREG_V2): bez_trendu (no line: the week is itself the extreme, no
+    bottom yet, no pivot) · pruraz (two consecutive closes > 3 % beyond, and no close
+    back inside the line since — a retest that holds keeps it) · pruraz_nepotvrzeny
+    (one close beyond; or only the newest daily point `latest` = (fractional week
+    index, value)) · zpet_pod (a break within 13 weeks, then a close back inside) ·
+    downtrend. Returns indexes; `_line_out_v2` turns them into week stamps."""
+    R = dict(V2_RULES, **(rules or {}))
+    c = vals
+    n = len(c)
+    d = 1.0 if mode == "down" else -1.0
+    k = R["trend_pivot"]
+    if t is None:
+        t = max((i for i in range(n) if c[i] is not None), default=None)
+    res = {"status": "bez_trendu", "t": t, "anchor": None, "touch": None, "opp": None, "slope": None,
+           "line_t": None, "break_first": None, "break_at": None, "back_at": None}
+    if t is None:
+        return res
+    a = None
+    for i in range(max(0, t - R["trend_window"] + 1), t + 1):
+        if c[i] is not None and (a is None or d * c[i] > d * c[a]):
+            a = i
+    if a is None or a == t:
+        return res
+    o = None
+    for i in range(a + 1, t - k + 1):
+        if c[i] is not None and (o is None or d * c[i] <= d * c[o]):
+            o = i
+    if o is None:
+        return res
+    if pivots is None:
+        pivots = pivot_flags(c[:t + 1], mode, k)
+    best = None
+    for j in range(a + 1, o):
+        if pivots[j]:
+            sl = (c[j] - c[a]) / (j - a)
+            if best is None or d * sl > d * best[0]:
+                best = (sl, j)
+    if best is None:
+        return res
+    s, touch = best
+    line = lambda x: c[a] + s * (x - a)
+    if line(t) <= 0:
+        return res
+    b = R["trend_break"]
+    beyond = lambda i: c[i] is not None and d * c[i] > d * line(i) * (1 + d * b)
+    inside = lambda i: c[i] is not None and d * c[i] <= d * line(i)
+    after = [i for i in range(o + 1, t + 1) if c[i] is not None]
+    brk, first, run = None, None, 0
+    for i in after:
+        if beyond(i):
+            run += 1
+            if run == 1:
+                start = i
+            if run >= R["trend_confirm"]:
+                brk, first = i, start
+        else:
+            run = 0
+    back = next((i for i in after if brk is not None and i > brk and inside(i)), None)
+    if brk is not None and back is None:
+        status = "pruraz"
+    elif beyond(t):
+        status = "pruraz_nepotvrzeny"
+    elif brk is not None and t - brk <= R["trend_back_weeks"]:
+        status = "zpet_pod"
+    elif latest is not None and latest[1] is not None and line(latest[0]) > 0 \
+            and d * latest[1] > d * line(latest[0]) * (1 + d * b):
+        status = "pruraz_nepotvrzeny"
+    else:
+        status = "downtrend"
+    res.update({"status": status, "anchor": a, "touch": touch, "opp": o, "slope": s, "line_t": line(t),
+                "break_first": first, "break_at": brk, "back_at": back})
+    return res
+
+
+def trend_weekly(vals, mode="down", rules=None):
+    """The weekly status at every week (each on closes up to it, no daily point) and
+    the breakout events the index uses: weeks whose status is pruraz after a week
+    that was not. A week without a close (a dropped spike) carries the status over."""
+    R = dict(V2_RULES, **(rules or {}))
+    piv = pivot_flags(vals, mode, R["trend_pivot"])
+    st, prev = [], None
+    for t in range(len(vals)):
+        if vals[t] is not None:
+            prev = trend_line(vals, mode, t, R, pivots=piv)["status"]
+        st.append(prev)
+    ev = [vals[t] is not None and st[t] == "pruraz" and (t == 0 or st[t - 1] != "pruraz") for t in range(len(vals))]
+    return st, ev
+
+
 # ================================================================== BTC heat
 def heat_metrics(cm_btc, weeks):
     """MVRV ratio, Puell, Mayer, Pi Cycle ratio at each week (value of the day
@@ -650,6 +794,90 @@ def compute_index(weeks, series, rules):
             "heat": heat, "rotation": rot, "index": idx, "phase": phase}
 
 
+PHASES_V2 = ("po_vrcholu", "prehrate", "bezi", "zacina", "btc_sezona", "zima")
+
+
+def clamp100(x):
+    return None if x is None else max(0.0, min(100.0, x))
+
+
+def rotation_v2(s, R):
+    """Rotation on absolute scales (v2). v1 ranked each part against its own trailing
+    four years: 2022–24 held no altseason, so a 3–12 % BTC.D dip scored 60–70 and the
+    index read 64 in 2024-03 and 2024-12 with no altseason at all. Here a 50 % BTC.D
+    drawdown, OTHERS.D at 3x its 52-week low and 90 % breadth each score 100."""
+    n = len(s["btcd"])
+    bd4, od4, br4 = roll_mean(s["btcd"], 4), roll_mean(s["othersd"], 4), roll_mean(s["breadth"], 4)
+    dd, rise, p_dd, p_rise, p_br, rot = [], [], [], [], [], []
+    for i in range(n):
+        w = [x for x in bd4[max(0, i - 51):i + 1] if x is not None]
+        dd.append(100.0 * (1 - bd4[i] / max(w)) if (bd4[i] is not None and len(w) >= 40) else None)
+        w = [x for x in od4[max(0, i - 51):i + 1] if x is not None]
+        rise.append(100.0 * (od4[i] / min(w) - 1) if (od4[i] is not None and len(w) >= 40 and min(w) > 0) else None)
+        p_dd.append(clamp100(100.0 * dd[i] / R["rot_dd_full"]) if dd[i] is not None else None)
+        p_rise.append(clamp100(100.0 * math.log(1 + rise[i] / 100.0) / math.log(R["rot_rise_full"]))
+                      if rise[i] is not None else None)
+        p_br.append(clamp100(100.0 * (br4[i] - R["rot_breadth_lo"]) / (R["rot_breadth_hi"] - R["rot_breadth_lo"]))
+                    if br4[i] is not None else None)
+        parts = [p for p in (p_dd[i], p_rise[i], p_br[i]) if p is not None]
+        rot.append(sum(parts) / len(parts) if len(parts) >= R["rot_min_parts"] else None)
+    return {"dd": dd, "rise": rise, "br4": br4, "p_dd": p_dd, "p_rise": p_rise, "p_breadth": p_br, "rotation": rot}
+
+
+def compute_index_v2(weeks, s, rows, rules=None):
+    """The v2 index (PREREG_V2) from the stored raw weekly series.
+
+    s: btcd, othersd, breadth, mvrv, puell, mayer, pi (as series_from_history);
+    rows: the retail rows' raw weekly samples (retail_rows). Rotation on absolute
+    scales; euphoria = (retail + BTC heat) / 2; I = (2 x rotation + euphoria) / 3.
+    Phases, first match: po_vrcholu · prehrate · bezi · zacina · btc_sezona · zima."""
+    R = dict(V2_RULES, **(rules or {}))
+    n = len(weeks)
+    ro = rotation_v2(s, R)
+    rot = ro["rotation"]
+    heat_parts = {k: trailing_pct(s[k], R["window"], R["min_window"]) for k in ("mvrv", "puell", "mayer", "pi")}
+    heat = [mean([heat_parts[k][i] for k in heat_parts]) if sum(
+        1 for k in heat_parts if heat_parts[k][i] is not None) >= 3 else None for i in range(n)]
+    rs = retail_scores(rows, R)
+    retail = []
+    for i in range(n):
+        xs = [rs[k][i] for k in rs if rs[k][i] is not None]
+        retail.append(sum(xs) / len(xs) if len(xs) >= R["retail_min_rows"] else None)
+    euph = [(retail[i] + heat[i]) / 2 if (retail[i] is not None and heat[i] is not None) else None for i in range(n)]
+    wr, we = R["rot_weight"], R["euph_weight"]
+    idx = [(wr * rot[i] + we * euph[i]) / (wr + we) if (rot[i] is not None and euph[i] is not None) else None
+           for i in range(n)]
+    od_status, brk = trend_weekly(s["othersd"], "down", R)
+    T = R["T"]
+    phase = []
+    for i in range(n):
+        I = idx[i]
+        if I is None:
+            phase.append(None)
+            continue
+        r, eu, he = rot[i], euph[i], heat[i]
+        prior = [idx[j] for j in range(max(0, i - R["po_vrcholu_weeks"]), i) if idx[j] is not None and idx[j] >= T]
+        back = rot[i - R["zacina_weeks"]] if i >= R["zacina_weeks"] else None
+        if len(prior) >= R["po_vrcholu_min"] and I <= max(prior) - R["po_vrcholu_drop"]:
+            ph = "po_vrcholu"
+        elif I >= T and eu >= R["prehrate_euphoria"]:
+            ph = "prehrate"
+        elif r >= R["bezi_rotation"] or I >= T:
+            ph = "bezi"
+        elif r >= R["zacina_rotation"] and ((back is not None and r - back >= R["zacina_rise"])
+                                            or any(brk[max(0, i - R["zacina_weeks"]):i + 1])):
+            ph = "zacina"
+        elif he >= R["btc_sezona_heat"] and r < R["btc_sezona_rotation"]:
+            ph = "btc_sezona"
+        else:
+            ph = "zima"
+        phase.append(ph)
+    out = dict(ro)
+    out.update({"heat_parts": heat_parts, "heat": heat, "retail_scores": rs, "retail": retail, "euphoria": euph,
+                "index": idx, "phase": phase, "od_status": od_status, "breakouts": brk})
+    return out
+
+
 def phase_episodes(weeks, phase):
     """Contiguous runs of one phase: [(phase, first index, last index)]."""
     eps = []
@@ -677,6 +905,87 @@ def app_score(overall, finance):
             return 50 + (10 - finance)
         return max(10.0, 50 - 40 * math.log10(finance / 10.0))
     return 5.0
+
+
+RETAIL_ROWS = ("coinbase", "upbit", "degen", "apps")
+
+
+def retail_rows(H, weeks, rules=None):
+    """The retail rows' raw weekly samples, each read on the day before the stamp.
+    Weekly only, so audit §37 can recompute every score and every four-year max from
+    exactly the stored numbers (v1 mixed daily points in). Returns (rows, picks):
+    picks[i] = (label, overall, finance, day) of the app behind the apps sample."""
+    R = dict(V2_RULES, **(rules or {}))
+    # Coinbase: BTC-USD + ETH-USD; a day counts when BTC-USD has it (ETH-USD from 2016-05)
+    cb = H.get("cbx") or {}
+    btc, eth = cb.get("BTC-USD") or {}, cb.get("ETH-USD") or {}
+    daily = {int(k): v + (eth.get(k) or 0) for k, v in btc.items() if v is not None}
+    coin = []
+    for w in weeks:
+        xs = [daily[t] for t in range(w - R["coinbase_days"] * DAY, w, DAY) if t in daily]
+        coin.append(sum(xs) / len(xs) if len(xs) >= R["coinbase_min_days"] else None)
+    # Upbit: the 4 weekly candles before the stamp. A candle is keyed by its UTC start
+    # date; the nearest Monday aligns it whether the week opens at 00:00 UTC or KST.
+    U = {monday(int(k) + 3 * DAY): v for k, v in (H.get("upbit") or {}).items()}
+    up = []
+    for w in weeks:
+        xs = [U.get(w - j * WEEK) for j in range(1, 5)]
+        up.append(sum(xs) if all(x is not None for x in xs) else None)
+    # the memecoin economy from its first $5M day: before it the category barely
+    # existed, and a series growing from nothing would read its own high every week
+    M = {int(k): v for k, v in (H.get("meme30") or {}).items() if v is not None}
+    m0 = min((t for t, v in M.items() if v >= R["meme_start_usd"]), default=None)
+    meme = [M.get(w - DAY) if (m0 is not None and w - DAY >= m0) else None for w in weeks]
+    # App Store: the newest ledger entry of the 7 days before the stamp
+    led = sorted(H.get("apps") or [], key=lambda x: x[0])
+    days = [x[0] for x in led]
+    apps, picks = [], []
+    for w in weeks:
+        j = bisect.bisect_right(days, w - DAY) - 1
+        if j < 0 or days[j] < w - R["apps_max_age_days"] * DAY:
+            apps.append(None)
+            picks.append(None)
+            continue
+        day, ent = led[j]
+        best = None
+        for aid, label, scored in APPS:
+            if scored:
+                o, fin = (ent.get(aid) or [None, None])[:2]
+                sc = app_score(o, fin)
+                if best is None or sc > best[0]:
+                    best = (sc, label, o, fin, day)
+        apps.append(best[0])
+        picks.append(best[1:])
+    return {"coinbase": coin, "upbit": up, "degen": meme, "apps": apps}, picks
+
+
+def retail_scores(rows, rules=None):
+    """Row score = 100 x clamp(1 + ln(x / M) / ln 20, 0, 1), M = the row's max over
+    the last 208 weekly samples: 100 = at its four-year high, 0 = at a twentieth of
+    it. Log, because retail activity moves 10–30x between a bear market and a mania;
+    trailing, so the past reads as it read then (the causal version of Cowen's
+    min–max). The first 52 weeks of a row are warm-up — Upbit, from 2017-10, would
+    otherwise read 100 at the 2017-12 top while it was still growing from launch.
+    Zero and missing samples are skipped, never passed to ln (the memecoin series
+    has 1 262 zero days). The App Store row is already 0–100 and is used as is."""
+    R = dict(V2_RULES, **(rules or {}))
+    span = math.log(R["retail_span"])
+    out = {}
+    for key, xs in rows.items():
+        if key == "apps":
+            out[key] = [clamp100(x) for x in xs]
+            continue
+        sc = [None] * len(xs)
+        first = next((i for i, x in enumerate(xs) if x is not None and x > 0), None)
+        if first is not None:
+            for i in range(first + R["retail_warmup"], len(xs)):
+                x = xs[i]
+                if x is None or x <= 0:
+                    continue
+                m = max(y for y in xs[max(0, i - R["retail_window"] + 1):i + 1] if y is not None and y > 0)
+                sc[i] = 100.0 * max(0.0, min(1.0, 1 + math.log(x / m) / span))
+        out[key] = sc
+    return out
 
 
 def parse_yt_feed(xml_bytes):

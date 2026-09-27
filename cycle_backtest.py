@@ -373,8 +373,98 @@ def selftest():
         check(False, "NaN rejected")
     except ValueError:
         check(True, "NaN rejected by allow_nan=False")
+    ok = selftest_v2(check) and ok
     print("SELFTEST", "OK" if ok else "FAILED")
     return 0 if ok else 1
+
+
+def selftest_v2(check):
+    """v2 on synthetic series only (no data): the registration, the trendline, the
+    four-year log score and the index."""
+    ok = True
+
+    def chk(cond, msg):
+        nonlocal ok
+        check(cond, msg)
+        ok = ok and bool(cond)
+    R2 = PREREG_V2["rules"]
+    drift = sorted(k for k in R2 if cycle.V2_RULES.get(k) != R2[k])
+    chk(not drift, "cycle.V2_RULES = PREREG_V2 rules%s" % (" (drift: %s)" % ", ".join(drift) if drift else ""))
+    # --- the trendline: anchor 20 at week 10, one lower high 16 at week 50 (slope -0,1
+    # a week), the bottom 8 at week 90, then two closes > 3 % over the line (105, 106)
+    L0 = lambda i: 20 - 0.1 * (i - 10)
+    c = [10.0] * 10 + [20.0] + [20 - 0.15 * (i - 10) for i in range(11, 91)]
+    c[50] = 16.0
+    c += [8 + 0.2 * (i - 90) for i in range(91, 105)] + [11.0, 11.2, L0(107) * 1.01, L0(108) * 0.98]
+    c += [L0(i) * 0.97 for i in range(109, 121)] + [8.2, 7.8, 7.5, 7.6, 7.7, 7.8, 7.9, 8.0]
+    tl = lambda t, **kw: cycle.trend_line(c, "down", t, **kw)
+    L = tl(106)
+    chk((L["anchor"], L["touch"], L["opp"], round(L["slope"], 6)) == (10, 50, 90, -0.1),
+        "planted hull: anchor, the lower high it touches, the bottom, slope")
+    chk([tl(t)["status"] for t in (104, 105, 106)] == ["downtrend", "pruraz_nepotvrzeny", "pruraz"],
+        "one close over the line is unconfirmed, two are a break (from %s)" % L["break_first"])
+    chk(tl(107)["status"] == "pruraz", "a retest that holds within 3 % keeps the break")
+    chk(tl(108)["status"] == "zpet_pod" and tl(119)["status"] == "zpet_pod" and tl(120)["status"] == "downtrend",
+        "back inside: false breakout for 13 weeks, then downtrend")
+    L = tl(127)
+    chk(L["touch"] == 106 and L["opp"] == 123 and L["status"] == "downtrend",
+        "a new bottom after the failed break redraws the line over the false-break high")
+    st, ev = cycle.trend_weekly(c, "down")
+    chk([i for i, e in enumerate(ev) if e] == [106], "one breakout event, at the confirming week")
+    chk(tl(104, latest=(104.5, 11.2))["status"] == "pruraz_nepotvrzeny", "the newest daily point over the line is unconfirmed")
+    u = [12.0] * 10 + [10.0] + [10 + 0.08 * (i - 10) for i in range(11, 91)]
+    u[50] = 12.0
+    u += [16.4 - 0.3 * (i - 90) for i in range(91, 105)]
+    chk([cycle.trend_line(u, "up", t)["status"] for t in (98, 99, 100)] == ["downtrend", "pruraz_nepotvrzeny", "pruraz"],
+        "BTC.D mode: support from the low under the higher low, broken downwards")
+    o = [10 + (i % 7) * 0.1 for i in range(330)]
+    o[5] = 30.0
+    chk(cycle.trend_line(o, "down", 316)["anchor"] == 5 and cycle.trend_line(o, "down", 317)["anchor"] != 5,
+        "an anchor 311 weeks old is kept (6-year window), at 312 it drops out")
+    chk(cycle.trend_line([float(i) for i in range(1, 30)], "down", 28)["status"] == "bez_trendu",
+        "bez_trendu: the week is itself the 6-year extreme")
+    chk(cycle.trend_line([30.0 - i * 0.5 for i in range(40)], "down", 39)["status"] == "bez_trendu",
+        "bez_trendu: no pivot between the anchor and the bottom")
+    chk(cycle.trend_line([10.0] * 40 + [20.0, 19.0, 18.0, 17.5], "down", 43)["status"] == "bez_trendu",
+        "bez_trendu: no bottom 4 weeks old yet")
+    # --- the four-year log score
+    xs = [0.0] * 5 + [None] * 3 + [100.0] * 60 + [5.0, 100 / math.sqrt(20), 0.0, None, 100.0]
+    sc = cycle.retail_scores({"coinbase": xs})["coinbase"]
+    chk(all(v is None for v in sc[:60]) and sc[60] == 100.0, "52-week warm-up from the first positive sample, then 100 at the high")
+    chk(abs(sc[68]) < 1e-9 and abs(sc[69] - 50) < 1e-9, "1/20 of the 4-year high = 0, 1/sqrt(20) = 50")
+    chk(sc[70] is None and sc[71] is None and sc[72] == 100.0, "zero and missing samples are skipped, never passed to ln")
+    xs = [100.0] * 60 + [1000.0] + [100.0] * 300
+    sc = cycle.retail_scores({"upbit": xs})["upbit"]
+    chk(abs(sc[267] - 100 * (1 - math.log(10) / math.log(20))) < 1e-9 and sc[268] == 100.0,
+        "the max is over the last 208 weekly samples")
+    chk(cycle.retail_scores({"apps": [None, 42.0]})["apps"] == [None, 42.0], "the App Store row is used as is")
+    # --- the index on a synthetic cycle: quiet years, then a planted altseason
+    import random
+    n = 520
+    weeks = [cycle.START_WEEK + i * cycle.WEEK for i in range(n)]
+    rnd = random.Random(11)
+    bd = [70 + rnd.uniform(-1, 1) for _ in range(n)]
+    od = [5 + rnd.uniform(-0.2, 0.2) for _ in range(n)]
+    br = [30 + rnd.uniform(-5, 5) for _ in range(n)]
+    ht = [1 + rnd.uniform(-0.1, 0.1) for _ in range(n)]
+    cb = [1e9 * (1 + rnd.uniform(-0.1, 0.1)) for _ in range(n)]
+    for i in range(430, 446):
+        k = i - 429
+        bd[i], od[i], br[i], ht[i], cb[i] = 70 - 2.3 * k, 5 + 0.7 * k, 95, 1 + 0.3 * k, 1e9 * (1 + 0.8 * k)
+    for i in range(446, n):
+        bd[i], od[i], br[i] = 55 + rnd.uniform(-1, 1), 7 + rnd.uniform(-0.2, 0.2), 20 + rnd.uniform(-5, 5)
+        ht[i], cb[i] = 1.2 + rnd.uniform(-0.1, 0.1), 2e9 * (1 + rnd.uniform(-0.1, 0.1))
+    s = {"btcd": bd, "othersd": od, "breadth": br, "mvrv": ht, "puell": ht, "mayer": ht, "pi": ht}
+    rows = {"coinbase": cb, "upbit": [None] * n, "degen": [None] * n, "apps": [None] * n}
+    r = cycle.compute_index_v2(weeks, s, rows)
+    I, ph = r["index"], r["phase"]
+    peak = max(range(n), key=lambda i: I[i] if I[i] is not None else -1)
+    chk(430 <= peak <= 446 and I[peak] >= 75, "v2 peak in the planted altseason (week %d, %.0f)" % (peak, I[peak]))
+    chk("prehrate" in ph[430:447] and "prehrate" not in ph[:430], "prehrate on the planted top only")
+    chk(all(p == "po_vrcholu" for p in ph[447:470]), "po_vrcholu after the top")
+    chk(max(x for x in I[:425] if x is not None) < 75, "quiet years stay under T")
+    chk(all(p is None or p in cycle.PHASES_V2 for p in ph), "every week has a known phase")
+    return ok
 
 
 # ================================================================== report
