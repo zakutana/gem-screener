@@ -16,6 +16,13 @@ Everything else (layout, tiles, the slider, chart style and the logic behind eve
 > **The repository is a REFERENCE, not code to copy.** Read it to understand the method, the exact arithmetic and the intended look, and run it to compare. Then build the panel natively in your own stack, with your own data pipeline, components and design system. Do not copy the repository, its files or its single-file HTML template into your product.
 >
 > **Data sources are your choice.** Pull the data from wherever you judge best — your existing feeds, paid APIs, your own indexers. The sources the reference uses (free CMC web API, Coin Metrics community, Upbit, Coinbase candles, DeFiLlama, Apple RSS) are only examples of what works; §4 lists what the data must satisfy, not where it must come from.
+>
+> **Architecture: translate, do not replicate.** The reference is a *local desktop app*: a Python script (`collector.py`) fetches everything and writes one `snapshot.json`, which is embedded into a single static HTML file; `app.py` serves it on localhost (or as a Windows exe), and CI publishes the static page. There is no real server, database or API. On your client–server platform, map it like this:
+> - **Backend worker (scheduled, e.g. every 6 h):** fetch, validate, compute the whole `cycle` result (§5) and append the weekly ledger. All computation happens here, never in the browser and never per request.
+> - **Storage:** the long weekly/daily history, the latest computed result, the forward ledger and per-source freshness — in your database or object store, durable (not an ephemeral cache).
+> - **API:** one read endpoint returning the latest computed result (the JSON contract of §8), cacheable; optionally a history endpoint.
+> - **Frontend component:** fetches that JSON and only draws (tiles, slider, charts, popovers). It never decides a verdict or recomputes a number.
+> - The reference's local-only parts (`app.py`, the exe build, the Refresh/Quit buttons, embedding JSON into HTML, the Czech/English switch) are not needed — the panel is English only.
 
 ---
 
