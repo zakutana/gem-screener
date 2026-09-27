@@ -15,6 +15,8 @@ Everything else (layout, tiles, the slider, chart style and the logic behind eve
 >
 > **The repository is a REFERENCE, not code to copy.** Use it mainly for the intended look, then for how we compute everything; run it to compare. Then build the panel natively in your own stack, with your own data pipeline, components and design system. Do not copy the repository, its files or its single-file HTML template into your product.
 >
+> **English only — ignore all Czech.** The reference is Czech-first: Czech UI text, Czech data keys (`zima`, `prehrate`, `pruraz`, `spi`…), Czech comments, commit messages and log lines, and screenshots in Czech. None of it goes into your build. Every user-visible string is English (§7 has the copy); name your own keys and code in English too (the Czech keys map to the English labels in §5.4, §7.1).
+>
 > **Data sources are your choice.** Pull the data from wherever you judge best — your existing feeds, paid APIs, your own indexers. The sources the reference uses (free CMC web API, Coin Metrics community, Upbit, Coinbase candles, DeFiLlama, Apple RSS) are only examples of what works; §4 lists what the data must satisfy, not where it must come from.
 >
 > **Architecture is your choice.** The reference is a *local desktop app*: a Python script (`collector.py`) fetches everything and writes one `snapshot.json`, which is embedded into a single static HTML file; `app.py` serves it on localhost (or as a Windows exe), and CI publishes the static page. There is no real server, database or API. You will change it on your side as you see fit; one natural client–server mapping, only as a suggestion:
