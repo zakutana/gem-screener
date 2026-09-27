@@ -2787,7 +2787,8 @@ function detailVolume(el){
   cycleChart(el.querySelector('.ap-chart'), {weeks: ch.weeks, y: {fit: true, floor: 0, fmt: function(x){ return '$' + num0(x); }},
     series: [{v: ch.avg7_bn, cls: 'c-acc', area: true}],
     y2: [{v: ch.btc, cls: 'c-gold', fmt: BTC_FMT}],
-    shade: [{t0: v.fake_volume_span[0], t1: v.fake_volume_span[1], cls: 'sh-muted', label: L('burzy tehdy nafukovaly objem (wash trading)', 'exchanges inflated volume then (wash trading)')}],
+    shade: [{t0: v.fake_volume_span[0], t1: v.fake_volume_span[1], cls: 'sh-muted', label: L('burzy tehdy nafukovaly objem (wash trading)', 'exchanges inflated volume then (wash trading)'),
+      short: L('wash trading burz', 'exchange wash trading')}],
     pill: {fmt: function(x){ return '$' + num0(x) + L(' mld', 'bn'); }},
     tip: function(i){ return '<b>' + fmtDate(ch.weeks[i]) + '</b><br>' + L('objem $', 'volume $') + num0(ch.avg7_bn[i]) + L(' mld/den', 'bn/day') +
       '<br><span class="t2">BTC $' + grp(ch.btc[i] || 0, ' ') + '</span>'; },
@@ -2882,7 +2883,9 @@ function cycleChart(host, spec){
     var x0 = X(Math.max(t0, s.t0)), x1 = X(Math.min(tData, s.t1));
     if (x1 < pL) return;
     svg.appendChild(svgEl('rect', {x: x0, y: pT, width: Math.max(2, x1 - x0), height: Hd - pT - pB, 'class': s.cls}));
-    if (s.label) { var tl = svgEl('text', {x: x0 + 3, y: pT + 11, 'class': 'cyc-lbl'}); tl.textContent = s.label; svg.appendChild(tl); }
+    // a phone gets the short label: the wash-trading one ran 54 px past a 375 px screen
+    var lb = Wd < 560 && s.short ? s.short : s.label;
+    if (lb) { var tl = svgEl('text', {x: x0 + 3, y: pT + 11, 'class': 'cyc-lbl'}); tl.textContent = lb; svg.appendChild(tl); }
   });
   var nt = niceTicks(lo, tickHi);
   nt.ticks.forEach(function(v){
