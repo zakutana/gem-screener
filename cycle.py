@@ -1,26 +1,23 @@
 """
-Altseason cycle — "where are we in the altseason, and has it played out?"
+Altseason cycle — "is the altseason getting close to its end?"
 
-The Start/Sektory panel used to show one number: the share of the top-50 alts
-that beat BTC over 13 weeks (the Blockchaincenter convention). That answers "are
-alts winning right now", not "is it early or late", it had seen 40 weeks of an
-ordinary market, and it jumped ±10 points week to week. This module builds the
-replacement (ARCHITECTURE §13.8):
+Adam, 2026-09-27: "Hlavní point toho celého panelu je prostě uvidět aspoň zhruba,
+že altseason se blíží konec, kdyby náhodou teď začal a trval rok." So the panel
+is an exit gauge that works week by week (ARCHITECTURE §13.8):
 
-    Altseason cyklus   0–100 cycle position from two pillars that both have free
-                       history across the 2017/18 and 2021 altseasons:
-                         rotation — BTC.D drawdown, OTHERS.D rise, breadth
-                         heat     — BTC cycle heat (MVRV, Puell, Mayer, Pi Cycle)
-    phase              zima · btc_sezona · zacina · bezi · prehrate · po_vrcholu
-    tiles              BTC.D, OTHERS.D (+ its downtrend line and breakout),
-                       Alt Season Index (breadth), BTC cyklus, Retail, Objem
+    Altseason cyklus   0–100 = (2 x rotation + euphoria) / 3        (v2)
+                         rotation  — BTC.D drawdown, OTHERS.D rise, breadth, on
+                                     absolute scales
+                         euphoria  — (retail + BTC heat) / 2
+    phase              zima · btc_sezona · zacina · bezi · prehrate ("Blíží se
+                       konec") · po_vrcholu
+    tiles              Altseason cyklus, OTHERS (+ the TradingView line from the
+                       2022 top), BTC.D, Retail, Objem
 
-Principle: only series with history across BOTH cycles enter the index;
-everything else (retail, volume) is shown beside it. Retail measures what people
-DO — Korean exchange turnover, the memecoin economy, the best-ranked crypto app,
-new stablecoin dollars — not what they look up: in the AI era lookups moved into
-chatbots, and a lookup series decays for reasons unrelated to crypto (Adam,
-2026-09-26, on Wikipedia: "nikdo tam nechodí").
+Retail measures what people DO — Coinbase and Upbit turnover, the memecoin
+economy, the best-ranked crypto app — each row against its own four-year high on
+a log scale; not what they look up: in the AI era lookups moved into chatbots
+(Adam, 2026-09-26, on Wikipedia: "nikdo tam nechodí").
 
 Inputs live in `cycle_history.json` (gitignored: CMC/DeFiLlama terms and Coin
 Metrics' CC BY-NC forbid republishing the raw data; the page shows derived
@@ -28,8 +25,9 @@ numbers with sources named). `tools/cycle_seed.py` builds the long history once;
 each collector run fetches only the missing tail. No module-level mutable state:
 app.py calls the collector repeatedly in one process.
 
-The thresholds are pre-registered in cycle_backtest.py (PREREG + lock); the
-chosen variant and the derived threshold T come from cycle_backtest_summary.json.
+Every threshold is pre-registered in cycle_backtest.py (PREREG_V2 + lock,
+2026-09-27). v1 (PREREG, percentile rotation, FAIL) stays locked and reported:
+trend_break, pick_lines and compute_index are its code path and read V1_RULES.
 """
 import bisect
 import datetime
@@ -41,7 +39,6 @@ import os
 import re
 import statistics
 import time
-import xml.etree.ElementTree as ET
 
 DAY = 86400
 WEEK = 7 * DAY
@@ -52,8 +49,8 @@ START_WEEK = 1404691200            # Monday 2014-07-07: scoring 2017 needs a 52-
 DAILY_START = 1451606400           # 2016-01-01 for CMC daily (volume needs a 1-year median before 2017)
 CM_START = "2012-01-01"            # Coin Metrics BTC: Pi Cycle's 350-day mean needs a year before 2014-07
 DISPLAY_FROM = 1451865600          # 2016-01-04: nothing earlier is drawn ("2013 me nezajímá")
-MEME_START_USD = 5e6               # the memecoin economy is scored from its first $5M month (2023-05)
-RETAIL_MIN_ROWS = 2                # the retail history is drawn where at least two rows exist
+V2_ID = "altseason-cycle-v2"       # = cycle_backtest.PREREG_V2["id"]
+LEDGER_NAME = "cycle_ledger.jsonl"
 
 CMC = "https://api.coinmarketcap.com/data-api/v3"
 CM = "https://community-api.coinmetrics.io/v4/timeseries/asset-metrics"
@@ -94,13 +91,6 @@ APPS = [  # (apple id, label, scored)
     ("1481947260", "Kraken", True), ("1278383455", "Coinbase Wallet", True), ("1288339409", "Trust", True),
     ("6717572591", "pump.fun", True), ("938003185", "Robinhood", False), ("711923939", "Cash App", False),
     ("1632713844", "Kalshi", False), ("6648798962", "Polymarket", False)]
-YT_CHANNELS = [  # retail-oriented crypto channels (ids verified 2026-09-26)
-    ("UCbLhGKVY-bJPcawebgtNfbw", "Altcoin Daily"), ("UCN9Nj4tjXbVTLYWN0EKly_Q", "Crypto Banter"),
-    ("UCqK_GSMbpiV8spgD3ZGloSw", "Coin Bureau"), ("UCl2oCaw8hdR_kbqyqd2klIA", "Lark Davis"),
-    ("UCRvqjQPSeaWn-uEx-w0XOIg", "Benjamin Cowen"), ("UCjemQfjaXAzA-95RKoy9n_g", "Discover Crypto"),
-    ("UCI7M65p3A-D3P4v5qW8POxQ", "CryptosRUs"), ("UCiUnrCUGCJTCC7KjuW493Ww", "Crypto Zombie"),
-    ("UC4VPa7EOvObpyCRI4YKRQRw", "Paul Barron"), ("UClgJyzwGs-GyaNxUHcLZrkg", "InvestAnswers"),
-    ("UCnMku7J_UtwlcSfZlIuQ3Kw", "Crypto Capital Venture")]
 TRANCO_DOMAINS = ["coinbase.com", "binance.com", "crypto.com"]
 MEME_CATS = ("Launchpad", "Telegram Bot", "Trading App")   # = the Memecoiny fundament (themes.THEMES)
 
@@ -147,9 +137,10 @@ V2_RULES = {
     "retail_lo": 35, "retail_hi": 70, "retail_rush": 25, "vol_lo": 0.8, "vol_mid": 1.5, "vol_hi": 2.5,
 }
 
-# Default rules. The backtest's summary overrides `breadth_gate` and `T` with the
-# pre-registered variant it picked; the page reads every threshold from `rules`.
-DEFAULT_RULES = dict(V1_RULES)
+# The rules the page runs: v2. load_rules lays the v2 section of the backtest
+# summary over them (T, fixed at 75 by the registration); the page reads every
+# threshold from the snapshot's `rules`.
+DEFAULT_RULES = dict(V2_RULES)
 
 
 # ================================================================== small helpers
@@ -242,7 +233,7 @@ def history_path(data_dir):
 
 def empty_history():
     return {"v": HISTORY_VERSION, "weeks": {}, "prices": {}, "daily": {}, "upbit": {}, "upbit_markets": [],
-            "meme": {}, "tranco": {"monthly": {}, "daily": {}}, "apps": [], "yt": [], "ai": None, "cbbi": None,
+            "meme": {}, "tranco": {"monthly": {}, "daily": {}}, "apps": [], "ai": None, "cbbi": None,
             "cbx": {}, "latest": None}
 
 
@@ -260,6 +251,9 @@ def load_history(data_dir, log=None):
             if isinstance(h, dict) and h.get("v") == HISTORY_VERSION:
                 base = empty_history()
                 base.update(h)
+                # YouTube's API policy forbids keeping its statistics past 30 days
+                # and aggregating them across channels: the ledger goes on load
+                base.pop("yt", None)
                 return base, cand != p
         except Exception as exc:
             if log:
@@ -988,27 +982,6 @@ def retail_scores(rows, rules=None):
     return out
 
 
-def parse_yt_feed(xml_bytes):
-    """Views of the channel's last 15 videos; `views` sits in media:statistics."""
-    ns = {"a": "http://www.w3.org/2005/Atom", "m": "http://search.yahoo.com/mrss/"}
-    out = []
-    try:
-        root = ET.fromstring(xml_bytes)
-    except ET.ParseError:
-        return out
-    for e in root.findall("a:entry", ns):
-        pub = e.findtext("a:published", default="", namespaces=ns)
-        st = e.find("m:group/m:community/m:statistics", ns)
-        if st is None or not pub:
-            continue
-        try:
-            t = int(datetime.datetime.fromisoformat(pub.replace("Z", "+00:00")).timestamp())
-            out.append((t, int(st.get("views") or 0)))
-        except ValueError:
-            continue
-    return out
-
-
 # ================================================================== history update
 def _dkey(ts):
     return str(int(ts))
@@ -1281,40 +1254,6 @@ def update_apps(ctx, H, now_ts, log):
     return True
 
 
-def update_youtube(ctx, H, now_ts, log):
-    """Views per day across the retail crypto channels: the difference of each
-    channel's cumulative views (YouTube Data API, optional free key). Without the
-    key: the median views of the channels' week-old videos from their RSS feeds."""
-    key = os.environ.get("YOUTUBE_API_KEY", "").strip()
-    day = day0(now_ts)
-    entry = None
-    if key:
-        d = ctx.get("https://www.googleapis.com/youtube/v3/channels?part=statistics&id=%s"
-                    % ",".join(c for c, _ in YT_CHANNELS), timeout=30, quiet_status=(),
-                    headers={"X-Goog-Api-Key": key})
-        tot = {it["id"]: int((it.get("statistics") or {}).get("viewCount") or 0)
-               for it in (d or {}).get("items") or []}
-        if tot:
-            entry = {"kind": "total", "v": tot}
-    if entry is None:
-        med = {}
-        for cid, _ in YT_CHANNELS:
-            raw = ctx.get("https://www.youtube.com/feeds/videos.xml?channel_id=%s" % cid, timeout=30,
-                          warn=False, raw=True)
-            vids = parse_yt_feed(raw) if raw else []
-            old = [v for t, v in vids if now_ts - t >= 7 * DAY]
-            if old:
-                med[cid] = statistics.median(old)
-        if med:
-            entry = {"kind": "rss", "v": med}
-    if not entry:
-        return False
-    led = H.setdefault("yt", [])
-    led[:] = [x for x in led if x[0] != day] + [[day, entry]]
-    led.sort(key=lambda x: x[0])
-    return True
-
-
 def update_tranco(ctx, H, now_ts, log, months=None):
     """Exchange web+app traffic ranks. Recent days from the per-domain endpoint;
     the monthly history (seed) from the top-10k slice of one list per month."""
@@ -1395,7 +1334,7 @@ def btc_weekly(H, weeks):
     return [(cm.get(str(w - DAY)) or [None])[0] for w in weeks]
 
 
-def series_from_history(H, weeks, rules=None):
+def series_from_history(H, weeks):
     """Raw weekly inputs of the index, aligned with `weeks`."""
     W = H.get("weeks") or {}
     g = lambda w, k: (W.get(str(w)) or {}).get(k)
@@ -1408,14 +1347,17 @@ def series_from_history(H, weeks, rules=None):
          "btc": btc_weekly(H, weeks)}
     s.update(heat_metrics(cm_days(H), weeks))
     s["anomalies"] = clean_spikes(weeks, s)
-    # an OTHERS.D breakout is known at the week it happens (trend_break looks back only)
-    lines = trend_break(s["othersd"], "down", rules)
-    brk = [False] * len(weeks)
-    for L in lines:
+    return s
+
+
+def v1_breakouts(od):
+    """v1's OTHERS.D breakout weeks (trend_break), for the locked v1 report only;
+    v2's come from trend_weekly."""
+    brk = [False] * len(od)
+    for L in trend_break(od, "down"):
         if L["breakout"] is not None:
             brk[L["breakout"]] = True
-    s["breakouts"] = brk
-    return s
+    return brk
 
 
 def clean_spikes(weeks, s, jump=0.25, agree=0.10):
@@ -1470,15 +1412,22 @@ def find_events(weeks, s):
 
 # ================================================================== the snapshot block
 def load_rules(data_dir):
-    """The variant and T the pre-registered backtest picked; defaults otherwise."""
+    """v2's rules with the v2 section of the backtest summary laid over them (T,
+    which PREREG_V2 fixes at 75). v1's top-level `rules` (T = 84, a breadth gate)
+    belong to the locked v1 report and never reach the page. Returns (rules, the
+    summary's v2 section or None, the whole summary or None)."""
     rules = dict(DEFAULT_RULES)
     summ = None
     try:
         summ = json.load(io.open(os.path.join(data_dir, SUMMARY_NAME), encoding="utf-8"))
-        rules.update(summ.get("rules") or {})
     except (OSError, ValueError):
         pass
-    return rules, summ
+    v2 = (summ or {}).get("v2")
+    if isinstance(v2, dict) and v2.get("prereg_id") == V2_ID:
+        rules.update(v2.get("rules") or {})
+    else:
+        v2 = None
+    return rules, v2, summ
 
 
 def _r(x, d=2):
@@ -1526,9 +1475,9 @@ def volume_block(H, weeks, s, now_ts, R):
         return 100.0 * r["va"] / (r["va"] + r["vb"]) if r.get("va") and r.get("vb") else None
     shares = [share(w) for w in weeks]
     sh4 = roll_mean(shares, 4)
-    # weekly samples of the 7-day average for the chart (2017 ->), BTC price beside it
+    # weekly samples of the 7-day average for the chart (2016 ->, as every chart), BTC price beside it
     pos = {d: i for i, d in enumerate(ds)}
-    chart_w = [w for w in weeks if w >= 1483315200]
+    chart_w = [w for w in weeks if w >= DISPLAY_FROM]
     ser = [_r(avg7[pos[w - DAY]] / 1e9, 1) if (w - DAY) in pos and avg7[pos[w - DAY]] else None for w in chart_w]
     btc = s["btc"]
     wi = {w: i for i, w in enumerate(weeks)}
@@ -1541,93 +1490,58 @@ def volume_block(H, weeks, s, now_ts, R):
             "fake_volume_span": [1546300800, 1609459199]}
 
 
-def _trail_scores(pairs, window=WINDOW, min_n=52):
-    """[(t, value)] oldest first -> {t: trailing percentile of the value}."""
-    vals = [v for _, v in pairs]
-    sc = trailing_pct(vals, window, min_n)
-    return {t: s for (t, _), s in zip(pairs, sc) if s is not None}
+def retail_block(ctx, H, weeks, rows, picks, res, R):
+    """Retail v2 for the tile and the table. The value, the verdict and the tempo
+    are the weekly index at the newest week — the number the euphoria pillar used.
+    Each scored row shows its newest weekly sample against its own four-year max;
+    the score is the one at the newest week (none when the row has no sample
+    there, and then it is not in the value). Facts beside it are never scored."""
+    last = len(weeks) - 1
+    rs, ser = res["retail_scores"], res["retail"]
 
-
-def retail_block(ctx, H, weeks, now_ts, R):
-    """Retail = what people DO, each row scored 0–100 against its own trailing four
-    years (the same percentile as the index), so the index has a history to draw
-    next to BTC and OTHERS since 2016. The history holds the rows that existed at
-    each week: Upbit from 2018, stablecoins from 2019, the memecoin economy from
-    2019 (tiny until 2023), the App Store ledger from the day the panel shipped."""
+    def newest(key):
+        xs = rows[key]
+        i = next((j for j in range(last, -1, -1) if xs[j] is not None and xs[j] > 0), None)
+        if i is None:
+            return None
+        win = [(xs[j], j) for j in range(max(0, i - R["retail_window"] + 1), i + 1) if xs[j] is not None and xs[j] > 0]
+        top, jt = max(win, key=lambda p: (p[0], -p[1]))
+        return i, xs[i], top, jt
     parts = {}
-    hist = {}                                   # row -> {week stamp: score}
-    # --- Upbit: 4-week KRW turnover. Level, not change: the chart must show retail
-    # waves. Delisted coins are missing from old weeks; they were delisted mostly in
-    # 2018–19, outside today's four-year window.
-    U = sorted((int(k), v) for k, v in (H.get("upbit") or {}).items())
-    if len(U) >= 60:
-        s4 = [(U[i][0] + WEEK, sum(v for _, v in U[i - 3:i + 1])) for i in range(3, len(U))]
-        hist["upbit"] = _trail_scores(s4)
-        peak = max(s4, key=lambda x: x[1])
-        last = s4[-1]
-        parts["upbit"] = {"score": _r(hist["upbit"].get(last[0]), 1), "week": last[0],
-                          "sum4_t_krw": _r(last[1] / 1e12, 1), "peak_t_krw": _r(peak[1] / 1e12, 1),
-                          "peak_week": peak[0], "pct_of_peak": _r(100.0 * last[1] / peak[1], 1) if peak[1] else None}
-    # --- memecoin economy: 30-day revenue (Launchpad + Telegram Bot + Trading App)
-    # Scored only from the first 30 days above $5M (2023-05, the Telegram bots): before
-    # that the category barely existed, and a percentile of zeros read 50 through 2019–22
-    # while a series growing from nothing read 100 every week after.
-    M = sorted((int(k), v) for k, v in (H.get("meme30") or {}).items())
-    m0 = next((t for t, v in M if v >= MEME_START_USD), None)
-    if len(M) >= 120 and m0 is not None:
-        md = dict(M)
-        wk = [(w, md.get(w - DAY)) for w in weeks if w - DAY >= m0 and md.get(w - DAY) is not None]
-        pairs = wk + ([M[-1]] if M[-1][0] > (wk[-1][0] if wk else 0) else [])
-        hist["degen"] = _trail_scores(pairs)
-        peak = max(M, key=lambda x: x[1])
+    x = newest("coinbase")
+    if x:
+        i, v, top, jt = x
+        parts["coinbase"] = {"score": _r(rs["coinbase"][last], 1), "week": weeks[i], "usd30_bn": _r(v / 1e9, 2),
+                             "max_bn": _r(top / 1e9, 2), "max_week": weeks[jt], "pct_of_max": _r(100.0 * v / top, 1)}
+    x = newest("upbit")
+    if x:
+        i, v, top, jt = x
+        parts["upbit"] = {"score": _r(rs["upbit"][last], 1), "week": weeks[i], "sum4_t_krw": _r(v / 1e12, 1),
+                          "max_t_krw": _r(top / 1e12, 1), "max_week": weeks[jt], "pct_of_max": _r(100.0 * v / top, 1)}
+    x = newest("degen")
+    if x:
+        i, v, top, jt = x
         movers = []
         fp = getattr(ctx, "fee_protocols", None) or []
         for p in sorted((p for p in fp if p.get("category") in MEME_CATS), key=lambda p: -(p.get("total30d") or 0))[:3]:
             prev = p.get("total60dto30d") or 0
             movers.append({"name": p.get("displayName") or p.get("name"), "rev30d": p.get("total30d") or 0,
                            "chg_pct": _r(((p.get("total30d") or 0) / prev - 1) * 100, 0) if prev > 0 else None})
-        parts["degen"] = {"score": _r(hist["degen"].get(pairs[-1][0]), 1), "day": M[-1][0], "rev30d": M[-1][1],
-                          "peak": peak[1], "peak_day": peak[0],
-                          "pct_of_peak": _r(100.0 * M[-1][1] / peak[1], 1) if peak[1] else None, "movers": movers}
-    # --- stablecoins: 90-day growth of USDT + USDC
+        parts["degen"] = {"score": _r(rs["degen"][last], 1), "week": weeks[i], "rev30d": round(v), "max": round(top),
+                          "max_week": weeks[jt], "pct_of_max": _r(100.0 * v / top, 1), "movers": movers}
+    i = next((j for j in range(last, -1, -1) if rows["apps"][j] is not None), None)
+    if i is not None:
+        label, o, fin, day = picks[i]
+        parts["apps"] = {"score": _r(rs["apps"][last], 1), "week": weeks[i], "best": label, "best_overall": o,
+                         "best_finance": fin, "day": day, "ledger_days": len(H.get("apps") or [])}
+    # --- facts: shown, never scored
     S = _daily_series((H.get("daily") or {}).get("st", {}), 0)
-    if len(S) > 800:
+    if S:
         sd = dict(S)
-        pairs = []
-        for w in weeks:
-            a, b = sd.get(w - DAY), sd.get(w - DAY - 90 * DAY)
-            if a and b:
-                pairs.append((w, (a / b - 1) * 100))
-        last_d = S[-1][0]
-        a, b = sd.get(last_d), sd.get(last_d - 90 * DAY)
-        if a and b and last_d > pairs[-1][0]:
-            pairs.append((last_d, (a / b - 1) * 100))
-        hist["stables"] = _trail_scores(pairs)
-        parts["stables"] = {"score": _r(hist["stables"].get(pairs[-1][0]), 1), "day": last_d,
-                            "supply_bn": _r(a / 1e9, 1) if a else None,
-                            "g90": _r((a / b - 1) * 100 if (a and b) else None, 1)}
-    # --- App Store: the best-ranked crypto app, scored by published anchors
-    led = H.get("apps") or []
-    if led:
-        hist["apps"] = {}
-        for day, ent in led:
-            sc = max(app_score(*(ent.get(a) or [None, None])[:2]) for a, _, s_ in APPS if s_)
-            hist["apps"][day] = sc
-        day, ent = led[-1]
-        apps = []
-        best = None
-        for aid, label, scored in APPS:
-            o, fin, rat = (ent.get(aid) or [None, None, None])
-            prev = next((x[1].get(aid) for x in reversed(led) if x[0] <= day - 6 * DAY), None)
-            grow = (rat - prev[2]) if (rat and prev and prev[2]) else None
-            sc = app_score(o, fin)
-            apps.append({"id": aid, "name": label, "overall": o, "finance": fin, "ratings": rat,
-                         "ratings_7d": grow, "scored": scored})
-            if scored and (best is None or sc > best[0]):
-                best = (sc, label, o, fin)
-        parts["apps"] = {"score": _r(best[0], 1), "best": best[1], "best_overall": best[2], "best_finance": best[3],
-                         "day": day, "apps": apps, "ledger_days": len(led)}
-    # --- facts
+        d1 = S[-1][0]
+        a, b = sd.get(d1), sd.get(d1 - 91 * DAY)
+        parts["stables"] = {"score": None, "day": d1, "supply_bn": _r(a / 1e9, 1),
+                            "new13_bn": _r((a - b) / 1e9, 1) if (a and b) else None}
     T = H.get("tranco") or {}
     if T.get("daily"):
         dk = sorted(T["daily"])
@@ -1636,40 +1550,10 @@ def retail_block(ctx, H, weeks, now_ts, R):
                      - datetime.timedelta(days=28)).isoformat()), None)
         parts["traffic"] = {"score": None, "day": dk[-1], "ranks": cur, "ranks_4w": back,
                             "best": {"coinbase.com": [818, "2021-11"]}}
-    yt = H.get("yt") or []
-    if yt:
-        day, ent = yt[-1]
-        rate = None
-        if ent["kind"] == "total":
-            prev = next((x for x in reversed(yt[:-1]) if x[1]["kind"] == "total"), None)
-            if prev and day > prev[0]:
-                rate = sum(ent["v"].get(c, 0) - prev[1]["v"].get(c, 0) for c in ent["v"]) / ((day - prev[0]) / DAY)
-        parts["youtube"] = {"score": None, "day": day, "kind": ent["kind"], "views_per_day": _r(rate, 0),
-                            "median_views": _r(statistics.median(list(ent["v"].values())), 0) if ent["kind"] == "rss" else None,
-                            "channels": len(ent["v"]), "ledger_days": len(yt)}
     parts["ai"] = {"score": None, "claude": AI_CLAUDE, "cloudflare": H.get("ai"),
                    "needs": None if os.environ.get("CLOUDFLARE_API_TOKEN") else "CLOUDFLARE_API_TOKEN"}
-
-    # --- the weekly history of the index: rows present at each week (a score dated
-    # inside the week before the stamp counts for that stamp), drawn only where at
-    # least two rows exist — before Upbit's first scored week (2018-10) the stablecoin
-    # row alone jumped 20 ↔ 85 with Tether's batch prints
-    series = []
-    for w in weeks:
-        if w < DISPLAY_FROM:
-            continue
-        xs = []
-        for row, h in hist.items():
-            best_t = None
-            for t in h:
-                if w - WEEK < t <= w and (best_t is None or t > best_t):
-                    best_t = t
-            if best_t is not None:
-                xs.append(h[best_t])
-        series.append(_r(mean(xs), 1) if len(xs) >= RETAIL_MIN_ROWS else None)
-    scored = [p["score"] for k, p in parts.items() if k in ("upbit", "degen", "apps", "stables") and p.get("score") is not None]
-    value = mean(scored)
-    back4 = next((x for x in reversed(series[:-4]) if x is not None), None) if len(series) > 4 else None
+    value = ser[last]
+    back4 = ser[last - 4] if last >= 4 else None
     tempo = (value - back4) if (value is not None and back4 is not None) else None
     verdict = None
     if value is not None:
@@ -1679,17 +1563,27 @@ def retail_block(ctx, H, weeks, now_ts, R):
         tword = ("naval" if tempo >= R["retail_rush"] else "postupne" if tempo >= 8
                  else "odliv" if tempo <= -8 else "stoji")
     return {"value": _r(value, 1), "verdict": verdict, "tempo": _r(tempo, 1), "tempo_word": tword,
-            "n_scored": len(scored), "parts": parts, "series": series}
+            "n_scored": sum(1 for k in rs if rs[k][last] is not None), "parts": parts}
 
 
-def _line_out(L, weeks, vals):
-    return {"anchor": weeks[L["anchor"]], "anchor_v": _r(vals[L["anchor"]], 3),
-            "touch": weeks[L["touch"]], "touch_v": _r(vals[L["touch"]], 3), "slope_week": _r(L["slope"], 5),
-            "breakout": weeks[L["breakout"]] if L["breakout"] is not None else None,
-            "breakout_v": _r(vals[L["breakout"]], 3) if L["breakout"] is not None else None,
-            "failed_at": weeks[L["failed_at"]] if L["failed_at"] is not None else None,
-            "status": L["status"], "weeks": L["weeks"], "line_now": _r(L["line_now"], 3),
-            "dist_pct": _r(L["dist_pct"], 1)}
+def _line_out_v2(L, weeks, vals, latest=None):
+    """A trend_line result with week stamps for the page and audit §37; None when
+    there is no line (the status is then bez_trendu)."""
+    if L["anchor"] is None:
+        return None
+    a, t, f = L["anchor"], L["t"], L["break_first"]
+    out = {"anchor": weeks[a], "anchor_v": _r(vals[a], 3), "touch": weeks[L["touch"]],
+           "touch_v": _r(vals[L["touch"]], 3), "opp": weeks[L["opp"]], "opp_v": _r(vals[L["opp"]], 3),
+           "slope_week": _r(L["slope"], 6), "status": L["status"], "week": weeks[t],
+           "line_now": _r(L["line_t"], 3), "dist_pct": _r((vals[t] / L["line_t"] - 1) * 100, 1),
+           "since": weeks[f] if f is not None else None, "since_v": _r(vals[f], 3) if f is not None else None,
+           "back": weeks[L["back_at"]] if L["back_at"] is not None else None,
+           "latest_line": None, "latest_dist_pct": None}
+    if latest is not None:
+        ln = vals[a] + L["slope"] * (latest[0] - a)
+        out["latest_line"] = _r(ln, 3)
+        out["latest_dist_pct"] = _r((latest[1] / ln - 1) * 100, 1) if ln > 0 else None
+    return out
 
 
 def heat_block(res, s, weeks, ev, H):
@@ -1718,8 +1612,8 @@ def heat_block(res, s, weeks, ev, H):
 
 
 def build_cycle(ctx, prev, now_ts, log=None, data_dir=None, fetch=True):
-    """The snapshot's `cycle` block. `fetch=False` rebuilds from the stored history
-    only (the audit and the backtest use the same code path)."""
+    """The snapshot's `cycle` block (v2). `fetch=False` rebuilds from the stored
+    history only; cycle_backtest runs the same compute_index_v2 on the same series."""
     log = log or ctx.log
     data_dir = data_dir or ctx.data_dir
     H, from_bak = load_history(data_dir, log)
@@ -1730,7 +1624,6 @@ def build_cycle(ctx, prev, now_ts, log=None, data_dir=None, fetch=True):
     if from_bak:
         ctx.warn("cycle_history.json byl poškozený — použita záloha .bak")
     loaded = len(H["weeks"])
-    anomalies = []
     if fetch:
         steps = [("CMC globální data", lambda: update_global(ctx, H, now_ts, log)),
                  ("CMC žebříčky", lambda: update_listings(ctx, H, now_ts, log)),
@@ -1739,7 +1632,6 @@ def build_cycle(ctx, prev, now_ts, log=None, data_dir=None, fetch=True):
                  ("Upbit", lambda: update_upbit(ctx, H, now_ts, log)),
                  ("Coinbase", lambda: update_coinbase(ctx, H, now_ts, log)),
                  ("App Store", lambda: update_apps(ctx, H, now_ts, log)),
-                 ("YouTube", lambda: update_youtube(ctx, H, now_ts, log)),
                  ("Tranco", lambda: update_tranco(ctx, H, now_ts, log)),
                  ("CBBI", lambda: update_cbbi(ctx, H, log)),
                  ("Cloudflare Radar", lambda: update_ai(ctx, H, now_ts, log))]
@@ -1752,18 +1644,21 @@ def build_cycle(ctx, prev, now_ts, log=None, data_dir=None, fetch=True):
             save_history(data_dir, H, loaded)
         except Exception as exc:
             ctx.warn("cycle: historie nejde uložit: %s" % exc)
-    R, summ = load_rules(data_dir)
+    R, v2sum, summ = load_rules(data_dir)
     weeks = week_axis(now_ts)
-    s = series_from_history(H, weeks, R)
-    res = compute_index(weeks, s, R)
+    s = series_from_history(H, weeks)
+    rows, picks = retail_rows(H, weeks, R)
+    res = compute_index_v2(weeks, s, rows, R)
     ev = find_events(weeks, s)
     last = len(weeks) - 1
     I, ph = res["index"], res["phase"]
     # the headline's "před 3 měsíci": the week 13 weeks back
     i3 = last - 13
-    first = next((i for i, w in enumerate(weeks) if w >= DISPLAY_FROM), 0)
+    # a daily point after the newest week, as a fractional week index for trend_line
+    frac = lambda day: last + (day - weeks[last]) / WEEK
 
-    # --- BTC.D
+    # --- BTC.D: the 13-week word on the tile; the support line from the 2022 low and
+    # the line through the altseason lows on the chart
     daily = _daily_series((H.get("daily") or {}).get("cmc", {}), 0)
     bd_now = daily[-1] if daily else None
     bd = s["btcd"]
@@ -1787,44 +1682,28 @@ def build_cycle(ctx, prev, now_ts, log=None, data_dir=None, fetch=True):
         lows_line = {"t0": weeks[i1], "v0": _r(bd[i1], 3), "t1": weeks[i2], "v1": _r(bd[i2], 3),
                      "slope_week": _r(sl, 5), "line_now": _r(now_v, 2),
                      "dist_pp": _r(cur - now_v, 2) if cur is not None else None}
+    bd_latest = (frac(bd_now[0]), bd_now[1]) if (bd_now and bd_now[0] > weeks[last]) else None
+    bd_line = trend_line(bd, "up", None, R, latest=bd_latest)
 
-    # --- OTHERS.D
+    # --- OTHERS.D: the TradingView line; its status is the tile's word
     od = s["othersd"]
-    od_lines_all = trend_break(od, "down", R)
-    od_lines = pick_lines(od_lines_all, len(weeks))
     latest = H.get("latest")
-    od_out = [_line_out(L, weeks, od) for L in od_lines]
-    unconfirmed = False
-    for L, Lo in zip(od_lines, od_out):
-        if latest and L["status"] == "downtrend":
-            ln = od[L["anchor"]] + L["slope"] * ((latest["day"] - weeks[L["anchor"]]) / WEEK)
-            Lo["latest_line"] = _r(ln, 3)
-            Lo["latest_dist_pct"] = _r((latest["od"] / ln - 1) * 100, 1) if ln else None
-            if ln and latest["od"] > ln * (1 + R["trend_break"]):
-                unconfirmed = True
-    recent_break = [L for L in od_lines if L["breakout"] is not None and last - L["breakout"] <= 13]
-    if recent_break:
-        L = max(recent_break, key=lambda L: L["weeks"])
-        od_verdict = "zpet_pod" if L["status"] == "failed" else "pruraz"
-    elif unconfirmed:
-        od_verdict = "pruraz_nepotvrzeny"
-    elif any(L["status"] == "downtrend" for L in od_lines):
-        od_verdict = "downtrend"
-    else:
-        od_verdict = "bez_trendu"
+    od_latest = (frac(latest["day"]), latest["od"]) if (latest and latest.get("od")
+                                                         and (latest.get("day") or 0) > weeks[last]) else None
+    od_line = trend_line(od, "down", None, R, latest=od_latest)
     ou = s["others_usd"]
     ou_peak21 = max((x for w, x in zip(weeks, ou) if x and 1609459200 <= w <= 1640995199), default=None)
     ou_low = min((x for x in ou[-26:] if x), default=None)
     ou_now = (latest or {}).get("ou") or ou[last]
 
-    # --- breadth
+    # --- breadth (inside the rotation; no tile)
     Wl = (H.get("weeks") or {}).get(str(weeks[last])) or {}
     br = s["breadth"]
     br_now = br[last]
     br_verdict = None if br_now is None else ("alty_vedou" if br_now >= R["breadth_hi"]
                                               else "btc_vede" if br_now <= R["breadth_lo"] else "smisene")
 
-    # --- heat
+    # --- BTC heat (inside the euphoria; no tile)
     heat = heat_block(res, s, weeks, ev, H)
     hv = res["heat"][last]
     heat_verdict = None if hv is None else ("brzy" if hv < R["heat_lo"] else "polovina" if hv < R["heat_hi"] else "prehraty")
@@ -1837,10 +1716,10 @@ def build_cycle(ctx, prev, now_ts, log=None, data_dir=None, fetch=True):
         eps = [e for e in phase_episodes(weeks, ph) if e[0] == ph[last]]
         cur = eps[-1] if eps and eps[-1][2] == last else None
         prior = [e for e in eps if e is not cur and weeks[e[1]] >= DISPLAY_FROM]
-        rows = []
+        hrows = []
         for e in reversed(prior):
             a = e[1]
-            if any(abs(weeks[a] - r["start"]) < 26 * WEEK for r in rows):
+            if any(abs(weeks[a] - r["start"]) < 26 * WEEK for r in hrows):
                 continue
             j = a + 13
             r = {"start": weeks[a]}
@@ -1848,43 +1727,41 @@ def build_cycle(ctx, prev, now_ts, log=None, data_dir=None, fetch=True):
                 r["usd13"] = _r((ou[j] / ou[a] - 1) * 100, 0)
                 if s["btc"][a] and s["btc"][j]:
                     r["vbtc13"] = _r(((ou[j] / ou[a]) / (s["btc"][j] / s["btc"][a]) - 1) * 100, 0)
-            rows.append(r)
-            if len(rows) == 2:
+            hrows.append(r)
+            if len(hrows) == 2:
                 break
-        hint = {"phase": ph[last], "episodes": rows, "n_prior": len(prior)}
+        hint = {"phase": ph[last], "episodes": hrows, "n_prior": len(prior)}
 
-    retail = retail_block(ctx, H, weeks, now_ts, R)
+    retail = retail_block(ctx, H, weeks, rows, picks, res, R)
     vol = volume_block(H, weeks, s, now_ts, R)
-    disp = slice(0, len(weeks))          # full series: the audit recomputes every window from them
+    r1 = lambda xs: [_r(x, 1) for x in xs]
     block = {
-        "version": (summ or {}).get("prereg_id") or "altseason-cycle-v1",
-        "prereg_sha256": (summ or {}).get("prereg_sha256"),
+        "version": V2_ID,
+        "prereg_sha256": (v2sum or {}).get("prereg_sha256"),
         "as_of": weeks[last], "generated": int(now_ts), "history_missing": missing or loaded == 0,
         "rules": R,
         "index": _r(I[last], 1), "phase": ph[last], "index_3m_ago": _r(I[i3], 1) if i3 >= 0 else None,
-        "rotation": _r(res["rotation"][last], 1), "heat": _r(hv, 1),
-        # index inputs unrounded: a rounded input moves a percentile tie by 0,1 and
-        # audit §37 recomputes every week from exactly these numbers
-        "weeks": weeks[disp], "display_from": DISPLAY_FROM,
-        "series": {"index": [_r(x, 1) for x in I[disp]], "rotation": [_r(x, 1) for x in res["rotation"][disp]],
-                   "heat": [_r(x, 1) for x in res["heat"][disp]], "phase": ph[disp],
-                   "btcd": list(bd[disp]), "othersd": list(od[disp]),
-                   "breadth": list(br[disp]), "breadth4": [_r(x, 1) for x in res["br4"][disp]],
-                   "dd52": [_r(x, 2) for x in res["dd"][disp]],
-                   "others_usd": [_r(x, 0) for x in s["others_usd"][disp]], "btc": [_r(x, 2) for x in s["btc"][disp]],
-                   "mvrv": list(s["mvrv"][disp]), "puell": list(s["puell"][disp]),
-                   "mayer": list(s["mayer"][disp]), "pi": list(s["pi"][disp]),
-                   "breakouts": [i for i, b in enumerate(s["breakouts"]) if b]},
+        "rotation": _r(res["rotation"][last], 1), "euphoria": _r(res["euphoria"][last], 1), "heat": _r(hv, 1),
+        # full series from 2014-07, inputs unrounded: audit §37 recomputes every week
+        # (every window, every four-year max) from exactly these numbers
+        "weeks": weeks, "display_from": DISPLAY_FROM,
+        "series": {"index": r1(I), "rotation": r1(res["rotation"]), "euphoria": r1(res["euphoria"]),
+                   "retail": r1(res["retail"]), "heat": r1(res["heat"]), "phase": ph,
+                   "btcd": list(bd), "othersd": list(od), "breadth": list(br),
+                   "others_usd": [_r(x, 0) for x in ou], "btc": [_r(x, 2) for x in s["btc"]],
+                   "mvrv": list(s["mvrv"]), "puell": list(s["puell"]), "mayer": list(s["mayer"]), "pi": list(s["pi"]),
+                   "breakouts": [i for i, b in enumerate(res["breakouts"]) if b],
+                   "retail_raw": {k: list(rows[k]) for k in RETAIL_ROWS}},
         "components": {
             "btcd": {"value": _r(bd_now[1], 2) if bd_now else _r(bd[last], 2), "day": bd_now[0] if bd_now else None,
                      "week": _r(bd[last], 2), "chg13_pp": _r(chg13, 2), "dd52": _r(res["dd"][last], 1),
                      "verdict": bd_verdict, "lows": lows, "lows_line": lows_line,
-                     "trend": [_line_out(L, weeks, bd) for L in pick_lines(trend_break(bd, "up", R), len(weeks))],
-                     "source": "cmc"},
+                     "line": _line_out_v2(bd_line, weeks, bd, bd_latest), "source": "cmc"},
             "othersd": {"value": _r((latest or {}).get("od") or od[last], 3), "day": (latest or {}).get("day"),
-                        "week": _r(od[last], 3), "verdict": od_verdict, "trend": od_out, "unconfirmed": unconfirmed,
+                        "week": _r(od[last], 3), "verdict": od_line["status"],
+                        "line": _line_out_v2(od_line, weeks, od, od_latest),
                         "usd_bn": _r((ou_now or 0) / 1e9, 0), "usd_peak_2021_bn": _r((ou_peak21 or 0) / 1e9, 0),
-                        "usd_low_26w_bn": _r((ou_low or 0) / 1e9, 0), "rise_score": _r(res["s_rise"][last], 1),
+                        "usd_low_26w_bn": _r((ou_low or 0) / 1e9, 0), "rise_score": _r(res["p_rise"][last], 1),
                         "source": "cmc"},
             "breadth": {"value": _r(br_now, 0), "mean4": _r(res["br4"][last], 1),
                         "beat": (Wl.get("br") or [None, None])[0], "n": (Wl.get("br") or [None, None])[1],
@@ -1896,9 +1773,10 @@ def build_cycle(ctx, prev, now_ts, log=None, data_dir=None, fetch=True):
         "events": {k: weeks[i] for k, i in ev.items() if i is not None},
         "index_at_events": {k: _r(I[i], 1) for k, i in ev.items() if i is not None},
         "hint": hint,
-        "backtest": {k: (summ or {}).get(k) for k in ("verdict", "chosen", "index_at", "eval_start", "generated_utc")}
-        if summ else None,
-        "anomalies": anomalies + s.get("anomalies", []),
+        "backtest": dict({k: v2sum.get(k) for k in ("verdict", "index_at", "eval_start", "lead_weeks", "share_ge_T",
+                                                     "max_since_2023")},
+                         generated_utc=(summ or {}).get("generated_utc")) if v2sum else None,
+        "anomalies": s.get("anomalies", []),
     }
     json.dumps(block, allow_nan=False)        # one NaN would kill JSON.parse on the page
     return block

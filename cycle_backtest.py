@@ -744,6 +744,7 @@ def main():
     now = int(time.time())
     weeks = cycle.week_axis(now)
     s = cycle.series_from_history(H, weeks)
+    s["breakouts"] = cycle.v1_breakouts(s["othersd"])
     evi = cycle.find_events(weeks, s)
     base = dict(cycle.V1_RULES)
     probe = cycle.compute_index(weeks, s, base)

@@ -24,8 +24,8 @@ contract) and §20 (traps) before changing anything.
 | Local app | `python app.py` | 127.0.0.1:8765, Czech + Start, Refresh button |
 | Second instance for testing | `GEM_PORT=8790 GEM_NO_BROWSER=1 python app.py` | leaves a running copy on 8765 alone |
 | Backtest | `python backtest.py` · `python backtest.py --selftest` | offline; see ARCHITECTURE §17 first |
-| Altseason history (once) | `python tools/cycle_seed.py` | ~40 min, resumable; writes `cycle_history.json` (gitignored) |
-| Altseason backtest | `python cycle_backtest.py` · `--selftest` | pre-registered; ARCHITECTURE §17.1 |
+| Altseason history (once) | `python tools/cycle_seed.py` · one step: `python tools/cycle_seed.py coinbase` | ~40 min, resumable; writes `cycle_history.json` (gitignored) |
+| Altseason backtest | `python cycle_backtest.py` · `--selftest` | v1 (locked, FAIL) + v2, pre-registered; ARCHITECTURE §17.1 |
 | Windows exe | `build_exe.bat` | PyInstaller one-file; bundles `template.html` |
 | Equivalence proof | `python tools/rr_harness.py record\|replay …` + `python tools/compare_snap.py` | ARCHITECTURE §18.3 |
 
