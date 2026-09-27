@@ -22,6 +22,7 @@ Everything else (layout, tiles, the slider, chart style and the logic behind eve
   - `template.html`: search for "Altseason panel (cycle.py)" through `function cycleChart`;
   - `ARCHITECTURE.md` §13.8 and §17.1: the written specification.
 
+  **To see the reference UI running** (the look to match), from the repo root on that branch: `pip install -r requirements.txt`, `python tools/cycle_seed.py` (one-time history build, ~40 min, resumable), `python collector.py` (3–6 min), then `python app.py` and open the Start tab (switch to EN top-right, expand the panel, click each tile). `python build_viewer.py --lang en --view start` writes a static `gem_screener.html` instead.
   Where this document and the code disagree, **this document states intent and the code states exact arithmetic.** Ask if they conflict.
 - **You own engineering choices:** stack, data vendors (paid APIs are welcome), storage, scheduling and caching. §4 says what the data must satisfy, not where it must come from.
 - **You are invited to review and improve.** Do a full independent review (method, data, UI, robustness) and fix what you find. Constraints:
