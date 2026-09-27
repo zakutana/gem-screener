@@ -1848,7 +1848,10 @@ def build_cycle(ctx, prev, now_ts, log=None, data_dir=None, fetch=True):
         "hint": hint,
         "backtest": dict({k: v2sum.get(k) for k in ("verdict", "index_at", "eval_start", "lead_weeks", "share_ge_T",
                                                      "max_since_2023")},
-                         generated_utc=(summ or {}).get("generated_utc")) if v2sum else None,
+                         generated_utc=(summ or {}).get("generated_utc"),
+                         # what alts did after each past "Blíží se konec" / "Po vrcholu" (the page's history rows)
+                         signals=[dict(e, phase=p) for p in ("prehrate", "po_vrcholu")
+                                  for e in ((v2sum.get("forward_by_phase") or {}).get(p) or [])]) if v2sum else None,
         "freshness": freshness(H, now_ts),
         "anomalies": s.get("anomalies", []),
     }
