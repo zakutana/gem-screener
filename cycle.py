@@ -1611,6 +1611,36 @@ def heat_block(res, s, weeks, ev, H):
             "cbbi": {"value": _r(cb["v"] * 100, 0), "day": cb["day"]} if cb else None}
 
 
+def append_ledger(data_dir, block, now_ts):
+    """The forward test PREREG_V2 names: one line per closed week in
+    cycle_ledger.jsonl (week, index, phase, pillars), written by the collector after
+    the snapshot is on disk and committed by CI like the picks ledger. v2 passes the
+    backtest by construction, so only weeks it has not seen can test it. A line is
+    added only when `as_of` is newer than the ledger's last week — never from a
+    stale fallback block or without history. Returns True when a line was written."""
+    if not block or block.get("stale") or block.get("history_missing") or block.get("index") is None:
+        return False
+    path = os.path.join(data_dir, LEDGER_NAME)
+    last = None
+    if os.path.exists(path):
+        for line in io.open(path, encoding="utf-8"):
+            line = line.strip()
+            if line:
+                try:
+                    last = max(last or 0, int(json.loads(line)["week"]))
+                except (ValueError, KeyError, TypeError):
+                    continue
+    if last is not None and block["as_of"] <= last:
+        return False
+    rt = (block.get("components") or {}).get("retail") or {}
+    line = {"week": block["as_of"], "index": block["index"], "phase": block["phase"],
+            "rotation": block.get("rotation"), "euphoria": block.get("euphoria"), "retail": rt.get("value"),
+            "heat": block.get("heat"), "version": block.get("version"), "written": int(now_ts)}
+    with io.open(path, "a", encoding="utf-8") as f:
+        f.write(json.dumps(line, ensure_ascii=False, separators=(",", ":"), allow_nan=False) + "\n")
+    return True
+
+
 def build_cycle(ctx, prev, now_ts, log=None, data_dir=None, fetch=True):
     """The snapshot's `cycle` block (v2). `fetch=False` rebuilds from the stored
     history only; cycle_backtest runs the same compute_index_v2 on the same series."""

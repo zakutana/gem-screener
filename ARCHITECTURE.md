@@ -153,6 +153,7 @@ Three properties define the architecture:
 | `backtest_summary.json`, `backtest_report.html` | yes | Its verdict (read by the collector) and the full report. |
 | `backtest_cache/prereg.lock` | yes | Hash of the pre-registered criteria; proves they were fixed before the data was seen. |
 | `picks_ledger.jsonl` | yes | Append-only forward record of every shortlist (the honest out-of-sample test). CI's bot commits it every 6 h. |
+| `cycle_ledger.jsonl` | yes | Append-only forward record of the Altseason index v2: one line per closed week (§13.8). CI's bot commits it with the picks ledger. |
 | `baskets_cache.json` | yes | CoinGecko theme candidates, 7-day cache. Tracked as a warm start: a cold CoinGecko rebuild costs ~19 rate-limited calls. |
 | `platforms_cache.json` | yes | CoinGecko `coins/list` token addresses (2.4 MB), 7-day cache, tracked for the same reason — the free API rate-limits that call hard. |
 | `tools/rr_harness.py`, `tools/compare_snap.py` | yes | Record/replay equivalence proof for refactors (§18.3). |
@@ -286,7 +287,10 @@ accumulators once double-counted on the second Refresh).
     rounded to cents (`clean_series`). (The adoption index is different: it keeps
     9 significant digits, `%.9g`, because it can start at 0.0007.)
 20. `write_snapshot` — tmp file + `os.replace`.
-21. `append_ledger` — **only after** the snapshot is safely written.
+21. `append_ledger` — **only after** the snapshot is safely written; then
+    `cycle.append_ledger` adds the week's line to `cycle_ledger.jsonl` when the
+    `cycle` block's `as_of` is newer than the ledger's last week (never from a
+    stale fallback block or without history).
 
 A full run takes ~3–6 minutes; the first run after the theme definitions change
 spends a few more minutes rebuilding CoinGecko baskets.
@@ -852,6 +856,13 @@ altseason, so a 3–12 % BTC.D dip scored 60–70 and v1 read 64 in 2024-03 and
   history from its cache and seeds only when the file is missing). Its loader tells
   missing from corrupt, keeps a `.bak`, refuses to save fewer weeks than it loaded,
   and drops the old YouTube ledger (`yt`).
+- **The forward test** (`cycle_ledger.jsonl`): v2 passes its backtest by
+  construction, so only weeks it has not seen can test it. After the snapshot is
+  written, the collector appends one line per closed week — `week`, `index`,
+  `phase`, `rotation`, `euphoria`, `retail`, `heat`, `version`, `written` — only
+  when the block's `as_of` is newer than the ledger's last week, never from a stale
+  fallback block, without history or without an index. CI commits it with the
+  picks ledger.
 
 Snapshot block `cycle`: `version` (`altseason-cycle-v2`), `prereg_sha256` (the v2
 lock, when the summary has its v2 section), `as_of`, `generated`,
@@ -1246,17 +1257,23 @@ Every 6 h (`17 */6 * * *`), on manual dispatch, and on pushes to `main` touching
 the pipeline files:
 
 1. checkout, Python 3.13, Node 22, `pip install -r requirements.txt`;
-2. restore `snapshot.json` and the four caches from `actions/cache`;
-3. `python collector.py` with the `COINGECKO_DEMO_KEY` secret;
+2. restore `snapshot.json`, the four caches and `cycle_history.json` from `actions/cache`;
+3. when `cycle_history.json` did not come back from the cache, a time-boxed
+   resumable `tools/cycle_seed.py` (30 min; the next run continues it);
+   `python collector.py` with the `COINGECKO_DEMO_KEY` and optional
+   `CLOUDFLARE_API_TOKEN` secrets (no other secret is read);
 4. save the caches (before the audits — see §23);
 5. **the three audits — any non-zero exit stops the run, nothing is deployed**
    and the site stays on the last good version;
-6. `build_viewer.py` → `site/index.html` (+ `backtest_report.html`);
-7. commit `picks_ledger.jsonl` as `gem-screener-bot` (pull `--rebase
-   --autostash` first: the tracked caches were rewritten by the run);
+6. `build_viewer.py` → `site/index.html` (+ `backtest_report.html`,
+   `cycle_backtest_report.html`);
+7. commit `picks_ledger.jsonl` and `cycle_ledger.jsonl` as `gem-screener-bot`
+   (pull `--rebase --autostash` first: the tracked caches were rewritten by the
+   run);
 8. deploy `site/` to GitHub Pages.
 
-Concurrency group `gem-screener-update` (no cancellation), 40 min timeout,
+Concurrency group `gem-screener-update` (no cancellation), 70 min timeout (the
+first run also seeds the Altseason history),
 permissions `contents`, `pages`, `id-token: write`.
 
 ## 17. Backtest and pre-registration

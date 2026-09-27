@@ -2101,6 +2101,12 @@ def run(log=None, data_dir=None):
             ctx.log("záznam tipů: +%d coinů" % len(degen.get("shortlist") or []))
     except Exception as exc:
         ctx.warn("záznam tipů nejde zapsat: %s" % exc)
+    # the Altseason index's forward test: one line per closed week, same rule
+    try:
+        if cycle.append_ledger(ctx.data_dir, cycle_block, now_ts):
+            ctx.log("záznam altseason cyklu: týden %s" % time.strftime("%Y-%m-%d", time.gmtime(cycle_block["as_of"])))
+    except Exception as exc:
+        ctx.warn("záznam altseason cyklu nejde zapsat: %s" % exc)
     size_kb = os.path.getsize(path) / 1024
     ctx.log("wrote %s (%.0f KB) — %d apps, %d chains, %d app sectors, %d chain sectors"
             % (SNAPSHOT_NAME, size_kb, len(apps_scored), len(chains_scored),

@@ -5,8 +5,9 @@
 # zůstane na poslední dobré verzi a GitHub pošle e-mail o neúspěšném běhu.
 #
 # Mezi běhy si pamatuje cache (koše témat, adresy tokenů, DexScreener, unlocky)
-# a minulý snapshot přes actions/cache. Záznam tipů (picks_ledger.jsonl) se
-# commituje do repa: je to dopředný test výběru a nesmí se ztratit s cache.
+# a minulý snapshot přes actions/cache. Záznam tipů (picks_ledger.jsonl) a týdenní
+# záznam altseason cyklu (cycle_ledger.jsonl) se commitují do repa: jsou to
+# dopředné testy výběru a indexu v2 a nesmí se ztratit s cache.
 # Commit každých 6 h zároveň drží repo aktivní — GitHub jinak po 60 dnech bez
 # aktivity naplánované běhy vypne.
 name: Aktualizace Gem Screeneru
@@ -85,7 +86,6 @@ jobs:
       - name: Sběr dat
         env:
           COINGECKO_DEMO_KEY: ${{ secrets.COINGECKO_DEMO_KEY }}
-          YOUTUBE_API_KEY: ${{ secrets.YOUTUBE_API_KEY }}
           CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
           PYTHONIOENCODING: utf-8
         run: python collector.py
@@ -118,13 +118,14 @@ jobs:
           cp backtest_report.html site/backtest_report.html
           cp cycle_backtest_report.html site/cycle_backtest_report.html
 
-      - name: Zapsat záznam tipů do repa
+      - name: Zapsat záznamy do repa
         run: |
           git config user.name "gem-screener-bot"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
           git add picks_ledger.jsonl
+          if [ -f cycle_ledger.jsonl ]; then git add cycle_ledger.jsonl; fi
           if ! git diff --cached --quiet; then
-            git commit -m "data: záznam tipů $(date -u '+%Y-%m-%d %H:%M UTC')"
+            git commit -m "data: záznam tipů a altseason cyklu $(date -u '+%Y-%m-%d %H:%M UTC')"
             # the run rewrote the seeded caches; they travel in actions/cache,
             # not in git, so stash them out of the way of the rebase
             git pull --rebase --autostash
