@@ -487,6 +487,7 @@ tbody tr:hover .msparkline .mb.partial{opacity:.45}
   text-transform:uppercase; color:var(--muted); margin-top:4px}
 .ap-gticks span{position:absolute; top:0; white-space:nowrap}
 .ap-gticks span + span{transform:translateX(-100%)}
+.ap-gticks span.ap-asof{left:auto; right:0; transform:none}
 .ap-note{font-size:12px; color:var(--warn); margin-top:8px}
 .ap-empty{font-size:13px; color:var(--muted)}
 .ap-detail{margin-top:10px; border-top:1px solid var(--rule-soft); padding-top:12px; position:relative}
@@ -501,6 +502,8 @@ tbody tr:hover .msparkline .mb.partial{opacity:.45}
 .rt-row:not(.rt-hdr):hover{background:var(--surface-2)}
 .rt-s{text-align:right}
 .rt-p.cy-how{grid-column:2 / 4; white-space:normal; color:var(--ink-2); font-size:13px}
+.cy-sig .rt-s{white-space:nowrap; font-size:12.5px}
+.rt-head.cy-tip{font-size:13px; margin-top:14px}
 .rt-n{font-weight:600; color:var(--ink); white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
 .rt-v{font-family:"IBM Plex Mono",monospace; color:var(--ink); white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
 .rt-p{display:flex; align-items:center; gap:8px; min-width:0; white-space:nowrap; overflow:hidden}
@@ -547,6 +550,7 @@ tbody tr:hover .msparkline .mb.partial{opacity:.45}
 @media (max-width:720px){
   .ap-head{flex-direction:column}
   .ap-toggle{padding:6px 10px}
+  .ap-gticks{height:30px} .ap-gticks span.ap-asof{top:14px}
   .ap-tile{padding:8px 10px}
   .ap-v{font-size:1.2rem} .ap-main .ap-v{font-size:1.6rem}
   /* a phone row is two lines: name + score, then today + how far from the top */
@@ -2458,7 +2462,7 @@ function tileHtml(t, sel){
     k = L('Altseason cyklus', 'Altseason cycle');
     v = (c && c.index !== null && c.index !== undefined) ? num0(c.index) + '<small>/100</small>' : '—';
     w = p ? '<span class="ap-w ' + p.cls + '">' + esc(L(p.cs, p.en)) + '</span>'
-      : '<span class="ap-w flat">' + L('bez historie', 'no history') + '</span>';
+      : '<span class="ap-w flat">' + (c && c.history_missing ? L('bez historie', 'no history') : L('chybí data', 'data missing')) + '</span>';
   } else if (t.key === 'othersd') {
     var o = comp.othersd || {};
     k = 'OTHERS'; v = lvl(o.value, 2); w = vword(o.verdict);
@@ -2479,15 +2483,31 @@ function tileHtml(t, sel){
     '<span class="ap-k">' + esc(k) + '</span><span class="ap-v">' + v + '</span>' + w + '</button>';
 }
 
-/* The slider stays visible collapsed: today's index on its way to the level where
-   the 2018 and 2021 altseasons ended (the red tick is T) — the bar filling up
-   towards the tick is the exit gauge. */
+/* The slider stays visible collapsed: today's index on its way to the zone the
+   altseason tops reached (the red tick is T) — the bar filling up towards it is the
+   exit gauge. Not "the end": 2017 sat at 99,7 nine months before the last top, 2021
+   touched 80. The week the numbers are from sits on the right. */
 function gaugeHtml(){
   var c = CYC, T = (c.rules || {}).T || 75, ix = c.index || 0;
   return '<div class="ap-gwrap"><div class="ap-gauge"><i style="width:' +
     Math.max(1, Math.min(100, ix)) + '%"></i><span class="mk" style="left:' + T + '%"></span></div>' +
     '<div class="ap-gticks"><span>' + L('klid', 'calm') + '</span><span style="left:' + T + '%">' +
-    L('konec altseasonu (2018, 2021)', 'altseason end (2018, 2021)') + '</span></div></div>';
+    L('zóna vrcholů · ', 'top zone · ') + num0(T) + '</span>' +
+    (c.as_of ? '<span class="ap-asof">' + L('data týdne ', 'week of ') + fmtDate(c.as_of, true) + '</span>' : '') + '</div></div>';
+}
+
+var FRESH_NAME = {cmc_weekly: ['CMC týdenní', 'CMC weekly'], cmc_daily: ['CMC denní', 'CMC daily'],
+  coinmetrics: ['Coin Metrics', 'Coin Metrics'], coinbase: ['Coinbase', 'Coinbase'], upbit: ['Upbit', 'Upbit'],
+  memecoins: ['memecoiny', 'memecoins'], app_store: ['App Store', 'App Store']};
+/* A source that broke must show on the page, not only in a log (cycle.freshness decides). */
+function staleNote(){
+  var f = CYC.freshness || {}, bad = [];
+  Object.keys(FRESH_NAME).forEach(function(k){
+    var x = f[k];
+    if (x && x.stale) bad.push(esc(L(FRESH_NAME[k][0], FRESH_NAME[k][1])) + ' (' +
+      (x.age_days === null || x.age_days === undefined ? L('nic', 'none') : x.age_days + L(' d', 'd')) + ')');
+  });
+  return bad.length ? '<div class="ap-note">' + L('Zastaralá data: ', 'Stale data: ') + bad.join(', ') + '</div>' : '';
 }
 
 function renderAltPanel(hostId){
@@ -2510,6 +2530,7 @@ function renderAltPanel(hostId){
     (CYC.history_missing ? '<div class="ap-note">' + L('Historie chybí — spusť <code>python tools/cycle_seed.py</code>.',
       'History missing — run <code>python tools/cycle_seed.py</code>.') + '</div>' : '') +
     (CYC.stale ? '<div class="ap-note">' + L('Data panelu jsou z minulého běhu.', 'The panel data is from the previous run.') + '</div>' : '') +
+    (CYC.history_missing ? '' : staleNote()) +
     '<div class="ap-detail" id="' + did + '"' + (open ? '' : ' hidden') + '></div>';
   host.querySelectorAll('.ap-tile').forEach(function(b){
     b.addEventListener('click', function(){
@@ -2580,7 +2601,7 @@ function detailCycle(el){
       L('retail ', 'retail ') + num0(rtv) + L(' a přehřátí BTC ', ' and BTC overheating ') + num0(c.heat) + L(', průměr', ', averaged'), eu) : '') +
     crow('<b>' + L('Index', 'Index') + '</b>', L('⅔ rotace + ⅓ euforie. „Blíží se konec“ = index ≥ ', '⅔ rotation + ⅓ euphoria. “End is near” = index ≥ ') +
       num0(T) + L(' a euforie ≥ ', ' and euphoria ≥ ') + num0(E), c.index) +
-    '</div>';
+    '</div>' + signalsHtml();
   cycleChart(el.querySelector('.ap-chart'), {weeks: ws, from: dsp(), y: {min: 0, max: 100, top: 108, fmt: num0},
     series: [{v: S.index, cls: 'c-acc', area: true}], y2: [{v: S.others_usd, cls: 'c-coral', fmt: usdBn}],
     hlines: [{v: T, cls: 'c-coral', label: L('konec altseasonu', 'altseason end') + ' · ' + num0(T)}],
@@ -2591,6 +2612,25 @@ function detailCycle(el){
         '<br><span class="t2">OTHERS ' + usdBn((S.others_usd || [])[i]) + '</span>';
     },
     legend: [[L('Altseason cyklus', 'Altseason cycle'), 'c-acc'], [L('OTHERS v $ (log)', 'OTHERS in $ (log)'), 'c-coral']]});
+}
+
+/* The honest part for an exit: when the warning lit in the past and what alts did
+   next (the backtest's own numbers), and the rule of thumb they teach. */
+function signalsHtml(){
+  var sig = ((CYC.backtest || {}).signals || []).slice().sort(function(a, b){ return a.start - b.start; });
+  var rows = sig.map(function(e){
+    var ph = ALT_PHASE[e.phase] || {};
+    var ret = function(v){ return v === null || v === undefined ? '—' : '<span class="' + (v >= 0 ? 'pos' : 'neg') + '">' + fmtPct(v, 0) + '</span>'; };
+    return '<div class="rt-row cy-sig"><span class="rt-n"><span class="ap-w ' + (ph.cls || 'flat') + '">' + esc(L(ph.cs || '', ph.en || '')) +
+      '</span></span><span class="rt-v">' + monthOf(e.start) + '</span><span class="rt-p">' + L('alty za 3 měs. ', 'alts in 3 mo ') + ret(e.usd13) +
+      '</span><span class="rt-s">' + L('6 měs. ', '6 mo ') + ret(e.usd26) + '</span></div>';
+  });
+  return '<div class="rt-head cy-tip">' + L('<b>Jak to číst:</b> prodávej postupně už při „Blíží se konec“. „Po vrcholu“ se hlásí ' +
+      's měsíčním až dvouměsíčním zpožděním a v roce 2017 přišel ještě jeden velký vrchol.',
+      '<b>How to read it:</b> sell gradually from “End is near”. “Past the top” comes one to two months late, ' +
+      'and in 2017 one more big top followed.') + '</div>' +
+    (rows.length ? '<div class="rt-list"><div class="rt-row rt-hdr"><span>' + L('dřív svítilo', 'lit before') + '</span><span>' +
+      L('od', 'from') + '</span><span>' + L('OTHERS v $', 'OTHERS in $') + '</span><span></span></div>' + rows.join('') + '</div>' : '');
 }
 
 /* A TradingView line: from its anchor with its weekly slope, into the future space. */

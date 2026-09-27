@@ -1176,7 +1176,8 @@ def update_coinbase(ctx, H, now_ts, log, full=False):
 
 
 def upbit_weeks(ctx, market, since, count=200):
-    """Weekly KRW turnover of one market back to `since`: {monday: krw}."""
+    """Weekly KRW turnover of one market back to `since`: {monday: krw}, or None
+    when a call fails (an empty answer is a market with no candles, not a failure)."""
     out = {}
     to = None
     for _ in range(6):
@@ -1184,6 +1185,8 @@ def upbit_weeks(ctx, market, since, count=200):
             market, count, ("&to=" + to) if to else "")
         d = ctx.get(url, timeout=30, warn=False, quiet_status=())
         time.sleep(0.13)
+        if d is None:
+            return None
         if not d:
             break
         for c in d:
@@ -1200,8 +1203,13 @@ def upbit_weeks(ctx, market, since, count=200):
 def update_upbit(ctx, H, now_ts, log, full=False):
     """Korean retail: Upbit's weekly KRW turnover summed over every listed KRW
     market. Refreshed once a week (~300 calls at Upbit's 10/s limit). Delisted
-    coins are missing from old weeks, so old levels are understated — the retail
-    score therefore uses the 13-week CHANGE, never the level."""
+    coins are missing from old weeks, so old levels are understated (mostly
+    2018–19, outside today's four-year window).
+
+    The sum is only as good as its markets: a market whose call failed would make
+    the week read low and overwrite a good stored value, and the retail score would
+    sink with nobody told. So a run with failed markets writes nothing and warns
+    (stale beats empty); the next run tries again."""
     U = H.setdefault("upbit", {})
     last_complete = monday(now_ts) - WEEK
     have = sorted(int(k) for k in U)
@@ -1215,12 +1223,21 @@ def update_upbit(ctx, H, now_ts, log, full=False):
     first = full or not have
     since = 1506816000 if first else have[-1] - 3 * WEEK     # 2017-10-01
     sums = {}
+    failed = []
     for i, m in enumerate(markets):
-        for t, v in upbit_weeks(ctx, m, since, count=200 if first else 5).items():
+        wk = upbit_weeks(ctx, m, since, count=200 if first else 5)
+        if wk is None:
+            failed.append(m)
+            continue
+        for t, v in wk.items():
             if t <= last_complete:
                 sums[t] = sums.get(t, 0) + v
         if first and i % 50 == 49:
             log("cycle: Upbit %d/%d trhů" % (i + 1, len(markets)))
+    if failed:
+        ctx.warn("Upbit: %d z %d trhů nedostupných (%s…) — týdenní obrat se neuložil, zůstávají starší data"
+                 % (len(failed), len(markets), ", ".join(failed[:3])))
+        return 0
     for t, v in sums.items():
         U[_dkey(t)] = round(v)
     H["upbit_markets"] = len(markets)
@@ -1566,6 +1583,29 @@ def retail_block(ctx, H, weeks, rows, picks, res, R):
             "n_scored": sum(1 for k in rs if rs[k][last] is not None), "parts": parts}
 
 
+# how old each source may get before the page says so: weekly ones get a week and a
+# half, daily ones four days (CMC serves a day only 1–2 days later)
+FRESH_DAYS = {"cmc_weekly": 10, "cmc_daily": 4, "coinmetrics": 4, "coinbase": 4, "upbit": 10, "memecoins": 4,
+              "app_store": 10}
+
+
+def freshness(H, now_ts):
+    """The newest data day of every source the panel reads, and whether it is stale.
+    A source that breaks mid-altseason must show on the page, not only in a log:
+    the index keeps being drawn from what is stored (stale beats empty)."""
+    daily = H.get("daily") or {}
+    newest = lambda d: max((int(k) for k in (d or {})), default=None)
+    up = newest(H.get("upbit"))
+    days = {"cmc_weekly": newest({k: 1 for k, v in (H.get("weeks") or {}).items() if v.get("od") is not None}),
+            "cmc_daily": newest(daily.get("cmc")), "coinmetrics": newest(daily.get("cm")),
+            "coinbase": newest((H.get("cbx") or {}).get("BTC-USD")),
+            "upbit": up + WEEK if up is not None else None,           # a candle is keyed by its week's start
+            "memecoins": newest(H.get("meme30")),
+            "app_store": max((x[0] for x in H.get("apps") or []), default=None)}
+    return {k: {"day": d, "age_days": None if d is None else int((day0(now_ts) - day0(d)) // DAY),
+                "stale": d is None or (day0(now_ts) - day0(d)) // DAY > FRESH_DAYS[k]} for k, d in days.items()}
+
+
 def _line_out_v2(L, weeks, vals, latest=None):
     """A trend_line result with week stamps for the page and audit §37; None when
     there is no line (the status is then bez_trendu)."""
@@ -1808,7 +1848,11 @@ def build_cycle(ctx, prev, now_ts, log=None, data_dir=None, fetch=True):
         "hint": hint,
         "backtest": dict({k: v2sum.get(k) for k in ("verdict", "index_at", "eval_start", "lead_weeks", "share_ge_T",
                                                      "max_since_2023")},
-                         generated_utc=(summ or {}).get("generated_utc")) if v2sum else None,
+                         generated_utc=(summ or {}).get("generated_utc"),
+                         # what alts did after each past "Blíží se konec" / "Po vrcholu" (the page's history rows)
+                         signals=[dict(e, phase=p) for p in ("prehrate", "po_vrcholu")
+                                  for e in ((v2sum.get("forward_by_phase") or {}).get(p) or [])]) if v2sum else None,
+        "freshness": freshness(H, now_ts),
         "anomalies": s.get("anomalies", []),
     }
     json.dumps(block, allow_nan=False)        # one NaN would kill JSON.parse on the page

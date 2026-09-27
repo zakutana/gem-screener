@@ -877,8 +877,11 @@ breakout events), `retail_raw` (the weekly samples `coinbase`, `upbit`, `degen`,
 `apps`, unrounded)), `components`, `events` (`P0`, `P1`, `P2`, `P2b`),
 `index_at_events`, `hint` (`phase`, `episodes` with `start`, `usd13`, `vbtc13`;
 `n_prior`), `backtest` (from the summary's v2 section: `verdict`, `index_at`,
-`eval_start`, `lead_weeks`, `share_ge_T`, `max_since_2023`; `generated_utc`),
-`anomalies`.
+`eval_start`, `lead_weeks`, `share_ge_T`, `max_since_2023`; `generated_utc`, `signals` — every past `prehrate` / `po_vrcholu` episode with `phase`,
+`start`, `end`, `usd13`, `vbtc13`, `usd26`, `vbtc26`), `freshness` (per source — `cmc_weekly`,
+`cmc_daily`, `coinmetrics`, `coinbase`, `upbit`, `memecoins`, `app_store` — its newest data `day`,
+`age_days` and `stale`; the page names stale sources), `anomalies`. Upbit writes nothing when any
+market's call failed (a partial sum would overwrite good weeks) and warns.
 
 `rules` (= `cycle.V2_RULES`; the first group equals PREREG_V2's): `T`, `window`,
 `min_window`, `rot_dd_full`, `rot_rise_full`, `rot_breadth_lo`, `rot_breadth_hi`,
