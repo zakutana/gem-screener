@@ -502,8 +502,6 @@ tbody tr:hover .msparkline .mb.partial{opacity:.45}
 .rt-row:not(.rt-hdr):hover{background:var(--surface-2)}
 .rt-s{text-align:right}
 .rt-p.cy-how{grid-column:2 / 4; white-space:normal; color:var(--ink-2); font-size:13px}
-.cy-sig .rt-s{white-space:nowrap; font-size:12.5px}
-.rt-head.cy-tip{font-size:13px; margin-top:14px}
 .rt-n{font-weight:600; color:var(--ink); white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
 .rt-v{font-family:"IBM Plex Mono",monospace; color:var(--ink); white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
 .rt-p{display:flex; align-items:center; gap:8px; min-width:0; white-space:nowrap; overflow:hidden}
@@ -2601,7 +2599,7 @@ function detailCycle(el){
       L('retail ', 'retail ') + num0(rtv) + L(' a přehřátí BTC ', ' and BTC overheating ') + num0(c.heat) + L(', průměr', ', averaged'), eu) : '') +
     crow('<b>' + L('Index', 'Index') + '</b>', L('⅔ rotace + ⅓ euforie. „Blíží se konec“ = index ≥ ', '⅔ rotation + ⅓ euphoria. “End is near” = index ≥ ') +
       num0(T) + L(' a euforie ≥ ', ' and euphoria ≥ ') + num0(E), c.index) +
-    '</div>' + signalsHtml();
+    '</div>';
   cycleChart(el.querySelector('.ap-chart'), {weeks: ws, from: dsp(), y: {min: 0, max: 100, top: 108, fmt: num0},
     series: [{v: S.index, cls: 'c-acc', area: true}], y2: [{v: S.others_usd, cls: 'c-coral', fmt: usdBn}],
     hlines: [{v: T, cls: 'c-coral', label: L('konec altseasonu', 'altseason end') + ' · ' + num0(T)}],
@@ -2612,25 +2610,6 @@ function detailCycle(el){
         '<br><span class="t2">OTHERS ' + usdBn((S.others_usd || [])[i]) + '</span>';
     },
     legend: [[L('Altseason cyklus', 'Altseason cycle'), 'c-acc'], [L('OTHERS v $ (log)', 'OTHERS in $ (log)'), 'c-coral']]});
-}
-
-/* The honest part for an exit: when the warning lit in the past and what alts did
-   next (the backtest's own numbers), and the rule of thumb they teach. */
-function signalsHtml(){
-  var sig = ((CYC.backtest || {}).signals || []).slice().sort(function(a, b){ return a.start - b.start; });
-  var rows = sig.map(function(e){
-    var ph = ALT_PHASE[e.phase] || {};
-    var ret = function(v){ return v === null || v === undefined ? '—' : '<span class="' + (v >= 0 ? 'pos' : 'neg') + '">' + fmtPct(v, 0) + '</span>'; };
-    return '<div class="rt-row cy-sig"><span class="rt-n"><span class="ap-w ' + (ph.cls || 'flat') + '">' + esc(L(ph.cs || '', ph.en || '')) +
-      '</span></span><span class="rt-v">' + monthOf(e.start) + '</span><span class="rt-p">' + L('alty za 3 měs. ', 'alts in 3 mo ') + ret(e.usd13) +
-      '</span><span class="rt-s">' + L('6 měs. ', '6 mo ') + ret(e.usd26) + '</span></div>';
-  });
-  return '<div class="rt-head cy-tip">' + L('<b>Jak to číst:</b> prodávej postupně už při „Blíží se konec“. „Po vrcholu“ se hlásí ' +
-      's měsíčním až dvouměsíčním zpožděním a v roce 2017 přišel ještě jeden velký vrchol.',
-      '<b>How to read it:</b> sell gradually from “End is near”. “Past the top” comes one to two months late, ' +
-      'and in 2017 one more big top followed.') + '</div>' +
-    (rows.length ? '<div class="rt-list"><div class="rt-row rt-hdr"><span>' + L('dřív svítilo', 'lit before') + '</span><span>' +
-      L('od', 'from') + '</span><span>' + L('OTHERS v $', 'OTHERS in $') + '</span><span></span></div>' + rows.join('') + '</div>' : '');
 }
 
 /* A TradingView line: from its anchor with its weekly slope, into the future space. */
