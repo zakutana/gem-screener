@@ -1171,6 +1171,19 @@ The page reads `DATA = JSON.parse(#snapshot-data)`; there is no `DATA` global.
   dropped coins with reasons, shared members, the fundament block, the index
   chart vs BTC, and every app/chain of the theme (`themeRowsBlock`, with how each
   was assigned).
+- The Altseason panel (`renderAltPanel`, in `#startAlt` and `#altStrip`): five
+  tiles, the slider with its tick at T ("konec altseasonu (2018, 2021)"), and one
+  chart per tile through `cycleChart`, TradingView-style (Adam, 2026-09-27: every
+  chart was too flat): height 0,46 × width clamped to 260–460 px; OTHERS.D, BTC.D
+  and volume axes fit the data with 5 % padding while the indices keep 0–100;
+  4–6 round ticks (`niceTicks`); the main series a 2 px line over a gradient area
+  (30 % → 0, an inline `fill:url(#…)` whose id derives from the host's id — both
+  hosts sit in the DOM); trend lines 2 px from their anchor into an empty future
+  margin (~8 %), clipped to the plot; the newest value as a tag on the right edge
+  (inside the plot, left of the price axis); a log right axis; a crosshair tooltip.
+  The cycle chart adds the dashed T line and the P0/P1/P2 values; on a phone only
+  the labels that carry the story stay. A v1 block (served from memory by `app.py`)
+  still draws: every renderer falls back.
 - Sektory: `renderAltStrip` (altseason index), `renderThemeScatter` (x = beta
   with ±1.96 SE whiskers, y = RS 3M, bubble = log basket mcap, colour = tier;
   labels placed strongest-first, trying above/below/right/left, avoiding bubbles,
