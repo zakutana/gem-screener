@@ -2592,17 +2592,26 @@ function detailCycle(el){
   };
   el.innerHTML = '<div class="ap-chart"></div>' +
     '<div class="rt-list">' +
-    crow(L('Rotace do altů · ⅔', 'Rotation into alts · ⅔'),
-      L('BTC.D ', 'BTC.D ') + '−' + lvl(bdc.dd52, 0) + L(' od ročního maxima · OTHERS.D ', ' from its 1-year high · OTHERS.D ') +
-      L('skóre ', 'score ') + num0(odc.rise_score) + L(' · altů poráží BTC ', ' · alts beating BTC ') + lvl(brc.mean4, 0), c.rotation) +
-    (eu !== undefined ? crow(L('Euforie · ⅓', 'Euphoria · ⅓'),
-      L('retail ', 'retail ') + num0(rtv) + L(' a přehřátí BTC ', ' and BTC overheating ') + num0(c.heat) + L(', průměr', ', averaged'), eu) : '') +
-    crow('<b>' + L('Index', 'Index') + '</b>', L('⅔ rotace + ⅓ euforie. „Blíží se konec“ = index ≥ ', '⅔ rotation + ⅓ euphoria. “End is near” = index ≥ ') +
-      num0(T) + L(' a euforie ≥ ', ' and euphoria ≥ ') + num0(E), c.index) +
+    // plain words, each number next to what an altseason looked like; the OTHERS.D
+    // rise is read back from its score (score = ln(1 + rise) / ln 3)
+    crow(L('Tečou peníze do altů?', 'Is money moving into alts?'),
+      L('BTC dominance ', 'BTC dominance ') + '−' + lvl(bdc.dd52, 0) + L(' od ročního maxima (v altseasonu −30 až −50 %)',
+        ' from its 1-year high (−30 to −50% in an altseason)') + '<br>' +
+      L('malé alty ', 'small alts ') + (odc.rise_score === null || odc.rise_score === undefined ? '—'
+        : '+' + num0(100 * (Math.pow(3, odc.rise_score / 100) - 1)) + L(' %', '%')) +
+      L(' nad ročním dnem (v altseasonu +100 % a víc)', ' above their 1-year low (+100% or more in an altseason)') + '<br>' +
+      L('BTC poráží jen ', 'only ') + lvl(brc.mean4, 0) + L(' altů (v altseasonu 80 %+)', ' of alts beat BTC (80%+ in an altseason)'),
+      c.rotation) +
+    (eu !== undefined ? crow(L('Je trh v euforii?', 'Is the market euphoric?'),
+      L('lidi obchodují na ', 'people trade at ') + num0(rtv) + L('/100 svého maxima · Bitcoin přehřátý na ', '/100 of their high · Bitcoin overheated at ') +
+      num0(c.heat) + '/100', eu) : '') +
+    crow('<b>' + L('Altseason cyklus', 'Altseason cycle') + '</b>',
+      L('⅔ peníze do altů + ⅓ euforie. Od ', '⅔ money into alts + ⅓ euphoria. From ') + num0(T) +
+      L(' (a euforie od ', ' (with euphoria from ') + num0(E) + L('): „Blíží se konec“.', '): “End is near”.'), c.index) +
     '</div>';
   cycleChart(el.querySelector('.ap-chart'), {weeks: ws, from: dsp(), y: {min: 0, max: 100, top: 108, fmt: num0},
     series: [{v: S.index, cls: 'c-acc', area: true}], y2: [{v: S.others_usd, cls: 'c-coral', fmt: usdBn}],
-    hlines: [{v: T, cls: 'c-coral', label: L('konec altseasonu', 'altseason end') + ' · ' + num0(T)}],
+    hlines: [{v: T, cls: 'c-coral', label: L('zóna vrcholů', 'top zone') + ' · ' + num0(T)}],
     marks: marks, pill: {fmt: num0},
     tip: function(i){
       var ph = ALT_PHASE[(S.phase || [])[i]];
