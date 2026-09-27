@@ -2,7 +2,7 @@
 Pre-registered consistency check of the Altseason cyklus index.
 
     python cycle_backtest.py --selftest   synthetic checks only, no data
-    python cycle_backtest.py              lock PREREG, evaluate on cycle_history.json
+    python cycle_backtest.py              lock PREREG + PREREG_V2, evaluate on cycle_history.json
 
 Adam's requirement (2026-09-26): the index must sit on the 2017/18 and 2021
 altseason peaks. With two peaks there is no statistics to speak of, and the design
@@ -18,8 +18,14 @@ an out-of-sample test. What keeps it honest:
   rule that picks one are fixed here; all four are reported.
 - If no variant passes, the report says FAIL and nothing is tuned.
 
-Writes cycle_backtest_summary.json (read by the collector: the chosen variant and T)
-and cycle_backtest_report.html (charts for Adam).
+v1 failed (2026-09-26: the 2017/18 cycle's highest week was June 2017, not Jan 2018)
+and stays locked and reported. PREREG_V2 (2026-09-27) is a new registration with its
+own id and lock (backtest_cache/cycle_prereg_v2.lock), committed before any v2 code
+computed an index. It was designed after v1 failed, with both cycles in view, so it
+passes by construction; the honest test is the forward ledger (cycle_ledger.jsonl).
+
+Writes cycle_backtest_summary.json (v1 at the top level as before, v2 under "v2";
+the collector reads the v2 rules) and cycle_backtest_report.html (charts for Adam).
 """
 import datetime
 import hashlib
@@ -32,6 +38,7 @@ import sys
 import cycle
 
 LOCK = os.path.join("backtest_cache", "cycle_prereg.lock")
+LOCK_V2 = os.path.join("backtest_cache", "cycle_prereg_v2.lock")
 
 PREREG = {
     "id": "altseason-cycle-v1",
@@ -82,20 +89,150 @@ PREREG = {
 }
 V1_SHA256 = "2fb9e3884563f40bcddbab7660595eb4a8b91b2119d59f07c0d82aad449917c7"   # = the v1 lock
 
+# v2, registered 2026-09-27 after v1's FAIL. Every threshold the index, the phases,
+# the retail score and the trendline use is in "rules"; cycle.DEFAULT_RULES must
+# equal them (main() and the selftest refuse a drift). The texts are the definition.
+PREREG_V2 = {
+    "id": "altseason-cycle-v2",
+    "registered": "2026-09-27",
+    "supersedes": "altseason-cycle-v1 (FAIL on 2026-09-26; stays locked and reported)",
+    "honesty": "Designed after v1 failed, with both altseasons in view; the planning run of 2026-09-27 "
+               "computed these formulas on the real history before this registration, so passing is by "
+               "construction: a consistency check, not a test. The test is forward: cycle_ledger.jsonl.",
+    "job": "an exit gauge that works week by week during an altseason: the index climbs towards the level "
+           "of past altseason ends, the phase says prehrate (Blizi se konec), then po_vrcholu",
+    "weeks": "Monday 00:00 UTC stamps, inputs from 2014-07-07; daily inputs are read on the day before "
+             "the stamp; weekly inputs after clean_spikes (a week > 25 % off two neighbours that agree "
+             "within 10 % is dropped)",
+    "rotation": {
+        "parts": ["BTC.D drawdown dd = 1 - mean4(BTC.D) / max of mean4(BTC.D) over the 52 weeks up to t "
+                  "(>= 40 values); score = 100 x dd / 0.50",
+                  "OTHERS.D rise = mean4(OTHERS.D) / min of mean4(OTHERS.D) over the 52 weeks up to t "
+                  "(>= 40 values) - 1; score = 100 x ln(1 + rise) / ln 3",
+                  "breadth b = 4-week mean of the share of the top-50 alts beating BTC over 13 weeks "
+                  "(that week's CMC listing, stablecoins and wrapped twins out); score = 100 x (b - 25) / 65"],
+        "combine": "each part clamped to 0-100; rotation = mean of the parts present, >= 2 of 3",
+        "why": "absolute scales: v1's trailing percentile scored a 3-12 % BTC.D dip 60-70 in 2022-24, "
+               "which held no altseason",
+    },
+    "heat": "BTC heat, unchanged from v1: mean of the trailing percentiles (mid-rank, previous 208 weeks, "
+            "current excluded, >= 104 values) of MVRV ratio, Puell (issuance / 365-day mean), Mayer "
+            "(price / 200-day mean), Pi Cycle (111-day mean / 2 x 350-day mean); >= 3 of 4 present",
+    "retail": {
+        "rows": {
+            "coinbase": "Coinbase Exchange BTC-USD + ETH-USD daily USD turnover (base volume x close, UTC "
+                        "days, today's partial day dropped); mean of the days present among the 30 days "
+                        "before the stamp, >= 20 present",
+            "upbit": "Upbit weekly KRW turnover summed over every KRW market; the sum of the 4 weekly "
+                     "candles of the 4 weeks before the stamp, all 4 present",
+            "degen": "DeFiLlama 30-day revenue of Launchpad + Telegram Bot + Trading App on the day before "
+                     "the stamp; the row starts on the first day it is >= $5M",
+            "apps": "app_score of the best-ranked scored crypto app (US App Store; overall #1 = 100, #10 = "
+                    "90, #100 = 60; Finance #10 = 50, #100 = 10; outside both = 5) in the newest ledger "
+                    "entry of the 7 days before the stamp; used as is: no log score, no warm-up",
+        },
+        "score": "row score = 100 x clamp(1 + ln(x / M) / ln 20, 0, 1), M = the max of the row's positive "
+                 "weekly samples over the 208 weeks up to and including the stamp; x <= 0 or missing = no "
+                 "score (never passed to ln); the first 52 weeks after a row's first positive sample are "
+                 "warm-up (no score)",
+        "index": "retail = mean of the row scores present at the stamp, >= 1 row",
+        "facts": "new stablecoin dollars (USDT + USDC, 13-week change), Coinbase web traffic (Tranco), AI "
+                 "questions: shown, never scored",
+    },
+    "euphoria": "(retail + heat) / 2; none if either is missing",
+    "index": "I = (2 x rotation + euphoria) / 3; none if either is missing",
+    "T": 75,
+    "phases": {
+        "order": ["po_vrcholu", "prehrate", "bezi", "zacina", "btc_sezona", "zima"],
+        "po_vrcholu": "at least 2 of the 26 weeks before t at I >= T, and I <= their max - 15",
+        "prehrate": "I >= T and euphoria >= 70",
+        "bezi": "rotation >= 60, or I >= T",
+        "zacina": "rotation >= 30 and (rotation - rotation 13 weeks earlier >= 15, or an OTHERS.D breakout "
+                  "event in weeks t - 13 .. t)",
+        "btc_sezona": "heat >= 50 and rotation < 30",
+        "zima": "otherwise",
+    },
+    "trendline": {
+        "input": "weekly closes; week t sees closes up to t only; down = OTHERS.D resistance (d = +1), up = "
+                 "BTC.D support (d = -1); more extreme = larger d x close",
+        "anchor": "the most extreme close of the 312 weeks up to t (ties: the earliest); the anchor at t "
+                  "itself = no line",
+        "opposite": "the least extreme close after the anchor and at least 4 weeks before t (ties: the "
+                    "latest); none = no line",
+        "pivots": "closes strictly between anchor and opposite that are the most extreme of +-4 weeks and "
+                  "strictly more extreme than the 4 weeks before them",
+        "line": "through the anchor with slope s = d x max over the pivots of d x (c_j - c_a) / (j - a): the "
+                "tightest line over the lower highs (under the higher lows); no pivot, or a line value <= 0 "
+                "at t = no line",
+        "beyond": "d x close > d x line x (1 + d x 0.03); inside: d x close <= d x line; breaks only after "
+                  "the opposite extreme; a break = 2 consecutive closes beyond",
+        "status": ["bez_trendu: no line",
+                   "pruraz: the latest break with no close back inside since",
+                   "pruraz_nepotvrzeny: the close at t beyond (one close)",
+                   "zpet_pod: a break within the last 13 weeks (t - break <= 13) with a close back inside since",
+                   "pruraz_nepotvrzeny: for the newest status only, the newest daily point beyond the line "
+                   "extended to its day",
+                   "downtrend: otherwise"],
+        "breakout_event": "a week whose weekly status (no daily point) is pruraz after a week that was not",
+    },
+    "events": {
+        "P0": "min weekly BTC.D in 2017-01-01..2017-09-30",
+        "P1": "min weekly BTC.D in [2017-12-17 - 26 w, + 13 w]",
+        "P2": "min weekly BTC.D in [2021-04-14 - 26 w, + 13 w]",
+        "P2b": "max OTHERS USD in 2021-07-01..2021-12-31 (reported)",
+    },
+    "evaluation_start": "the first week with an index",
+    "pass": [
+        "a prehrate week in [P - 8 w, P + 2 w] for each of P0, P1, P2",
+        "cycle 1 (evaluation start..2019-12-31): the highest-index week (ties: the earliest) in "
+        "[P0 - 12 w, P0 + 4 w] or [P1 - 12 w, P1 + 4 w]; cycle 2 (2020-01-01..2022-12-31): in "
+        "[P2 - 12 w, P2 + 4 w]",
+        "at most 10 % of the evaluated weeks at I >= T",
+        "at most 2 prehrate episodes starting outside [P - 16 w, P + 8 w] of every event (P0, P1, P2, P2b)",
+    ],
+    "reported_only": [
+        "lead time: for P0, P1, P2, P minus the first week of the earliest prehrate episode with a week in "
+        "[P - 8 w, P + 2 w]",
+        "13/26-week OTHERS USD return and vs BTC after the start of every phase episode (prehrate and "
+        "po_vrcholu first)",
+        "the highest index from 2023-01-01 to the newest week, and each calendar year's maximum",
+        "v1's verdict beside it (FAIL, never re-tuned)",
+    ],
+    "forward_test": "cycle_ledger.jsonl: one line per closed week (week, index, phase, rotation, euphoria, "
+                    "retail, heat), appended by the collector after the snapshot is written; CI commits it",
+    "rules": {
+        "T": 75, "window": 208, "min_window": 104,
+        "rot_dd_full": 50, "rot_rise_full": 3, "rot_breadth_lo": 25, "rot_breadth_hi": 90, "rot_min_parts": 2,
+        "rot_weight": 2, "euph_weight": 1,
+        "retail_window": 208, "retail_warmup": 52, "retail_span": 20, "retail_min_rows": 1,
+        "coinbase_days": 30, "coinbase_min_days": 20, "meme_start_usd": 5000000, "apps_max_age_days": 7,
+        "prehrate_euphoria": 70, "bezi_rotation": 60,
+        "zacina_rotation": 30, "zacina_rise": 15, "zacina_weeks": 13,
+        "btc_sezona_heat": 50, "btc_sezona_rotation": 30,
+        "po_vrcholu_drop": 15, "po_vrcholu_weeks": 26, "po_vrcholu_min": 2,
+        "trend_window": 312, "trend_pivot": 4, "trend_break": 0.03, "trend_confirm": 2, "trend_back_weeks": 13,
+    },
+}
 
-def prereg_hash():
-    return hashlib.sha256(json.dumps(PREREG, sort_keys=True).encode("utf-8")).hexdigest()
+
+V2_SHA256 = "c03f3450e3edd61cbad1077438adbb2cb93ee36fdd392b4e04392804a52d6914"   # = the v2 lock
 
 
-def prereg_lock():
-    h = prereg_hash()
-    if os.path.exists(LOCK):
-        lk = json.load(io.open(LOCK, encoding="utf-8"))
+def prereg_hash(p=None):
+    return hashlib.sha256(json.dumps(PREREG if p is None else p, sort_keys=True).encode("utf-8")).hexdigest()
+
+
+def prereg_lock(p=None, path=LOCK):
+    """The first run writes the lock; every later run compares against it."""
+    p = PREREG if p is None else p
+    h = prereg_hash(p)
+    if os.path.exists(path):
+        lk = json.load(io.open(path, encoding="utf-8"))
         return lk, lk.get("sha256") == h
-    os.makedirs(os.path.dirname(LOCK), exist_ok=True)
-    lk = {"id": PREREG["id"], "sha256": h,
+    os.makedirs(os.path.dirname(path), exist_ok=True)
+    lk = {"id": p["id"], "sha256": h,
           "locked_utc": datetime.datetime.now(datetime.timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ")}
-    with io.open(LOCK, "w", encoding="utf-8") as f:
+    with io.open(path, "w", encoding="utf-8") as f:
         json.dump(lk, f, indent=1)
     return lk, True
 
@@ -184,6 +321,7 @@ def selftest():
     check(prereg_hash() == V1_SHA256, "v1 PREREG hash unchanged (%s…)" % prereg_hash()[:12])
     check(all(cycle.V1_RULES[k] == v for k, v in PREREG["trendline"].items()),
           "v1 trendline rules = the registered literals")
+    check(prereg_hash(PREREG_V2) == V2_SHA256, "v2 PREREG hash = its lock (%s…)" % prereg_hash(PREREG_V2)[:12])
     # percentile: mid-rank, ties split
     check(cycle.pct_rank([1, 2, 3, 4], 3) == 62.5, "mid-rank percentile with a tie")
     tp = cycle.trailing_pct(list(range(300)), 208, 104)
