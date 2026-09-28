@@ -7,6 +7,8 @@
 > **HOW TO READ THIS SPEC — three levels of freedom:**
 > 1. **Method, data, architecture: inspiration only.** This is our proposal, built by one developer on free data. Take it as a starting point and improve anything you judge better: formulas, thresholds, data sources, retail and AI signals (§4.4), robustness. You don't need to ask; just document what you changed and why (§11).
 > 2. **Texts: may change, but stay ultra degen-friendly.** Reword freely, but keep the rules of §1: a tile is a name, a number and one plain word; no jargon and no paragraphs; explanations stay behind the "i" button in at most 20 plain words; every number is explained with this week's own numbers. §7 is our copy, a good default, not a contract.
+> Separate from the Altseason panel: **Appendix B** asks you to improve how chains are valued on the Chains tab.
+>
 > 3. **Design: keep it the same.** The owner likes the current design a lot. Keep the layout and the look as in the reference: the five tiles in one row with the wider first tile, the always-visible slider with the top-zone tick, one tall TradingView-style chart per tile (fitted axis, gradient area, value pill on the right, trend lines running into the future margin, year labels, legend), the rows under the charts, and the phone layout. Only the colours and fonts come from your design system.
 
 The look is defined by the reference code (`template.html`) and this spec; running it is optional, if you want to see the charts live (§0). All texts are in English (our copy is in §7).
@@ -450,3 +452,22 @@ If your data vendor differs, small deviations are expected. Explain any deviatio
 1. The panel live at cymetica.com/gem-screener on **both the Top Picks and the Sectors tab** (the same module in both places), in English, in your design system, matching the reference.
 2. The backend job with durable history, freshness, anomalies and the forward ledger.
 3. A short review note: what you changed or improved and why, which data vendors you chose, and the acceptance results from §9.
+4. Separately: the improved chain valuation (Appendix B).
+
+---
+
+## Appendix B — separate task: make the chain valuation as good as the apps one
+
+This is **not** part of the Altseason panel. It concerns the **Chains** tab.
+
+**Apps (we like it):** "Hyperliquid is priced at 35× its yearly revenue. Upside = what a coin is worth at the same price tag." A real price tag (market cap ÷ yearly revenue) against the market's leader.
+
+**Chains (we don't like it):** "The median chain is priced at 2× its stablecoins. Upside = what a chain is worth at the same price tag." What is wrong with it:
+- **Stablecoins are not income or usage.** Market cap ÷ stablecoins on the chain measures parked money. A chain full of settlement stablecoins (e.g. Tron's USDT) reads "cheap" while little happens on it.
+- **The benchmark is the median chain, not a leader.** Half of the chains always show upside just by being below the median, so the number means less than on apps.
+- **Activity is left out of the price tag.** DEX volume only feeds the growth/adoption index, and chain fees are only a tooltip check. Neither affects upside or the sort.
+- Market cap ÷ TVL was rejected on purpose: TVL is partly the chain's own token, so it moves with the price.
+
+**Your task:** tune it so it is top — the same quality and the same one-line clarity as apps. Choose the price tag, the benchmark and the data yourself (fees, DEX volume, users, paid sources…). Keep the Chains tab design, keep it degen-friendly, and write down what you changed and why.
+
+Reference code: `collector.py` (`compute_metrics`, `apply_valuation`, `adoption_index`), ARCHITECTURE.md §9.3 and §9.7.
