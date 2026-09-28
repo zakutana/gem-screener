@@ -322,7 +322,7 @@ Each number stands next to the same number at the 2018 and 2021 altseason ends (
 2. **Is the market euphoric?** (chip = euphoria): `retail 55/100 · Bitcoin heat 46/100`
 3. **Altseason cycle** (chip = index): `⅔ money into alts + ⅓ euphoria. "End is near" = euphoria 70+ with the index at 75+ or money into alts at 60+.`
 
-(The numbers above are illustrative; §9 has the reference values.)
+(The numbers above are illustrative only; the real ones come from `rotation_at_events` and this week's components of your own run.)
 
 ### 7.4 Retail table
 
@@ -363,19 +363,21 @@ Refresh: at least daily. The reference runs every 6 h; weekly values change once
 
 ## 9. Acceptance (reference numbers, real data)
 
-> **v3 index values: PENDING.** The v3 rules were locked on 2026-09-28 before they were computed on the real history; the index, phase and §7.3 values below are filled in from the reference run. Trend lines and retail do not change between v2 and v3.
+Reference run of 2026-09-28 (the v3 rules were locked before it). Trend lines and retail do not change between v2 and v3.
 
 **Historical events** (P0/P1/P2 = weekly BTC.D minimum in the stated windows):
 
 | Event | Week | Index v3 |
 |---|---|---|
-| P0 | 2017-06-19 | pending |
-| P1 | 2018-01-15 | pending |
-| P2 | 2021-05-17 | pending |
-| P2b | 2021-11 | pending |
+| P0 | 2017-06-19 | 99.7 |
+| P1 | 2018-01-15 | 95.2 |
+| P2 | 2021-05-17 | 79.4 |
+| P2b | 2021-11 | 62.1 |
 
-- v3's pre-registered checks (`cycle_backtest.py`): "End is near" within [−8, +2] weeks of P0, P1 and P2; each cycle's highest week near its tops; ≤ 10% of weeks at ≥ 75; ≤ 2 "End is near" episodes away from the tops; **no "End is near" and no index ≥ 75 from 2023-01 to 2026-06** (Bitcoin's new highs without an altseason). Result: pending.
-- For comparison, v2 on the same data (week of 2026-09-21): P0 99.7, P1 95.2, P2 79.7, P2b 62.3; ≥ 75 in ~8.4% of weeks; max since 2023 46.1; today 23.4, `Alts not moving yet`.
+- **Pre-registered verdict: FAIL, by 2 weeks.** 4 of the 5 checks pass: "End is near" within [−8, +2] weeks of P0, P1 and P2; each cycle's highest week near its tops; 1 "End is near" episode away from the tops (2016-09-05..09-12, limit 2); **no "End is near" and no index ≥ 75 from 2023-01 to 2026-06**. The fifth fails: 54 of 529 weeks (10.2%) at ≥ 75, the limit was 10% (52 weeks). The owner chose to run v3 anyway and keep the FAIL on record; nothing was tuned.
+- "End is near" episodes: 2017-04-03..2018-03-05 (continuous — see §10), 2021-04-19..06-14, 2021-11-15. "Past the top": 2018-03-26..08-27, 2021-07-05..08-16, 2022-02-14..05-30 (none between the two 2017 waves, where v2 wrongly had one).
+- Max since 2023: 46.5; yearly max 2024 46.5, 2025 46.5; today (week of 2026-09-21) 23.5, `Alts not moving yet`.
+- For comparison, v2 on the same data: P0 99.7, P1 95.2, P2 79.7, P2b 62.3; ≥ 75 in 8.4% of weeks (PASS); "Past the top" Aug–Oct 2017 between the two alt waves.
 
 **Trend lines (ranked OTHERS.D definition):**
 - OTHERS.D: line from **2022-01-03 (20.43%)** through the **2024-12-02** high; status `trend broken` since **2026-05-11**.
@@ -405,7 +407,8 @@ If your data vendor differs, small deviations are expected. Explain any deviatio
 3. **"Past the top" is late by design** (1–2 months after the top). The panel is a map, not a sell signal, so keep the copy honest.
 4. **Only two historical altseasons** exist. The designers knew both, so the historical checks are consistency, not proof. The forward ledger is the real test.
 5. **The retail mix changes over time:** 2017 has only Coinbase, 2021 adds Upbit, and memecoins and App Store data are recent. Document how you handle it.
-6. **Weaker next altseason:** v3's BTC.D path and its "End is near" rule (euphoria ≥ 70 and rotation ≥ 60, even under 75) exist for this case; they were tested on synthetic series only.
+6. **"End is near" is on for long in a long, strong altseason:** in 2017–18 it stayed on for 11 months (April 2017 to March 2018), because rotation stayed ≥ 60 with high euphoria through both waves. A degen could read it as "sell" too early. It is also why v3 missed its 10% rule by 2 weeks. Improving this without tuning to 2017 is welcome — register the rule before computing it on history.
+7. **Weaker next altseason:** v3's BTC.D path and its "End is near" rule (euphoria ≥ 70 and rotation ≥ 60, even under 75) exist for this case; they were tested on synthetic series only.
 
 ## 11. Deliverables
 

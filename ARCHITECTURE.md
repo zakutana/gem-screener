@@ -1430,6 +1430,17 @@ The two past altseasons were still known to its authors, so the historical pass 
 a consistency check; `cycle_ledger.jsonl` is the test. v1 and v2 stay locked and
 reported below it; the report shows v3 first.
 
+**v3's result (real history, 2026-09-28): FAIL by 2 weeks** — 54 of 529 weeks
+(10,2 %) at I ≥ 75 against a limit of 10 % (52); the other four criteria pass
+(`prehrate` at P0/P1/P2 with leads 11/41/4 weeks, both cycle maxima, one false
+episode 2016-09-05..09-12, and a quiet 2023-01..2026-06: max 46,5). Index at P0
+99,7 · P1 95,2 · P2 79,4 · P2b 62,1. The weak spot behind it: `prehrate` ran
+without a break from 2017-04-03 to 2018-03-05 (rotation ≥ 60 with euphoria ≥ 70
+through both 2017 waves) — v2's false `po_vrcholu` between the waves is gone, but
+"Blíží se konec" is on for 11 months. Adam's decision (2026-09-28): the page runs
+v3 and the FAIL stays on record; nothing was tuned, and a v4 designed with this
+result in view would be a consistency check only.
+
 ## 18. Quality gates: audits and equivalence proofs
 
 The audits are the acceptance tests. They read `snapshot.json` (and
