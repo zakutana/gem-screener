@@ -871,8 +871,8 @@ is v2.
   next week exists — it used to pass unchecked into the tile and the ledger.
   App Store: a day whose chart did not come back (< 50 entries) is not written
   (empty ranks scored 5 and pulled retail down).
-- **Page**: five tiles (Altseason cyklus, OTHERS.D, BTC.D, Retail, Objem burz — CMC's
-  global volume, labelled as exchange volume so nobody reads it as everything), each a
+- **Page**: five tiles (Altseason cyklus, OTHERS.D, BTC.D, Retail, Objem — CMC's
+  aggregate volume: spot on every exchange CMC tracks, DEXs included, futures not), each a
   name, a number and one word (BTC.D: "podpora prolomená" when its support line is
   broken, else the 13-week direction; Objem: the 7-day average and its word — no
   "1,3×" multiple, Adam: nobody reads it); the slider always visible, its tick at T labelled "zóna vrcholů

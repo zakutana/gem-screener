@@ -2478,7 +2478,7 @@ function tileHtml(t, sel){
   } else if (t.key === 'volume') {
     var vo = comp.volume || {};
     // no "1,3×" beside it (Adam: nobody reads a multiple) — the word under it says it
-    k = L('Objem burz', 'Exchange volume'); v = vo.avg7 ? '$' + czNum(Math.round(vo.avg7)) + '<small>' + L(' mld', 'bn') + '</small>' : '—';
+    k = L('Objem', 'Volume'); v = vo.avg7 ? '$' + czNum(Math.round(vo.avg7)) + '<small>' + L(' mld', 'bn') + '</small>' : '—';
     w = vword(vo.verdict);
   }
   return '<button type="button" class="ap-tile' + (t.key === 'cycle' ? ' ap-main' : '') + (sel ? ' sel' : '') +
@@ -2785,7 +2785,7 @@ function detailVolume(el){
     pill: {fmt: function(x){ return '$' + num0(x) + L(' mld', 'bn'); }},
     tip: function(i){ return '<b>' + fmtDate(ch.weeks[i]) + '</b><br>' + L('objem $', 'volume $') + num0(ch.avg7_bn[i]) + L(' mld/den', 'bn/day') +
       '<br><span class="t2">OTHERS ' + usdBn((ch.others_usd || [])[i]) + '</span>'; },
-    legend: [[L('objem burz v $ mld/den (7denní průměr)', 'exchange volume, $bn/day (7-day avg)'), 'c-acc'],
+    legend: [[L('spotový objem v $ mld/den (7denní průměr)', 'spot volume, $bn/day (7-day avg)'), 'c-acc'],
       [L('OTHERS v $ (log)', 'OTHERS in $ (log)'), 'c-coral']]});
 }
 
@@ -4065,10 +4065,10 @@ var INFO_TEXT = {
       '<span class="pk">Google, Wikipedia and Fear & Greed are not measured: lookups moved into chatbots, and Fear & Greed is mostly price.</span>');
   },
   cycVolume: function(){
-    return L('<b>Objem burz</b> — kolik se denně zobchoduje na krypto burzách (7denní průměr), proti ročnímu normálu. Vrcholy mívaly 2–4×, ale krachy taky.' +
+    return L('<b>Objem</b> — kolik se denně zobchoduje na všech burzách včetně DEXů (spot, bez futures; 7denní průměr), proti ročnímu normálu. Vrcholy mívaly 2–4×, ale krachy taky.' +
       '<span class="pk">Upravený objem z CoinMarketCapu. 2019–20 obsahuje falešný objem burz. Podíl altů bez stablecoinů: ' +
       'v květnu 2021 až 76 %.</span>',
-      '<b>Exchange volume</b> — daily trading on crypto exchanges (7-day average) against its 1-year norm. Tops ran 2–4×, but so did crashes.' +
+      '<b>Volume</b> — daily spot trading on all exchanges including DEXs (no futures; 7-day average) against its 1-year norm. Tops ran 2–4×, but so did crashes.' +
       '<span class="pk">Adjusted volume from CoinMarketCap. 2019–20 contains fake exchange volume. Alts’ share ex stablecoins: ' +
       'up to 76% in May 2021.</span>');
   }
