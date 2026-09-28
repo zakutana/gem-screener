@@ -26,7 +26,7 @@ Your current version uses our method, so it has our weak spots. An independent r
 1. **"Beaten down but turning" vs "still falling" (falling knife).** One column mixes *how far a theme fell* with *whether it is still falling*: Gaming −79% and still falling, Infrastructure −67% and turning up — same column, opposite trades. Show level and momentum as two columns and add a tag "beaten down but turning" (define it honestly, e.g. deep drawdown from the 1-year high and 1-month performance vs BTC turning positive).
 2. **The opposite tag: "lagging and still falling".** A coin that lags in a hot theme and is down over 3 months is not a laggard with room to catch up, it is a broken coin — flag it.
 3. **Who in a hot theme has not moved yet.** The data (per-coin 1M/3M vs BTC, basket weight) is already in your response, just not shown. Show it, next to tag 2 so a laggard and a broken coin are not confused.
-4. **Network and contract address for every coin** — the single most valuable field. Coins carry only a CoinGecko `id`, so they cannot be joined with on-chain data (your FOMO radar works with addresses).
+4. **Links for every coin: CoinGecko and DEXTools.** Every coin in a theme gets a link to its **CoinGecko** page and a link to its **main trading pair on DEXTools** (the deepest DEX pair; if a coin has no DEX pair, CoinGecko only). Today coins carry only a CoinGecko `id` and no way to jump to the chart or the pair.
 5. **No Czech in the data.** Drop reasons come through the API in Czech ("méně než 40 týdnů historie"). Use machine codes (`insufficient_history`, `stablecoin`, …) and translate them only in the UI.
 
 **Keep:** the bubble chart and its design, the uncertainty whiskers ("overlapping whiskers = statistically the same" is honest and good), the degen tone, no composite score, tags as tags (not filters).
@@ -37,7 +37,7 @@ Your current version uses our method, so it has our weak spots. An independent r
 2. The chart's vertical axis and the tags "Already leading" / "Waiting to run" use performance vs BTC **beyond what beta explains**; no tag text contradicts its own number.
 3. **Level and momentum** are two separate columns; tags **"beaten down but turning"** and **"lagging and still falling"** exist, each with its rule written down.
 4. Inside a theme, every coin shows its **1M and 3M vs BTC**, so the laggards of a hot theme are visible.
-5. Every coin carries its **network and contract address**.
+5. Every coin has a **CoinGecko link** and a **DEXTools link to its main trading pair** (CoinGecko only when no DEX pair exists).
 6. The API carries **machine codes, no Czech** (e.g. `insufficient_history`, `stablecoin`).
 7. **What is hot right now** is visible at a glance, and the **Belief Networks** attention (share of conversation and its change) stands next to price performance, with its history stored.
 8. Survivorship: the year-ago basket is **not** limited to today's top 30 per category — or the page says honestly that it is.
