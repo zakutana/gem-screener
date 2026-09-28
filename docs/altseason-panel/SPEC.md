@@ -189,7 +189,7 @@ The reference is built on free, public data by a single developer. Retail and AI
 - App downloads and ranks for *every* finance or crypto app, with new ones detected automatically (e.g. Sensor Tower, Appfigures, data.ai), instead of a fixed list.
 - AI interest from sources you have access to: aggregate query-topic data, AI-assistant referral traffic to crypto sites (e.g. Similarweb), Cloudflare Radar. As an AI-native company you may have better signals of your own.
 - Social mindshare, e.g. Kaito, LunarCrush or Santiment, if the licence allows storing history.
-- Your own community / belief-network data on what crypto communities talk about — probably the best social signal you can get.
+- Your **Belief Networks** (what crypto communities and chats talk about) — probably the best social signal you can get.
 
 **Principles to keep:**
 1. Measure what people **do** (trade, download, deploy money), not what they merely look up.
@@ -488,7 +488,7 @@ This is **not** part of the Altseason panel. It concerns the **Sectors** tab: th
 
 **Must stay:** a degen sees at a glance **what is hot right now** (which themes are running, beating BTC and the other alts this month/quarter) — that half of the question matters as much as the altseason outlook; just measure it honestly (not beta in disguise).
 
-**Use your own community signal.** If your internal belief network already monitors crypto communities and chats (what people talk about, how belief and attention shift between narratives), use it to judge which themes are hot — it is exactly what price data cannot see early. Suggestions: map its topics onto the themes; show attention (share of conversation and its change) next to price performance vs BTC, so a degen sees whether a theme is talked about *and* bought, or only one of them; store its history so it can be checked against what the themes did next. The same signal may also fill the "AI / social interest" gap in the Altseason panel's retail (§4.4).
+**Use your Belief Networks.** Your internal belief-network model that monitors crypto communities and chats (what people talk about, how belief and attention shift between narratives) is the best signal for which themes are hot — it is exactly what price data cannot see early. Suggestions: map its topics onto the themes; show attention (share of conversation and its change) next to price performance vs BTC, so a degen sees whether a theme is talked about *and* bought, or only one of them; store its history so it can be checked against what the themes did next. The same signal may also fill the "AI / social interest" gap in the Altseason panel's retail (§4.4).
 
 **Suggestions from a community member (we agree with all five):**
 1. **"Beaten down but turning" vs "still falling" (falling knife).** One column mixes *how far a theme fell* with *whether it is still falling*: Gaming −79% and still falling, Infrastructure −67% and turning up — same column, opposite trades. Show level and momentum as two columns and add a tag "beaten down but turning" (define it honestly, e.g. deep drawdown from the 1-year high and 1-month performance vs BTC turning positive).
