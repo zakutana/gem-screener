@@ -490,6 +490,13 @@ This is **not** part of the Altseason panel. It concerns the **Sectors** tab: th
 
 **Use your own community signal.** If your internal belief network already monitors crypto communities and chats (what people talk about, how belief and attention shift between narratives), use it to judge which themes are hot — it is exactly what price data cannot see early. Suggestions: map its topics onto the themes; show attention (share of conversation and its change) next to price performance vs BTC, so a degen sees whether a theme is talked about *and* bought, or only one of them; store its history so it can be checked against what the themes did next. The same signal may also fill the "AI / social interest" gap in the Altseason panel's retail (§4.4).
 
+**Suggestions from a community member (we agree with all five):**
+1. **"Beaten down but turning" vs "still falling" (falling knife).** One column mixes *how far a theme fell* with *whether it is still falling*: Gaming −79% and still falling, Infrastructure −67% and turning up — same column, opposite trades. Show level and momentum as two columns and add a tag "beaten down but turning" (define it honestly, e.g. deep drawdown from the 1-year high and 1-month performance vs BTC turning positive).
+2. **The opposite tag: "lagging and still falling".** A coin that lags in a hot theme and is down over 3 months is not a laggard with room to catch up, it is a broken coin — flag it.
+3. **Who in a hot theme has not moved yet.** The data (per-coin 1M/3M vs BTC, basket weight) is already in your response, just not shown. Show it, next to tag 2 so a laggard and a broken coin are not confused.
+4. **Network and contract address for every coin** — the single most valuable field. Coins carry only a CoinGecko `id`, so they cannot be joined with on-chain data (your FOMO radar works with addresses).
+5. **No Czech in the data.** Drop reasons come through the API in Czech ("méně než 40 týdnů historie"). Use machine codes (`insufficient_history`, `stablecoin`, …) and translate them only in the UI.
+
 **Keep:** the bubble chart and its design, the uncertainty whiskers ("overlapping whiskers = statistically the same" is honest and good), the degen tone, no composite score, tags as tags (not filters).
 
 **Your task:** tune it so it is top and really answers "which themes run hardest in an altseason, and which already run". Method, factors, themes and data are your call. Keep the design, and write down what you changed and why.
