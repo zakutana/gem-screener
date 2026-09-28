@@ -2785,7 +2785,7 @@ function detailVolume(el){
     pill: {fmt: function(x){ return '$' + num0(x) + L(' mld', 'bn'); }},
     tip: function(i){ return '<b>' + fmtDate(ch.weeks[i]) + '</b><br>' + L('objem $', 'volume $') + num0(ch.avg7_bn[i]) + L(' mld/den', 'bn/day') +
       '<br><span class="t2">OTHERS ' + usdBn((ch.others_usd || [])[i]) + '</span>'; },
-    legend: [[L('spotový objem v $ mld/den (7denní průměr)', 'spot volume, $bn/day (7-day avg)'), 'c-acc'],
+    legend: [[L('objem všech burz vč. DEXů (spot), $ mld/den, 7denní průměr', 'volume of all exchanges incl. DEXs (spot), $bn/day, 7-day avg'), 'c-acc'],
       [L('OTHERS v $ (log)', 'OTHERS in $ (log)'), 'c-coral']]});
 }
 
