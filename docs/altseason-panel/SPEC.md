@@ -132,11 +132,11 @@ The panel may appear on more than one page. If two instances are in the DOM at o
 **Paid alternatives are welcome** (e.g. CoinGecko Pro, Kaiko, CryptoCompare/CCData, Glassnode or Coin Metrics Pro, Artemis). Requirements:
 - weekly history across **both** the 2017/18 and 2021 altseasons for every index input;
 - survivorship-free breadth;
-- the same definitions as above.
+- the same definitions as above, or your own, documented.
 
 ### 4.2 Retail rows (what people DO, not what they look up)
 
-Deliberately excluded, do not add them:
+Deliberately excluded by the reference (and why; see §4.4 before you bring any back):
 - Google Trends, Wikipedia: lookups moved to chatbots;
 - Fear & Greed: mostly price;
 - YouTube statistics: its API terms forbid storing and aggregating them.
@@ -250,7 +250,7 @@ Heat = the mean of the trailing percentiles of MVRV ratio, Puell (issuance ÷ it
   - `pruraz` (**trend broken**): two consecutive closes more than 3% beyond the line, with no close back inside since. A retest that holds keeps it.
   - `pruraz_nepotvrzeny` (**breaking the trend**): one close beyond, or only the newest daily point.
   - `zpet_pod` (**false breakout**): a break within 13 weeks, then a close back inside.
-  - `downtrend` (**falling**).
+  - `downtrend` (**below the line**).
   - `bez_trendu` (**no trend**): no line, because the week is itself the extreme, there is no bottom yet, or there is no pivot.
 
   The breakout event used by `zacina` is the week the weekly status turns `pruraz`.
@@ -261,7 +261,7 @@ Heat = the mean of the trailing percentiles of MVRV ratio, Puell (issuance ÷ it
 
 ### 5.6 Other tile verdicts
 
-- **BTC.D word:** change of mean4(BTC.D) over 13 weeks: ≤ −1.5 pp falling, ≥ +1.5 pp rising, otherwise sideways.
+- **BTC.D word:** `support broken` when the BTC.D support line (§5.5) is broken; otherwise the change of mean4(BTC.D) over 13 weeks: ≤ −1.5 pp falling, ≥ +1.5 pp rising, otherwise sideways.
 - **Volume:** 7-day mean ÷ the median of the prior year: < 0.8 weak, < 1.5 normal, < 2.5 elevated, otherwise extreme.
 - **Retail tempo:** retail now − 4 weeks ago: ≥ 25 rush, ≥ 8 gradually, ≤ −8 leaving, otherwise flat.
 
@@ -289,7 +289,7 @@ Per tile:
 | Tile | Chart | Under the chart |
 |---|---|---|
 | Altseason cycle | Index (area, 0–100); OTHERS in $ on the log right axis; a dashed horizontal line at 75 labelled `top zone · 75`; the three past altseason ends marked with their values (label 2017 to the left so it does not collide with 2018) | The exit sentence, then three plain-words rows (§7.3), each with a small score chip on the right |
-| OTHERS | OTHERS.D (area, fitted axis); the red resistance line; hollow marks at the anchor (`top 2022`) and the touching pivot; a green mark labelled `break <Mon YYYY>` under the point where the break started; the newest daily point | — |
+| OTHERS.D | OTHERS.D (area, fitted axis); the red resistance line; hollow marks at the anchor (`top 2022`) and the touching pivot; a green mark labelled `break <Mon YYYY>` under the point where the break started; today's value only in the value tag (no separate dot) | — |
 | BTC.D | BTC.D (area, fitted); the red support line (anchor labelled `low 2022 · 37.9%`); the break mark; the green 2018→2022 line with its value today under its end point | — |
 | Retail | Retail index (area, 0–100); OTHERS in $ on the log right axis (**no BTC line**) | A header `Retail 55 waking up · pace flat`, then a table (§7.4) |
 | Volume | **One chart with one line** (area, like the other charts): the 7-day average total $bn from whatever sources you chose, summed into a single series — no split into parts, no stacked layers (fitted, floor 0). The legend says what is in the number; OTHERS in $ on the log right axis (no BTC line — the panel is about alts); the 2019–2020 span shaded, labelled `exchanges inflated volume then (wash trading)` (short on a phone) | — |
@@ -322,16 +322,17 @@ The panel must also render cleanly on a phone (375 px), with no horizontal overf
 - **Altseason cycle:** "**Altseason cycle** — how far money has rotated into alts and how euphoric the market is. Every past altseason top went above 75."
   - How it is calculated: "⅔ rotation into alts (how much of the way from its 1-year high to the last cycle's low BTC dominance has covered, how much small alts rose from their 1-year low, how many alts beat BTC) and ⅓ euphoria (retail and Bitcoin heat). 'End is near' = euphoria at 70 or more with the index at 75 or more or rotation at 60 or more; 'Past the top' = after an altseason the index 15 below its half-year high and alts down 25% in dollars."
   - "Rules locked on 28 Sep 2026, before they were computed on the real history. The two past altseasons were known to the authors, so the real test is every week from now on."
-- **OTHERS:** "**OTHERS.D** — small alts' share of the market. Breaking the line from the 2022 top = money moving into alts."
+- **OTHERS.D:** "**OTHERS.D** — small alts' share of the market. Breaking the line from the 2022 top = money moving into alts."
   - How it is calculated: "a TradingView-style line — from the highest weekly close of 6 years over the lower highs down to the bottom. A break = two weekly closes more than 3% above the line; each week sees only its own past."
   - Add one line if your OTHERS.D definition differs from TradingView's.
 - **BTC.D:** "**BTC dominance** — Bitcoin's share of the market. When it falls, money flows into alts."
   - How it is calculated: "the red line runs from the 2022 low under the higher lows (as on TradingView); a break = two weekly closes more than 3% below it. The green line runs from the 2018 altseason low through the 2022 low to today: BTC dominance's rising floor."
 - **Retail:** "**Retail** — how much people actually trade, against each row's own 4-year high. High = where past tops happened."
-  - How it is calculated: "Coinbase (US), Upbit (Korea), memecoins on-chain and the top crypto app. A row reads 100 at its 4-year high and 0 at a twentieth of it (log scale); the index = the mean of the rows. Blue area = retail, red = OTHERS in dollars."
+  - How it is calculated: "Coinbase (US), Upbit (Korea), memecoins on-chain and the top crypto app. A row reads 100 at its 4-year high and 0 at a twentieth of it (log scale); the index = the mean of the rows. The area = retail, the line = OTHERS in dollars."
   - "Google, Wikipedia and Fear & Greed are not measured: lookups moved into chatbots, and Fear & Greed is mostly price."
 - **Volume:** "**Volume** — daily spot trading on all exchanges including DEXs (no futures; 7-day average) against its 1-year norm. Tops ran 2–4×, but so did crashes."
   - "2019–20 contains fake exchange volume. Alts' share ex stablecoins: up to 76% in May 2021."
+  - This describes the reference's number; if your volume includes more (e.g. perps), say so here and in the legend.
 
 ### 7.3 Altseason cycle: the exit sentence and the breakdown
 
