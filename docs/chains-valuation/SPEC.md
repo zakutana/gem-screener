@@ -17,6 +17,8 @@
 - **Activity is left out of the price tag.** DEX volume only feeds the growth/adoption index, and chain fees are only a tooltip check. Neither affects upside or the sort.
 - Market cap ÷ TVL was rejected on purpose: TVL is partly the chain's own token, so it moves with the price.
 
+**Daily active users — show them, don't price on them.** Degens like the number, but "active addresses" are not people: on cheap chains bots and airdrop farmers make millions of addresses for cents, so raw daily actives flatter the cheapest chains the same way settlement stablecoins flatter Tron. Show it as context next to the price tag if you can clean it (e.g. addresses that paid meaningful fees, sybil-filtered users from a vendor such as Artemis or Token Terminal), and say where it comes from — but don't make it the price tag's denominator.
+
 ## Acceptance — check each point
 
 1. Chains show the **same one-line price tag as Apps**: "<leader> is priced at N× its yearly <measure>. Upside = what a chain is worth at the same price tag."
