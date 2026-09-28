@@ -485,6 +485,8 @@ This is **not** part of the Altseason panel. It concerns the **Sectors** tab: th
 4. **The L1/L2 fundament is stablecoins** (mostly USDT on Ethereum and Tron, plus Base without a token) — the same weakness as Appendix B. L1/L2 can never earn "fundament rising".
 5. **Coverage and purity:** exchange tokens (BNB, OKB, MNT) sit in L1/L2 and drag them down; themes such as ecosystem rotations (Solana, Base) or BTCfi are missing; 11 columns with β ±SE, ρ and tier are not readable in 5 seconds.
 
+**Must stay:** a degen sees at a glance **what is hot right now** (which themes are running, beating BTC and the other alts this month/quarter) — that half of the question matters as much as the altseason outlook; just measure it honestly (not beta in disguise).
+
 **Keep:** the bubble chart and its design, the uncertainty whiskers ("overlapping whiskers = statistically the same" is honest and good), the degen tone, no composite score, tags as tags (not filters).
 
 **Your task:** tune it so it is top and really answers "which themes run hardest in an altseason, and which already run". Method, factors, themes and data are your call. Keep the design, and write down what you changed and why.
