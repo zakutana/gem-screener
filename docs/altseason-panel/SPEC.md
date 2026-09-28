@@ -266,7 +266,7 @@ Per tile:
 
 | Tile | Chart | Under the chart |
 |---|---|---|
-| Altseason cycle | Index (area, 0–100); OTHERS in $ on the log right axis; a dashed horizontal line at 75 labelled `top zone · 75`; the three past altseason ends marked with their values (label 2017 to the left so it does not collide with 2018) | Three plain-words rows (§7.3), each with a small score chip on the right |
+| Altseason cycle | Index (area, 0–100); OTHERS in $ on the log right axis; a dashed horizontal line at 75 labelled `top zone · 75`; the three past altseason ends marked with their values (label 2017 to the left so it does not collide with 2018) | The exit sentence, then three plain-words rows (§7.3), each with a small score chip on the right |
 | OTHERS | OTHERS.D (area, fitted axis); the red resistance line; hollow marks at the anchor (`top 2022`) and the touching pivot; a green mark labelled `break <Mon YYYY>` under the point where the break started; the newest daily point | — |
 | BTC.D | BTC.D (area, fitted); the red support line (anchor labelled `low 2022 · 37.9%`); the break mark; the green 2018→2022 line with its value today under its end point | — |
 | Retail | Retail index (area, 0–100); OTHERS in $ on the log right axis (**no BTC line**) | A header `Retail 55 waking up · pace flat`, then a table (§7.4) |
@@ -311,7 +311,15 @@ The panel must also render cleanly on a phone (375 px), with no horizontal overf
 - **Volume:** "**Volume** — the whole market's daily trading (7-day average) against its 1-year norm. Tops ran 2–4×, but so did crashes."
   - "2019–20 contains fake exchange volume. Alts' share ex stablecoins: up to 76% in May 2021."
 
-### 7.3 Altseason cycle breakdown (three rows under the chart, this week's numbers)
+### 7.3 Altseason cycle: the exit sentence and the breakdown
+
+Directly under the cycle chart, one line, always shown (a subtle callout, not a warning):
+
+> **Around the end:** when “End is near” is on, sell in pieces and don't wait for the exact top. When “Past the top” shows, get out with the rest.
+
+Why pieces: in 2017 "End is near" stayed on for 11 months while alts went ~10×; after it lit in April 2021 alts fell 43% in 3 months.
+
+Then three rows under it (this week's numbers):
 
 Each number stands next to the same number at the 2018 and 2021 altseason ends (`rotation_at_events`, computed on the backend — never a hand-written range):
 

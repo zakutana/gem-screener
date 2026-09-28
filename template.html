@@ -489,6 +489,7 @@ tbody tr:hover .msparkline .mb.partial{opacity:.45}
 .ap-gticks span + span{transform:translateX(-100%)}
 .ap-gticks span.ap-asof{left:auto; right:0; transform:none}
 .ap-note{font-size:12px; color:var(--warn); margin-top:8px}
+.cy-tip{font-size:13px; color:var(--ink-2); margin:10px 0 2px; padding:8px 10px; border-left:3px solid var(--warn)}
 .ap-empty{font-size:13px; color:var(--muted)}
 .ap-detail{margin-top:10px; border-top:1px solid var(--rule-soft); padding-top:12px; position:relative}
 .ap-dhead{position:absolute; right:0; top:10px; z-index:1}
@@ -2602,7 +2603,13 @@ function detailCycle(el){
     return '<div class="rt-row"><span class="rt-n">' + name + '</span><span class="rt-p cy-how">' + how + '</span>' +
       '<span class="rt-s">' + scoreChip(score) + '</span></div>';
   };
+  // the one exit sentence (Adam, 2026-09-28: "jen nějaká věta, co dělat kolem konce"):
+  // 2017's "Blíží se konec" ran 11 months while alts went 10x, 2021's was followed by
+  // −43 % in 3 months — so pieces, not all at once
   el.innerHTML = '<div class="ap-chart"></div>' +
+    '<div class="cy-tip">' + L('<b>Kolem konce:</b> když svítí „Blíží se konec“, prodávej po kouscích a nečekej na úplný vrchol. ' +
+      'Když přijde „Po vrcholu“, zbytek ven.', '<b>Around the end:</b> when “End is near” is on, sell in pieces and don\u2019t wait ' +
+      'for the exact top. When “Past the top” shows, get out with the rest.') + '</div>' +
     '<div class="rt-list">' +
     crow(L('Tečou peníze do altů?', 'Is money moving into alts?'),
       (bp.pct === null || bp.pct === undefined ? L('BTC dominance —', 'BTC dominance —')

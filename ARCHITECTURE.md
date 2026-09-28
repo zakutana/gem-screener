@@ -877,7 +877,10 @@ is v2.
   the 1-year norm); the slider always visible, its tick at T labelled "zóna vrcholů
   · 75"; a click opens one tall chart from 2016 (§15.3). Under the cycle chart the
   rotation's three parts in this week's numbers beside the same numbers at the 2018
-  and 2021 ends (`rotation_at_events`).
+  and 2021 ends (`rotation_at_events`), and above them one fixed exit sentence
+  (Adam, 2026-09-28): sell in pieces while "Blíží se konec" is on, the rest at
+  "Po vrcholu" — 2017's warning ran 11 months while alts went 10×, 2021's was
+  followed by −43 % in 3 months.
   Breadth and BTC heat have no tiles — they are inside the index.
 - **Volume** (Adam's add): CMC's adjusted daily volume, 7-day mean ÷ the 1-year
   median, and the alts' share of volume. Spikes on crashes too → beside the index.
