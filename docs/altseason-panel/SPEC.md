@@ -96,7 +96,7 @@ The panel may appear on more than one page. If two instances are in the DOM at o
 ## 3. Time base
 
 - **Weekly axis:** Monday 00:00 UTC stamps from 2014-07-07.
-  - A stamp's daily inputs are read on the day before it (Sunday).
+  - A stamp's daily inputs are read on the day before it (Sunday); BTC heat and the memecoin row take the newest value among the 7 days before it, so one late day does not blank the week.
   - The "current" week is the newest Monday whose data is complete. In practice, week W becomes available on Tuesday.
 - Charts start in **2016** (`display_from` = 2016-01-04); earlier data exists only to warm up windows.
 - **Every computation at week t uses only data up to t.** No look-ahead, including the trend lines.
@@ -393,7 +393,7 @@ Refresh: at least daily. The reference runs every 6 h; weekly values change once
 
 ## 9. Acceptance (reference numbers, real data)
 
-Reference run of 2026-09-28 (the v3 rules were locked before it). Trend lines and retail do not change between v2 and v3.
+Reference run of 2026-09-28 (the v3 rules were locked before it). The trend lines are the same as in v2; retail differs only by the data fixes (5 weeks of 2016 Coinbase data after the BTC/ETH pair fix).
 
 **Historical events** (P0/P1/P2 = weekly BTC.D minimum in the stated windows):
 
