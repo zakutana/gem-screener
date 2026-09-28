@@ -2955,11 +2955,15 @@ function cycleChart(host, spec){
   });
   if (pv !== null && pv !== undefined && isFinite(pv)) {
     // the TradingView tag: the newest value on the right edge of the plot, left of the
-    // price axis, with a dotted price line from the newest point
+    // price axis, with a dotted price line from the newest point. It starts where the
+    // series line actually ends, not at the pill's own height — a live daily reading
+    // (pv) can sit well off last week's close (OTHERS.D jumped 7,61 -> 8,20 % between
+    // the two), and starting flat from Y(pv) left that gap looking unconnected.
     var cls = (spec.pill.cls || (series[0] || {}).cls || 'c-acc'), txt = spec.pill.fmt(pv);
     var tw = Math.round(txt.length * 6.9 + 14), py = Math.max(pT + 10, Math.min(Hd - pB - 10, Y(pv)));
     var px = Wd - pR - tw - 2, lastT = spec.pill.v !== undefined && spec.pill.v !== null && spec.extendTo ? tData : (main ? ws[main[0]] : tData);
-    svg.appendChild(svgEl('line', {x1: X(lastT), x2: px, y1: Y(pv), y2: Y(pv), 'class': 'cyc-price ' + cls}));
+    var y1 = main ? Y(main[1]) : Y(pv), x1 = main ? X(ws[main[0]]) : X(lastT);
+    svg.appendChild(svgEl('line', {x1: x1, x2: px, y1: y1, y2: Y(pv), 'class': 'cyc-price ' + cls}));
     var g = svgEl('g', {'class': 'cyc-pill ' + cls});
     g.appendChild(svgEl('rect', {x: px, y: py - 10, width: tw, height: 20, rx: 4}));
     var tt = svgEl('text', {x: px + tw / 2, y: py + 4, 'text-anchor': 'middle'});
