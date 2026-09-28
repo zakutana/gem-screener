@@ -2403,7 +2403,8 @@ var CYCLE_VERDICT = {
   'bokem': {cs: 'bokem', en: 'sideways', cls: 'flat'},
   'pruraz': {cs: 'průlom trendu', en: 'trend broken', cls: 'pos'},
   'pruraz_nepotvrzeny': {cs: 'prolamuje trend', en: 'breaking the trend', cls: 'warn'},
-  'downtrend': {cs: 'klesá', en: 'falling', cls: 'flat'},
+  'downtrend': {cs: 'pod linií', en: 'below the line', cls: 'flat'},
+  'podpora_prolomena': {cs: 'podpora prolomená', en: 'support broken', cls: 'pos'},
   'zpet_pod': {cs: 'falešný průlom', en: 'false breakout', cls: 'neg'},
   'bez_trendu': {cs: 'bez trendu', en: 'no trend', cls: 'flat'},
   'alty_vedou': {cs: 'alty vedou', en: 'alts lead', cls: 'pos'},
@@ -2463,17 +2464,20 @@ function tileHtml(t, sel){
       : '<span class="ap-w flat">' + (c && c.history_missing ? L('bez historie', 'no history') : L('chybí data', 'data missing')) + '</span>';
   } else if (t.key === 'othersd') {
     var o = comp.othersd || {};
-    k = 'OTHERS'; v = lvl(o.value, 2); w = vword(o.verdict);
+    k = 'OTHERS.D'; v = lvl(o.value, 2); w = vword(o.verdict);
   } else if (t.key === 'btcd') {
     var b = comp.btcd || {};
-    k = 'BTC.D'; v = lvl(b.value, 1); w = vword(b.verdict);
+    // a broken support wins over the 13-week direction (cycle.py decides: word)
+    k = 'BTC.D'; v = lvl(b.value, 1); w = vword(b.word || b.verdict);
   } else if (t.key === 'retail') {
     var r = comp.retail || {};
     k = 'Retail'; v = r.value === null || r.value === undefined ? '—' : num0(r.value) + '<small>/100</small>';
     w = vword(r.verdict);
   } else if (t.key === 'volume') {
     var vo = comp.volume || {};
-    k = L('Objem', 'Volume'); v = vo.avg7 ? '$' + czNum(Math.round(vo.avg7)) + '<small>' + L(' mld', 'bn') + '</small>' : '—';
+    // the number and how far it is from its 1-year norm (a review: "$105 bn" alone says nothing)
+    k = L('Objem', 'Volume'); v = vo.avg7 ? '$' + czNum(Math.round(vo.avg7)) + '<small>' + L(' mld', 'bn') +
+      (vo.ratio_1y ? ' · ' + czNum(Number(vo.ratio_1y).toFixed(1)) + '×' : '') + '</small>' : '—';
     w = vword(vo.verdict);
   }
   return '<button type="button" class="ap-tile' + (t.key === 'cycle' ? ' ap-main' : '') + (sel ? ' sel' : '') +
@@ -2583,31 +2587,38 @@ function detailCycle(el){
     if (i >= 0 && S.index && S.index[i] !== null && S.index[i] !== undefined)
       marks.push({t: ev[k], v: S.index[i], cls: 'mk-warn', side: p[1], label: yearOf(ev[k]) + ': ' + num0(ia[k])});
   });
-  // how the number is made, with this week's own numbers (Adam: "stručně jako u retailu")
+  // how the number is made, with this week's own numbers (Adam: "stručně jako u retailu"),
+  // each next to the same number at the 2018 and 2021 altseason ends (cycle.py stores them)
   var comp = c.components || {}, bdc = comp.btcd || {}, odc = comp.othersd || {}, brc = comp.breadth || {};
   var rtv = (comp.retail || {}).value, eu = c.euphoria, E = (c.rules || {}).prehrate_euphoria || 70;
+  var BR = (c.rules || {}).bezi_rotation || 60, bp = bdc.path || {}, ra = c.rotation_at_events || {};
+  var past = function(f, pre, unit){
+    var xs = [['P1', '2018'], ['P2', '2021']].filter(function(p){ return ra[p[0]] && ra[p[0]][f] !== null && ra[p[0]][f] !== undefined; })
+      .map(function(p){ return p[1] + ': ' + pre + num0(f === 'path' ? Math.min(100, ra[p[0]][f]) : ra[p[0]][f]) + unit; });
+    return xs.length ? ' (' + xs.join(', ') + ')' : '';
+  };
+  var pctU = L(' %', '%');
   var crow = function(name, how, score){
     return '<div class="rt-row"><span class="rt-n">' + name + '</span><span class="rt-p cy-how">' + how + '</span>' +
       '<span class="rt-s">' + scoreChip(score) + '</span></div>';
   };
   el.innerHTML = '<div class="ap-chart"></div>' +
     '<div class="rt-list">' +
-    // plain words, each number next to what an altseason looked like; the OTHERS.D
-    // rise is read back from its score (score = ln(1 + rise) / ln 3)
     crow(L('Tečou peníze do altů?', 'Is money moving into alts?'),
-      L('BTC dominance ', 'BTC dominance ') + '−' + lvl(bdc.dd52, 0) + L(' od ročního maxima (v altseasonu −30 až −50 %)',
-        ' from its 1-year high (−30 to −50% in an altseason)') + '<br>' +
-      L('malé alty ', 'small alts ') + (odc.rise_score === null || odc.rise_score === undefined ? '—'
-        : '+' + num0(100 * (Math.pow(3, odc.rise_score / 100) - 1)) + L(' %', '%')) +
-      L(' nad ročním dnem (v altseasonu +100 % a víc)', ' above their 1-year low (+100% or more in an altseason)') + '<br>' +
-      L('BTC poráží jen ', 'only ') + lvl(brc.mean4, 0) + L(' altů (v altseasonu 80 %+)', ' of alts beat BTC (80%+ in an altseason)'),
+      (bp.pct === null || bp.pct === undefined ? L('BTC dominance —', 'BTC dominance —')
+        : L('BTC dominance ušla ', 'BTC dominance has covered ') + num0(Math.max(0, Math.min(100, bp.pct))) + pctU +
+          L(' cesty z ročního maxima ', ' of the way from its 1-year high ') + lvl(bp.peak, 1) +
+          L(' ke dnu minulého cyklu ', ' to the last cycle\u2019s low ') + lvl(bp.floor, 1)) + past('path', '', pctU) + '<br>' +
+      L('malé alty ', 'small alts ') + (odc.rise_pct === null || odc.rise_pct === undefined ? '—' : '+' + num0(odc.rise_pct) + pctU) +
+      L(' nad ročním dnem', ' above their 1-year low') + past('rise', '+', pctU) + '<br>' +
+      lvl(brc.mean4, 0) + L(' z top 50 altů porazilo BTC za 13 týdnů', ' of the top 50 alts beat BTC over 13 weeks') + past('breadth', '', pctU),
       c.rotation) +
     (eu !== undefined ? crow(L('Je trh v euforii?', 'Is the market euphoric?'),
-      L('lidi obchodují na ', 'people trade at ') + num0(rtv) + L('/100 svého maxima · Bitcoin přehřátý na ', '/100 of their high · Bitcoin overheated at ') +
-      num0(c.heat) + '/100', eu) : '') +
+      L('retail ', 'retail ') + num0(rtv) + '/100 · ' + L('přehřátí BTC ', 'Bitcoin heat ') + num0(c.heat) + '/100', eu) : '') +
     crow('<b>' + L('Altseason cyklus', 'Altseason cycle') + '</b>',
-      L('⅔ peníze do altů + ⅓ euforie. Od ', '⅔ money into alts + ⅓ euphoria. From ') + num0(T) +
-      L(' (a euforie od ', ' (with euphoria from ') + num0(E) + L('): „Blíží se konec“.', '): “End is near”.'), c.index) +
+      L('⅔ peníze do altů + ⅓ euforie. „Blíží se konec“ = euforie od ', '⅔ money into alts + ⅓ euphoria. “End is near” = euphoria ') +
+      num0(E) + L(' a k tomu index od ', '+ with the index at ') + num0(T) + L(' nebo peníze do altů od ', '+ or money into alts at ') +
+      num0(BR) + L('.', '+.'), c.index) +
     '</div>';
   cycleChart(el.querySelector('.ap-chart'), {weeks: ws, from: dsp(), y: {min: 0, max: 100, top: 108, fmt: num0},
     series: [{v: S.index, cls: 'c-acc', area: true}], y2: [{v: S.others_usd, cls: 'c-coral', fmt: usdBn}],
@@ -3994,18 +4005,20 @@ var INFO_TEXT = {
       'otherwise a bounce off the bottom after a collapse would look just like a breakout.</span>');
   },
   cycIndex: function(){
-    return L('<b>Altseason cyklus</b> — jak blízko je konec altseasonu. 75 = úroveň, na které altseasony 2018 a 2021 skončily.' +
-      '<span class="pk"><b>Jak se to počítá:</b> ⅔ rotace do altů (pokles BTC dominance, růst OTHERS, kolik altů poráží BTC) ' +
-      'a ⅓ euforie (retail a přehřátí Bitcoinu). „Blíží se konec“ = index aspoň 75 a euforie aspoň 70; „Po vrcholu“ = index ' +
-      'spadl o 15 pod maximum posledního půlroku.</span>' +
-      '<span class="pk">Pravidla zamčená 27. 9. 2026. Verze 2 vznikla s oběma altseasony před očima, takže na nich sedí ' +
-      'z konstrukce; skutečný test je každý další týden (záznam v repu).</span>',
-      '<b>Altseason cycle</b> — how close an altseason\u2019s end is. 75 = where the 2018 and 2021 altseasons ended.' +
-      '<span class="pk"><b>How it is calculated:</b> ⅔ rotation into alts (falling BTC dominance, rising OTHERS, how many alts ' +
-      'beat BTC) and ⅓ euphoria (retail and how overheated Bitcoin is). “End is near” = the index at 75 or more and euphoria ' +
-      'at 70 or more; “Past the top” = the index 15 below its high of the last half-year.</span>' +
-      '<span class="pk">Rules locked on 27 Sep 2026. Version 2 was built with both altseasons in view, so it fits them by ' +
-      'construction; the real test is every week from now on (logged in the repo).</span>');
+    return L('<b>Altseason cyklus</b> — jak daleko se peníze přelily do altů a jak je trh v euforii. Každý vrchol altseasonu šel nad 75.' +
+      '<span class="pk"><b>Jak se to počítá:</b> ⅔ rotace do altů (kolik cesty z ročního maxima ke dnu minulého cyklu ušla ' +
+      'BTC dominance, o kolik malé alty vyrostly od ročního dna, kolik altů poráží BTC) a ⅓ euforie (retail a přehřátí Bitcoinu). ' +
+      '„Blíží se konec“ = euforie aspoň 70 a k tomu index aspoň 75 nebo rotace aspoň 60; „Po vrcholu“ = po altseasonu index ' +
+      'spadl o 15 pod maximum posledního půlroku a alty v dolarech o 25 %.</span>' +
+      '<span class="pk">Pravidla verze 3 zamčená 28. 9. 2026, dřív než se spočítala na skutečné historii. Dvě minulé altseasony ' +
+      'ale autoři znali, takže skutečný test je každý další týden (záznam v repu).</span>',
+      '<b>Altseason cycle</b> — how far money has rotated into alts and how euphoric the market is. Every past altseason top went above 75.' +
+      '<span class="pk"><b>How it is calculated:</b> ⅔ rotation into alts (how much of the way from its 1-year high to the last ' +
+      'cycle\u2019s low BTC dominance has covered, how much small alts rose from their 1-year low, how many alts beat BTC) and ⅓ ' +
+      'euphoria (retail and Bitcoin heat). “End is near” = euphoria at 70 or more with the index at 75 or more or rotation at 60 ' +
+      'or more; “Past the top” = after an altseason the index 15 below its half-year high and alts down 25% in dollars.</span>' +
+      '<span class="pk">Version 3 rules locked on 28 Sep 2026, before they were computed on the real history. The two past ' +
+      'altseasons were known to the authors, so the real test is every week from now on (logged in the repo).</span>');
   },
   cycOthers: function(){
     return L('<b>OTHERS.D</b> — podíl malých altů na trhu. Průlom dlouhé linie od vrcholu 2022 = peníze tečou do altů.' +
@@ -4028,12 +4041,12 @@ var INFO_TEXT = {
       'low to today: BTC dominance\u2019s rising floor.</span>');
   },
   cycRetail: function(){
-    return L('<b>Retail</b> — kolik lidé opravdu obchodují, proti vlastnímu maximu za 4 roky. Vysoko = vrchol bývá blízko.' +
+    return L('<b>Retail</b> — kolik lidé opravdu obchodují, proti vlastnímu maximu za 4 roky. Vysoko = tam, kde byly minulé vrcholy.' +
       '<span class="pk"><b>Jak se to počítá:</b> Coinbase (USA), Upbit (Korea), memecoiny on-chain a nejlepší krypto appka. ' +
       'Řádek má 100 na svém maximu za 4 roky a 0 na jeho dvacetině (logaritmicky); index = průměr řádků. Modrá plocha = retail, ' +
       'červená = OTHERS v dolarech.</span>' +
       '<span class="pk">Neměří se Google, Wikipedie ani Fear & Greed: dotazy se přesunuly do chatbotů a Fear & Greed je hlavně cena.</span>',
-      '<b>Retail</b> — how much people actually trade, against each row’s own 4-year high. High = a top is usually near.' +
+      '<b>Retail</b> — how much people actually trade, against each row’s own 4-year high. High = where past tops happened.' +
       '<span class="pk"><b>How it is calculated:</b> Coinbase (US), Upbit (Korea), memecoins on-chain and the top crypto app. ' +
       'A row reads 100 at its 4-year high and 0 at a twentieth of it (log scale); the index = the mean of the rows. Blue area = ' +
       'retail, red = OTHERS in dollars.</span>' +

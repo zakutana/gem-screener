@@ -27,3 +27,4 @@ cycle_cache/
 cycle_history.json*
 !backtest_cache/cycle_prereg.lock
 !backtest_cache/cycle_prereg_v2.lock
+!backtest_cache/cycle_prereg_v3.lock

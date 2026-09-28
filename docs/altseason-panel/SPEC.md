@@ -13,7 +13,7 @@ Everything else (layout, tiles, the slider, chart style) should match; the logic
 
 > **WHAT TO REPLACE on cymetica.com/gem-screener:** the existing **"Altseason Index"** panel — the card showing a big percentage (e.g. `56%`), "Altseason Index · In between (3 months ago 20%)", "Share of the top-50 altcoins that beat BTC over ~90 days…", a bar from *BTC SEASON* to *ALTSEASON*, a "last 40 weeks" sparkline, BTC 1M / 3M returns, and the note "The last year had no altseason…". Screenshot: `current-panel-to-replace.webp` next to this file. **That card, and only that card, is replaced by the new Altseason panel described here**, in the same place on the page.
 >
-> **SCOPE — READ FIRST.** Build or replace **only the Altseason panel** (the card with the five tiles *Altseason cycle · OTHERS · BTC.D · Retail · Volume*, its slider, its detail charts and info popovers). **Do not change anything else** on cymetica.com/gem-screener — no other sections, tables, tabs, filters, navigation or styles. The reference repository contains the whole Gem Screener; everything outside the files and sections named in §0 (the apps/chains screener, themes, sectors, degen view, backtest.py, liquidity, unlocks, etc.) is **out of scope — ignore it.**
+> **SCOPE — READ FIRST.** Build or replace **only the Altseason panel** (the card with the five tiles *Altseason cycle · OTHERS.D · BTC.D · Retail · Volume*, its slider, its detail charts and info popovers). **Do not change anything else** on cymetica.com/gem-screener — no other sections, tables, tabs, filters, navigation or styles. The reference repository contains the whole Gem Screener; everything outside the files and sections named in §0 (the apps/chains screener, themes, sectors, degen view, backtest.py, liquidity, unlocks, etc.) is **out of scope — ignore it.**
 >
 > **The repository is a REFERENCE, not code to copy.** Use it mainly for the intended look, then for how we compute everything; you may run it to compare. Then build the panel natively in your own stack, with your own data pipeline, components and design system. Do not copy the repository, its files or its single-file HTML template into your product.
 >
@@ -34,7 +34,7 @@ Everything else (layout, tiles, the slider, chart style) should match; the logic
 
 - **A reference implementation exists.** It is public on GitHub: `zakutana/gem-screener`, branch `altseason-cycle-2r6d3t`. Read these files:
   - `cycle.py`: data, index, phases, trend lines, retail;
-  - `cycle_backtest.py`: the locked rules `PREREG_V2` and the historical validation;
+  - `cycle_backtest.py`: the locked rules `PREREG_V3` (v3, the one the panel runs) and the historical validation;
   - `audit.py` §37: an independent second implementation used as an acceptance test;
   - `template.html`: search for "Altseason panel (cycle.py)" through `function cycleChart`;
   - `ARCHITECTURE.md` §13.8 and §17.1: the written specification.
@@ -68,10 +68,10 @@ A card containing, top to bottom:
    | Tile | Big number | Word under it |
    |---|---|---|
    | **Altseason cycle** | index, e.g. `23/100` | phase name (§5.4) |
-   | **OTHERS** | OTHERS.D today, e.g. `8.04%` | status of the OTHERS.D trend line (§5.5) |
-   | **BTC.D** | BTC dominance today, e.g. `58.5%` | 13-week direction: falling / rising / sideways |
+   | **OTHERS.D** | OTHERS.D today, e.g. `8.04%` | status of the OTHERS.D trend line (§5.5) |
+   | **BTC.D** | BTC dominance today, e.g. `58.5%` | `support broken` when its support line (§5.5) is broken, otherwise the 13-week direction: falling / rising / sideways |
    | **Retail** | retail index, e.g. `55/100` | asleep (<35) / waking up / rushing in (≥70) |
-   | **Volume** | 7-day average market volume, e.g. `$105bn` | weak / normal / elevated / extreme |
+   | **Volume** | 7-day average market volume and its multiple of the 1-year norm, e.g. `$105bn · 1.3×` | weak / normal / elevated / extreme |
 
    Word colours are semantic: good for alts, caution, bad/late, neutral. Use your palette.
    - Tablet: first tile full width, the others 2×2.
@@ -104,7 +104,8 @@ The panel may appear on more than one page. If two instances are in the DOM at o
   - that week's OTHERS.D, OTHERS $ and breadth;
   - the breadth 13 weeks later.
 
-  Dropped points are listed in an `anomalies` field.
+  The newest week has no right neighbour: judge it by the two weeks before it and hold it back until the next week exists. Dropped points are listed in an `anomalies` field.
+- **4-week means** (`mean4`) average the weeks present, **at least 3 of the 4**, so one lost week never blanks the index.
 
 ---
 
@@ -119,7 +120,7 @@ The panel may appear on more than one page. If two instances are in the DOM at o
 | **OTHERS $** | Same ranks 11–125 in USD | 2014-07 → | same |
 | **Breadth** weekly | Share of the top-50 alts that beat BTC over 13 weeks. Uses that week's listing (survivorship-free); stablecoins and wrapped/staked twins excluded; coins listed < 13 weeks ago skipped | 2014-10 → | same (listing 13 weeks earlier for prices) |
 | **BTC on-chain** daily | Price, MVRV ratio (not MVRV-Z), issuance USD | 2012 → | Coin Metrics community API |
-| **Retail: Coinbase** daily | USD turnover (base volume × close) of BTC-USD + ETH-USD | 2015-07 → | Coinbase Exchange public candles |
+| **Retail: Coinbase** daily | USD turnover (base volume × close) of BTC-USD + ETH-USD; a day counts only when both pairs have it (ETH from 2016-05) | 2015-07 → | Coinbase Exchange public candles |
 | **Retail: Upbit** weekly | KRW turnover summed over **all** KRW markets | 2017-10 → | Upbit public API |
 | **Retail: memecoins** daily | 30-day revenue of DeFiLlama categories Launchpad + Telegram Bot + Trading App | 2019 → (scored from first $5M day, 2023-05) | DeFiLlama fees overview (per-protocol breakdown) |
 | **Retail: App Store** daily snapshot | US App Store ranks (overall top-100 and Finance top-100) of crypto apps | from launch of your ledger | Apple RSS |
@@ -143,7 +144,7 @@ Deliberately excluded, do not add them:
 Weekly sample of each row:
 - **coinbase:** mean of the daily turnover over the 30 days before the stamp (≥ 20 days present);
 - **upbit:** sum of the 4 weekly candles before the stamp (all 4 present);
-- **memecoins:** the value on the day before the stamp, from the first day ≥ $5M on;
+- **memecoins:** the newest value among the 7 days before the stamp, from the first day ≥ $5M on;
 - **app store:** `app_score` of the best-ranked crypto app in the newest snapshot of the 7 days before the stamp:
   - overall #1 = 100, #10 = 90, #100 = 60;
   - Finance #10 = 50, #100 = 10;
@@ -157,26 +158,33 @@ Robinhood publishes only monthly crypto volume (press releases) with no history 
 
 - **Stale beats empty.** A failed refresh never overwrites stored good data with less or with partial data.
 
-  Example we hit: if some Upbit markets fail, the week's sum reads low and overwrites a good value. The fix is to write nothing and warn.
+  Examples we hit: if some Upbit markets fail, the week's sum reads low and overwrites a good value; if the App Store chart does not come back, "no crypto app in the top 100" scores 5 and drags retail down. The fix is to write nothing and warn.
 - **Freshness per source:** store the newest data day and a stale flag.
-  - Weekly sources are stale after 10 days, daily sources after 4 days.
+  - Weekly sources (and the App Store snapshot) are stale after 10 days, daily sources after 4 days.
   - The panel names stale sources.
 - Never draw NaN or Infinity.
 - **The history is expensive to rebuild.** It is ~630 weekly listings plus paced calls. Persist it durably, never only in an ephemeral cache.
-- **A single missing week should not blank the index for 4 weeks** (the current reference does; see §10). Your call how, but document it.
+- **The forward ledger** (§8) records, per week, which sources were stale and which retail rows were scored.
 
 ---
 
-## 5. The method (v2; exact arithmetic in `cycle.py`)
+## 5. The method (v3; exact arithmetic in `cycle.py` `compute_index_v3`, locked rules in `cycle_backtest.py` `PREREG_V3`)
+
+v3 (2026-09-28) replaced v2 after three independent reviews: v2 fitted the two past altseasons but could miss the next one (BTC.D's floor rises every cycle, and both exit phases needed the index at 75). v3 was locked before it was computed on real data.
 
 ### 5.1 Rotation (0–100, absolute scales)
 
 Each part is clamped to 0–100. Rotation = the mean of the parts present, at least 2 of 3.
-- **BTC.D drawdown:** dd = 1 − mean4(BTC.D) / max of mean4(BTC.D) over the last 52 weeks (≥ 40 values). Score = 100 × dd / 0.50.
+- **BTC.D path:** how much of the way from its 1-year high down to the previous cycle's low BTC.D has covered.
+  - P = the highest mean4(BTC.D) of the last 52 weeks (≥ 40 values); F = the lowest mean4(BTC.D) of the weeks t−311..t−52 (≥ 52 values: the last cycle's low, not this year's); B = mean4(BTC.D) now.
+  - Path = 100 × (P − B) / max(P − F, 25). 100 = at or under the old low. The 25 pp minimum span stops a dip just above an old low (2022, when stablecoins pushed BTC.D down in a bear market) from reading as a full rotation.
+  - Why: BTC.D's floor rises every cycle (32.8% in 2018, 37.9% in 2022). v2's fixed scale (a 50% drawdown = full) scored a real rotation from 65% to 45% at 62; the path scores it 74.
 - **OTHERS.D rise:** rise = mean4(OTHERS.D) / min of mean4 over 52 weeks − 1. Score = 100 × ln(1 + rise) / ln 3.
-- **Breadth:** b = 4-week mean of breadth %. Score = 100 × (b − 25) / 65.
+- **Breadth:** b = mean4 of breadth %. Score = 100 × (b − 25) / 65.
 
 Why absolute scales: percentiles scored a 3–12% BTC.D dip at 60–70 in the 2022–24 bear market.
+
+Rejected before registration: anchoring P at the previous cycle's low instead of a rolling year (to survive an altseason that runs flat for over a year) held the 2022 bear market at a rotation of ~85.
 
 ### 5.2 BTC heat (0–100)
 
@@ -203,10 +211,10 @@ Heat = the mean of the trailing percentiles of MVRV ratio, Puell (issuance ÷ it
 
 | Key | English label | Rule |
 |---|---|---|
-| `po_vrcholu` | **Past the top** | ≥ 2 of the previous 26 weeks at index ≥ T, and index ≤ their max − 15 |
-| `prehrate` | **End is near** | index ≥ T and euphoria ≥ 70 |
+| `po_vrcholu` | **Past the top** | ≥ 4 of the previous 26 weeks in *Altseason is on* or *End is near*, index ≤ the max of those 26 weeks − 15, **and** OTHERS in $ (mean4) ≥ 25% below its high of the weeks t−26..t (alts really fell) |
+| `prehrate` | **End is near** | euphoria ≥ 70 and (index ≥ T **or** rotation ≥ 60) — also fires in an altseason weaker than 2021 that never reaches 75 |
 | `bezi` | **Altseason is on** | rotation ≥ 60, or index ≥ T |
-| `zacina` | **Alts are starting** | rotation ≥ 30 and (rotation +15 vs 13 weeks ago, or an OTHERS.D breakout event in the last 13 weeks) |
+| `zacina` | **Alts are starting** | rotation ≥ 30 and (rotation +15 vs 13 weeks ago, or an OTHERS.D breakout event in the 13 weeks t−12..t) |
 | `btc_sezona` | **Only BTC runs** | heat ≥ 50 and rotation < 30 |
 | `zima` | **Alts not moving yet** | otherwise |
 
@@ -258,7 +266,7 @@ Per tile:
 
 | Tile | Chart | Under the chart |
 |---|---|---|
-| Altseason cycle | Index (area, 0–100); OTHERS in $ on the log right axis; a dashed horizontal line at 75 labelled `top zone · 75`; the three past altseason ends marked with their values (`2017: 100`, `2018: 95`, `2021: 80` — label 2017 to the left so it does not collide with 2018) | Three plain-words rows (§7.3), each with a small score chip on the right |
+| Altseason cycle | Index (area, 0–100); OTHERS in $ on the log right axis; a dashed horizontal line at 75 labelled `top zone · 75`; the three past altseason ends marked with their values (label 2017 to the left so it does not collide with 2018) | Three plain-words rows (§7.3), each with a small score chip on the right |
 | OTHERS | OTHERS.D (area, fitted axis); the red resistance line; hollow marks at the anchor (`top 2022`) and the touching pivot; a green mark labelled `break <Mon YYYY>` under the point where the break started; the newest daily point | — |
 | BTC.D | BTC.D (area, fitted); the red support line (anchor labelled `low 2022 · 37.9%`); the break mark; the green 2018→2022 line with its value today under its end point | — |
 | Retail | Retail index (area, 0–100); OTHERS in $ on the log right axis (**no BTC line**) | A header `Retail 55 waking up · pace flat`, then a table (§7.4) |
@@ -272,13 +280,13 @@ The panel must also render cleanly on a phone (375 px), with no horizontal overf
 
 ### 7.1 Tiles, slider, notes
 
-- Tiles: `ALTSEASON CYCLE`, `OTHERS`, `BTC.D`, `RETAIL`, `VOLUME`
+- Tiles: `ALTSEASON CYCLE`, `OTHERS.D`, `BTC.D`, `RETAIL`, `VOLUME`
 - Toggle: `Expand ▾` / `Collapse ▴`
 - Slider: `CALM` · `TOP ZONE · 75` · `WEEK OF <Mon D>`
 - Words:
   - phases: `Alts not moving yet`, `Only BTC runs`, `Alts are starting`, `Altseason is on`, `End is near`, `Past the top`;
-  - OTHERS: `trend broken`, `breaking the trend`, `false breakout`, `falling`, `no trend`;
-  - BTC.D: `falling`, `rising`, `sideways`;
+  - OTHERS.D: `trend broken`, `breaking the trend`, `false breakout`, `below the line`, `no trend`;
+  - BTC.D: `support broken`, `falling`, `rising`, `sideways`;
   - retail: `asleep`, `waking up`, `rushing in`;
   - volume: `weak`, `normal`, `elevated`, `extreme`;
   - tempo: `rush`, `gradually`, `leaving`, `flat`;
@@ -289,14 +297,15 @@ The panel must also render cleanly on a phone (375 px), with no horizontal overf
 
 ### 7.2 Info popovers ("i")
 
-- **Altseason cycle:** "**Altseason cycle** — how close an altseason's end is. 75 = where the 2018 and 2021 altseasons ended."
-  - How it is calculated: "⅔ rotation into alts (falling BTC dominance, rising OTHERS, how many alts beat BTC) and ⅓ euphoria (retail and how overheated Bitcoin is). 'End is near' = the index at 75 or more and euphoria at 70 or more; 'Past the top' = the index 15 below its high of the last half-year."
+- **Altseason cycle:** "**Altseason cycle** — how far money has rotated into alts and how euphoric the market is. Every past altseason top went above 75."
+  - How it is calculated: "⅔ rotation into alts (how much of the way from its 1-year high to the last cycle's low BTC dominance has covered, how much small alts rose from their 1-year low, how many alts beat BTC) and ⅓ euphoria (retail and Bitcoin heat). 'End is near' = euphoria at 70 or more with the index at 75 or more or rotation at 60 or more; 'Past the top' = after an altseason the index 15 below its half-year high and alts down 25% in dollars."
+  - "Rules locked on 28 Sep 2026, before they were computed on the real history. The two past altseasons were known to the authors, so the real test is every week from now on."
 - **OTHERS:** "**OTHERS.D** — small alts' share of the market. Breaking the line from the 2022 top = money moving into alts."
   - How it is calculated: "a TradingView-style line — from the highest weekly close of 6 years over the lower highs down to the bottom. A break = two weekly closes more than 3% above the line; each week sees only its own past."
   - Add one line if your OTHERS.D definition differs from TradingView's.
 - **BTC.D:** "**BTC dominance** — Bitcoin's share of the market. When it falls, money flows into alts."
   - How it is calculated: "the red line runs from the 2022 low under the higher lows (as on TradingView); a break = two weekly closes more than 3% below it. The green line runs from the 2018 altseason low through the 2022 low to today: BTC dominance's rising floor."
-- **Retail:** "**Retail** — how much people actually trade, against each row's own 4-year high. High = a top is usually near."
+- **Retail:** "**Retail** — how much people actually trade, against each row's own 4-year high. High = where past tops happened."
   - How it is calculated: "Coinbase (US), Upbit (Korea), memecoins on-chain and the top crypto app. A row reads 100 at its 4-year high and 0 at a twentieth of it (log scale); the index = the mean of the rows. Blue area = retail, red = OTHERS in dollars."
   - "Google, Wikipedia and Fear & Greed are not measured: lookups moved into chatbots, and Fear & Greed is mostly price."
 - **Volume:** "**Volume** — the whole market's daily trading (7-day average) against its 1-year norm. Tops ran 2–4×, but so did crashes."
@@ -304,12 +313,16 @@ The panel must also render cleanly on a phone (375 px), with no horizontal overf
 
 ### 7.3 Altseason cycle breakdown (three rows under the chart, this week's numbers)
 
+Each number stands next to the same number at the 2018 and 2021 altseason ends (`rotation_at_events`, computed on the backend — never a hand-written range):
+
 1. **Is money moving into alts?** (chip = rotation), three short lines:
-   - `BTC dominance −2% from its 1-year high (−30 to −50% in an altseason)`
-   - `small alts +23% above their 1-year low (+100% or more in an altseason)`
-   - `only 24% of alts beat BTC (80%+ in an altseason)`
-2. **Is the market euphoric?** (chip = euphoria): `people trade at 55/100 of their high · Bitcoin overheated at 46/100`
-3. **Altseason cycle** (chip = index): `⅔ money into alts + ⅓ euphoria. From 75 (with euphoria from 70): "End is near".`
+   - `BTC dominance has covered 5% of the way from its 1-year high 60.0% to the last cycle's low 37.9% (2018: 100%, 2021: 78%)` (the path shown clamped to 0–100)
+   - `small alts +23% above their 1-year low (2018: +251%, 2021: +215%)`
+   - `24% of the top 50 alts beat BTC over 13 weeks (2018: 89%, 2021: 90%)`
+2. **Is the market euphoric?** (chip = euphoria): `retail 55/100 · Bitcoin heat 46/100`
+3. **Altseason cycle** (chip = index): `⅔ money into alts + ⅓ euphoria. "End is near" = euphoria 70+ with the index at 75+ or money into alts at 60+.`
+
+(The numbers above are illustrative; §9 has the reference values.)
 
 ### 7.4 Retail table
 
@@ -336,30 +349,33 @@ One JSON document per refresh (the reference calls it the `cycle` block, documen
 - `index`, `phase`, `rotation`, `euphoria`, `heat`;
 - full weekly `series` from 2014-07 (index, rotation, euphoria, retail, heat, phase, btcd, othersd, breadth, others_usd, btc, the four heat metrics, breakout weeks, and the raw weekly retail samples);
 - `components` per tile, with the verdict words decided on the backend and the line objects (anchor, touch, bottom, slope, status, since, back, line_now, dist_pct, latest_line);
-- `events` P0/P1/P2/P2b with `index_at_events`;
+- `events` P0/P1/P2/P2b with `index_at_events`, and `rotation_at_events` (the BTC.D path, the OTHERS.D rise and the 4-week breadth at P1 and P2, for §7.3);
+- the rotation's parts for this week: BTC.D `path` (pct, score, peak and its week, floor and its week), OTHERS.D `rise_pct` and the week of its low;
 - `freshness` per source, `anomalies`.
 
 Keep it NaN-free.
 
 Refresh: at least daily. The reference runs every 6 h; weekly values change once a week, daily points (newest OTHERS.D, BTC.D, volume) every day.
 
-**Forward ledger:** append one line per closed week (week, index, phase, rotation, euphoria, retail, heat) to durable storage. It is the honest test of the method from now on.
+**Forward ledger:** append one line per closed week (week, index, phase, rotation, euphoria, retail, heat, version, the stale sources, the scored retail rows) to durable storage; while a week is still the newest, a later run with fewer stale sources may replace its line. It is the honest test of the method from now on.
 
 ---
 
-## 9. Acceptance (reference numbers, real data, week of 2026-09-21)
+## 9. Acceptance (reference numbers, real data)
+
+> **v3 index values: PENDING.** The v3 rules were locked on 2026-09-28 before they were computed on the real history; the index, phase and §7.3 values below are filled in from the reference run. Trend lines and retail do not change between v2 and v3.
 
 **Historical events** (P0/P1/P2 = weekly BTC.D minimum in the stated windows):
 
-| Event | Week | Index |
+| Event | Week | Index v3 |
 |---|---|---|
-| P0 | 2017-06-19 | 99.7 |
-| P1 | 2018-01-15 | 95.2 |
-| P2 | 2021-05-17 | 79.7 |
-| P2b | 2021-11 | 62.3 |
+| P0 | 2017-06-19 | pending |
+| P1 | 2018-01-15 | pending |
+| P2 | 2021-05-17 | pending |
+| P2b | 2021-11 | pending |
 
-- The index is ≥ 75 in ~8.4% of evaluated weeks (from 2016-08), in exactly three episodes (2017-04, 2017-12, 2021-05). It stays < 75 through 2023–2026: max 46.1, today 23.4, phase `Alts not moving yet`.
-- "End is near" first lit ~10 weeks before P0, 1 week before P1 and 2 weeks before P2, and never away from a top.
+- v3's pre-registered checks (`cycle_backtest.py`): "End is near" within [−8, +2] weeks of P0, P1 and P2; each cycle's highest week near its tops; ≤ 10% of weeks at ≥ 75; ≤ 2 "End is near" episodes away from the tops; **no "End is near" and no index ≥ 75 from 2023-01 to 2026-06** (Bitcoin's new highs without an altseason). Result: pending.
+- For comparison, v2 on the same data (week of 2026-09-21): P0 99.7, P1 95.2, P2 79.7, P2b 62.3; ≥ 75 in ~8.4% of weeks; max since 2023 46.1; today 23.4, `Alts not moving yet`.
 
 **Trend lines (ranked OTHERS.D definition):**
 - OTHERS.D: line from **2022-01-03 (20.43%)** through the **2024-12-02** high; status `trend broken` since **2026-05-11**.
@@ -382,15 +398,14 @@ If your data vendor differs, small deviations are expected. Explain any deviatio
 
 ---
 
-## 10. Known weak spots (from an independent review; improve freely)
+## 10. Known weak spots (from three independent reviews; improve freely)
 
-1. **One missing week blanks the index for 4 weeks.** 4-week means require all 4 values; BTC heat requires the exact Sunday value. Suggested fix: 3 of 4 values, and the latest value within the prior 7 days.
+1. **An altseason that runs flat for more than a year** drifts out of the one-year windows: after about a year the rotation fades and the phase falls back while alts still hold. v3 at least never says "Past the top" while alts hold their dollar value. No altseason so far ran flat for a year (2017 ≈ 10 months, 2021 ≈ 5). A fix that does not also mark the 2022 bear market as an altseason is welcome.
 2. **Data sources can break silently.** The reference uses unofficial or free endpoints (the CMC web API especially). Prefer robust vendors, alert your ops on failure, and show freshness on the panel.
-3. **"Past the top" is late by design** (1–2 months after the top). In 2017 it fired between two alt tops. The panel is a map, not a sell signal, so keep the copy honest.
-4. **Only two historical altseasons** exist. v2 was designed with both in view, so it fits them by construction. The forward ledger is the real test.
+3. **"Past the top" is late by design** (1–2 months after the top). The panel is a map, not a sell signal, so keep the copy honest.
+4. **Only two historical altseasons** exist. The designers knew both, so the historical checks are consistency, not proof. The forward ledger is the real test.
 5. **The retail mix changes over time:** 2017 has only Coinbase, 2021 adds Upbit, and memecoins and App Store data are recent. Document how you handle it.
-
----
+6. **Weaker next altseason:** v3's BTC.D path and its "End is near" rule (euphoria ≥ 70 and rotation ≥ 60, even under 75) exist for this case; they were tested on synthetic series only.
 
 ## 11. Deliverables
 

@@ -216,6 +216,121 @@ PREREG_V2 = {
 
 
 V2_SHA256 = "c03f3450e3edd61cbad1077438adbb2cb93ee36fdd392b4e04392804a52d6914"   # = the v2 lock
+V3_SHA256 = "7f4261689b356bb0eae55d862e44b87a46420ee9f9a4cd35ec4418bb8f4fd1b8"   # = the v3 lock
+
+# v3, registered 2026-09-28 — this time BEFORE any v3 number was computed on the real
+# history (the cloud session that wrote it has no market data; it was debugged on
+# synthetic series only). Why a v3 at all: three independent reviews (method,
+# engineering, product) agreed that v2 fits the past but could miss the next
+# altseason — see the "why" texts. v2 stays locked and reported.
+PREREG_V3 = {
+    "id": "altseason-cycle-v3",
+    "registered": "2026-09-28",
+    "supersedes": "altseason-cycle-v2 (PASS by construction; stays locked and reported)",
+    "honesty": "Registered before any v3 value was computed on the real history: the rules below were written "
+               "and debugged on synthetic series only. The designers still knew both past altseasons, so the "
+               "historical pass criteria are a consistency check; the forward ledger (cycle_ledger.jsonl) is the "
+               "test.",
+    "job": "an informative map of the altseason cycle for degens: how far money has rotated into alts and how "
+           "euphoric the market is; the phase says when an altseason is on, near its end (prehrate, Blizi se "
+           "konec) and past its top (po_vrcholu) - also for an altseason weaker or longer than 2017 and 2021",
+    "why": [
+        "BTC.D's floor rises every cycle (2018 low 32.8 %, 2022 low 37.9 %): v2's fixed scale (a 50 % drawdown "
+        "= full) scores a real rotation from 65 % to 45 % at 62, so a weaker altseason could stay under 75 and "
+        "never show either exit phase",
+        "v2's one-year windows: an altseason that runs flat for longer than a year drifts out of them and v2 "
+        "read po_vrcholu with nothing turned",
+        "v2's exit phases both needed I >= 75",
+        "v2's 4-week means needed all four weeks: one lost weekly listing blanked the index for four weeks",
+    ],
+    "weeks": "Monday 00:00 UTC stamps, inputs from 2014-07-07; weekly inputs after clean_spikes (a week > 25 % off "
+             "two neighbours that agree within 10 % is dropped; the newest week, with no right neighbour, is judged "
+             "by the two weeks before it and held back)",
+    "mean4": "the mean of the values present among the 4 weeks up to t, at least 3 (roll_min)",
+    "rotation": {
+        "parts": ["BTC.D path = (P - B) / max(P - F, 25) x 100, where B = mean4(BTC.D) at t, P = the highest "
+                  "mean4(BTC.D) of the 52 weeks up to t (>= 40 present; ties: the earliest) and F = the lowest "
+                  "mean4(BTC.D) of the weeks t-311..t-52 (>= 52 present; ties: the latest): the share of the way "
+                  "from the 1-year high down to the previous cycle's low; score = the path clamped to 0-100",
+                  "OTHERS.D rise = mean4(OTHERS.D) / the lowest mean4(OTHERS.D) of the 52 weeks up to t (>= 40 "
+                  "present) - 1; score = 100 x ln(1 + rise) / ln 3",
+                  "breadth b = mean4 of the share of the top-50 alts beating BTC over 13 weeks (that week's CMC "
+                  "listing, stablecoins and wrapped twins out); score = 100 x (b - 25) / 65"],
+        "combine": "each part clamped to 0-100; rotation = mean of the parts present, >= 2 of 3",
+    },
+    "heat": "BTC heat as in v2 (mean of the trailing percentiles, mid-rank, previous 208 weeks, current excluded, "
+            ">= 104 values, of MVRV ratio, Puell, Mayer, Pi Cycle; >= 3 of 4), each metric read on the newest day "
+            "with a price among the 7 days before the stamp",
+    "retail": "as in v2 (rows coinbase, upbit, degen, apps; 4-year log score; >= 1 row), with two fixes: a "
+              "Coinbase day counts only when both pairs have it (ETH-USD from its first day), and the memecoin "
+              "row reads the newest value among the 7 days before the stamp",
+    "euphoria": "(retail + heat) / 2; none if either is missing",
+    "index": "I = (2 x rotation + euphoria) / 3; none if either is missing",
+    "T": 75,
+    "phases": {
+        "order": ["po_vrcholu", "prehrate", "bezi", "zacina", "btc_sezona", "zima"],
+        "po_vrcholu": "at least 4 of the 26 weeks before t in phase bezi or prehrate, I <= the highest index of "
+                      "those 26 weeks - 15, and mean4(OTHERS USD) at t <= 0.75 x its highest mean4 of the weeks "
+                      "t-26..t (alts really fell in dollars)",
+        "prehrate": "euphoria >= 70 and (I >= T or rotation >= 60)",
+        "bezi": "rotation >= 60, or I >= T",
+        "zacina": "rotation >= 30 and (rotation - rotation 13 weeks earlier >= 15, or an OTHERS.D breakout event "
+                  "in the 13 weeks t-12..t)",
+        "btc_sezona": "heat >= 50 and rotation < 30",
+        "zima": "otherwise",
+    },
+    "trendline": "unchanged from PREREG_V2 (312-week anchor, pivots +-4, 3 % beyond, 2 closes, 13 weeks back)",
+    "events": "as PREREG_V2: P0, P1, P2 = min weekly BTC.D in their windows, P2b = max OTHERS USD in 2021-H2",
+    "evaluation_start": "the first week with an index",
+    "pass": [
+        "a prehrate week in [P - 8 w, P + 2 w] for each of P0, P1, P2",
+        "cycle 1 (evaluation start..2019-12-31): the highest-index week (ties: the earliest) in "
+        "[P0 - 12 w, P0 + 4 w] or [P1 - 12 w, P1 + 4 w]; cycle 2 (2020-01-01..2022-12-31): in [P2 - 12 w, P2 + 4 w]",
+        "at most 10 % of the evaluated weeks at I >= T",
+        "at most 2 prehrate episodes starting outside [P - 16 w, P + 8 w] of every event (P0, P1, P2, P2b)",
+        "no prehrate week and no week at I >= T from 2023-01-01 to 2026-06-30 (Bitcoin made new highs with no "
+        "altseason: the failure v1 had)",
+    ],
+    "selftest": "on synthetic series (no data): a weaker altseason - BTC.D from 65 % to 45 % over a previous-cycle "
+                "low of 38 %, OTHERS.D x 2, breadth about 69 %, high euphoria - must read prehrate during it (v2 "
+                "reads only bezi there) and po_vrcholu after alts fall in dollars; the same altseason held flat "
+                "for 70 weeks must not read po_vrcholu while it runs",
+    "reported_only": [
+        "lead time for P0, P1, P2 as in v2",
+        "every po_vrcholu episode with its start",
+        "13/26-week OTHERS USD return and vs BTC after the start of every phase episode",
+        "the highest index from 2023-01-01, each calendar year's maximum, the index at P0, P1, P2, P2b",
+        "v1 (FAIL) and v2 (PASS by construction) beside it, never re-tuned",
+    ],
+    "forward_test": "cycle_ledger.jsonl: one line per closed week (week, index, phase, rotation, euphoria, retail, "
+                    "heat, version, stale sources, scored retail rows)",
+    "rules": {
+        "T": 75, "window": 208, "min_window": 104, "roll_min": 3,
+        "rot_floor_window": 312, "rot_floor_gap": 52, "rot_floor_min": 52,
+        "rot_span_min": 25, "rot_rise_full": 3, "rot_breadth_lo": 25, "rot_breadth_hi": 90, "rot_min_parts": 2,
+        "rot_weight": 2, "euph_weight": 1, "heat_max_age_days": 7,
+        "retail_window": 208, "retail_warmup": 52, "retail_span": 20, "retail_min_rows": 1,
+        "coinbase_days": 30, "coinbase_min_days": 20, "meme_start_usd": 5000000, "meme_max_age_days": 7,
+        "apps_max_age_days": 7,
+        "prehrate_euphoria": 70, "bezi_rotation": 60,
+        "zacina_rotation": 30, "zacina_rise": 15, "zacina_weeks": 13,
+        "btc_sezona_heat": 50, "btc_sezona_rotation": 30,
+        "po_vrcholu_drop": 15, "po_vrcholu_weeks": 26, "po_vrcholu_min": 4, "po_vrcholu_usd_drop": 25,
+        "trend_window": 312, "trend_pivot": 4, "trend_break": 0.03, "trend_confirm": 2, "trend_back_weeks": 13,
+    },
+    "rejected_before_registration": [
+        "anchoring the BTC.D high and the OTHERS.D low at the previous cycle's low instead of a rolling year "
+        "(against the long-plateau problem): on the synthetic history it held 2022's bear market at a rotation of "
+        "about 85 and read bezi for half a year, because BTC.D stayed far under 2019's high",
+        "anchoring at the most recent 52-week high: a year on a plateau makes a new 52-week high out of noise, "
+        "the same failure as v2",
+    ],
+    "known_limit": "an altseason that runs flat for longer than a year still drifts out of the one-year windows: "
+                   "after about a year its rotation fades and the phase falls back (to zima in the selftest) while "
+                   "alts still hold - never to po_vrcholu while they hold their dollar value. No altseason so far "
+                   "ran flat for a year (2017: about 10 months, 2021: about 5)",
+}
+LOCK_V3 = os.path.join("backtest_cache", "cycle_prereg_v3.lock")
 
 
 def prereg_hash(p=None):
@@ -298,7 +413,30 @@ def ts_utc(y, m, d):
 def evaluate_v2(weeks, s, rows, ev):
     """PREREG_V2: the four pass criteria and the reported-only numbers."""
     R = dict(cycle.V2_RULES)
-    res = cycle.compute_index_v2(weeks, s, rows, R)
+    return _evaluate(weeks, cycle.compute_index_v2(weeks, s, rows, R), ev, R)
+
+
+def evaluate_v3(weeks, s, rows, ev):
+    """PREREG_V3: v2's four criteria plus a quiet 2023-01..2026-06 (Bitcoin's new
+    highs with no altseason), and every po_vrcholu episode reported."""
+    R = dict(cycle.V3_RULES)
+    res = cycle.compute_index_v3(weeks, s, rows, R)
+    out = _evaluate(weeks, res, ev, R)
+    I, ph, T = res["index"], res["phase"], R["T"]
+    lo, hi = ts_utc(2023, 1, 1), ts_utc(2026, 6, 30)
+    quiet = [i for i in range(len(weeks)) if lo <= weeks[i] <= hi and I[i] is not None]
+    loud = [i for i in quiet if I[i] >= T or ph[i] == "prehrate"]
+    out["quiet_weeks"] = len(quiet)
+    out["quiet_2023_2026"] = bool(quiet) and not loud
+    out["loud_weeks_2023_2026"] = [weeks[i] for i in loud]
+    out["pass"] = bool(out["pass"] and out["quiet_2023_2026"])
+    out["po_vrcholu_episodes"] = [[weeks[a], weeks[b]] for p, a, b in cycle.phase_episodes(weeks, ph)
+                                  if p == "po_vrcholu"]
+    out["index_at_P2b"] = r1(I[ev["P2b"]]) if ev.get("P2b") is not None and I[ev["P2b"]] is not None else None
+    return out
+
+
+def _evaluate(weeks, res, ev, R):
     I, ph = res["index"], res["phase"]
     T = R["T"]
     n = len(weeks)
@@ -429,6 +567,7 @@ def selftest():
     except ValueError:
         check(True, "NaN rejected by allow_nan=False")
     ok = selftest_v2(check) and ok
+    ok = selftest_v3(check) and ok
     print("SELFTEST", "OK" if ok else "FAILED")
     return 0 if ok else 1
 
@@ -522,6 +661,113 @@ def selftest_v2(check):
     return ok
 
 
+def weak_altseason(hold, seed=5):
+    """PREREG_V3's selftest scenario: a previous cycle's BTC.D low of 38 %, years at
+    62–65 %, then a weaker altseason — BTC.D 65 -> 45 % in 20 weeks, OTHERS.D x 2,
+    breadth ~69 %, retail and BTC heat up — held `hold` weeks, then alts fall (OTHERS
+    in dollars -45 %) and BTC.D recovers."""
+    import random
+    rnd = random.Random(seed)
+    n = 520 + hold + 80
+    weeks = [cycle.START_WEEK + i * cycle.WEEK for i in range(n)]
+    bd, od, br, ht, cb, ou = [], [], [], [], [], []
+    for i in range(n):
+        if i < 230:
+            b = 62
+        elif i < 250:
+            b = 62 - (i - 230) * 1.2
+        elif i < 280:
+            b = 38 + (i - 250) * 0.8
+        elif i < 500:
+            b = 62 + min(3, (i - 280) * 0.05)
+        elif i < 520:
+            b = 65 - (i - 500)
+        elif i < 520 + hold:
+            b = 45
+        else:
+            b = min(58, 45 + (i - 520 - hold) * 1.0)
+        bd.append(b + rnd.uniform(-0.5, 0.5))
+        alt = 500 <= i < 520 + hold
+        ramp = min(1, max(0, (i - 500) / 20))
+        od.append((5 * (1 + ramp) if alt else (6 if i >= 500 else 5)) + rnd.uniform(-0.1, 0.1))
+        br.append((69 if alt and i >= 506 else 30) + rnd.uniform(-2, 2))
+        ht.append((1 + 0.4 * ramp if alt else (1.1 if i >= 500 else 1)) + rnd.uniform(-0.03, 0.03))
+        cb.append((6e9 if 350 <= i < 360 else (3e9 if alt else 1e9)) * (1 + rnd.uniform(-0.05, 0.05)))
+        ou.append((100 if alt else (55 if i >= 500 else 50)) * (1 + rnd.uniform(-0.03, 0.03)))
+    s = {"btcd": bd, "othersd": od, "breadth": br, "mvrv": ht, "puell": ht, "mayer": ht, "pi": ht, "others_usd": ou}
+    rows = {"coinbase": cb, "upbit": [None] * n, "degen": [None] * n, "apps": [None] * n}
+    return weeks, s, rows
+
+
+def selftest_v3(check):
+    """v3 on synthetic series only: the registration, the BTC.D path to the old low,
+    the weaker and the longer altseason, the data fixes."""
+    ok = True
+
+    def chk(cond, msg):
+        nonlocal ok
+        check(cond, msg)
+        ok = ok and bool(cond)
+    R3 = PREREG_V3["rules"]
+    drift = sorted(k for k in R3 if cycle.V3_RULES.get(k) != R3[k])
+    chk(not drift, "cycle.V3_RULES = PREREG_V3 rules%s" % (" (drift: %s)" % ", ".join(drift) if drift else ""))
+    chk(prereg_hash(PREREG_V3) == V3_SHA256, "v3 PREREG hash = its lock (%s…)" % prereg_hash(PREREG_V3)[:12])
+    chk(cycle.DEFAULT_RULES == cycle.V3_RULES, "the page runs v3")
+    # --- one missing week does not blank a 4-week mean; two do
+    m = cycle.roll_mean_min([1.0, 2.0, None, 4.0, 5.0, None, None, 8.0], 4, 3)
+    chk(m[3] == 7 / 3 and m[4] == 11 / 3 and m[6] is None, "4-week mean from 3 of 4 weeks, none from 2")
+    # --- the BTC.D path: 1-year high 65, previous cycle's low 38, now 45 = 74 % of the way
+    n = 400
+    bd = [60.0] * 100 + [38.0] * 10 + [60.0] * 180 + [65.0] * 30 + [65.0 - k for k in range(1, 21)] + [45.0] * 60
+    flat = [5.0] * n
+    ro = cycle.rotation_v3({"btcd": bd, "othersd": flat, "breadth": [50.0] * n}, cycle.V3_RULES)
+    i = 343
+    chk(abs(ro["path"][i] - 100 * 20 / 27) < 1e-9 and ro["floor"][i] == 38.0 and ro["peak_at"][i] == 293,
+        "BTC.D path = (65 - 45) / (65 - 38) = %.1f %% (v2: dd %.0f %% scored %.0f)" % (ro["path"][i], 100 * 20 / 65, 100 * 20 / 65 / 0.5))
+    lo = [60.0] * 300 + [50.0] * 60 + [45.0 - 0.1 * k for k in range(40)]
+    ro = cycle.rotation_v3({"btcd": lo, "othersd": flat, "breadth": [50.0] * n}, cycle.V3_RULES)
+    chk(abs(ro["path"][399] - 100 * (50 - ro["bd4"][399]) / 25) < 1e-9 and ro["floor"][399] == 50.0,
+        "a span under 25 pp counts as 25 pp (the old low is the 1-year high itself)")
+    # --- the weaker altseason: v3 says "Blíží se konec", v2 never does; "Po vrcholu" after alts fall
+    weeks, s, rows = weak_altseason(15)
+    r3 = cycle.compute_index_v3(weeks, s, rows)
+    r2 = cycle.compute_index_v2(weeks, s, rows)
+    chk("prehrate" in r3["phase"][505:536], "weaker altseason: v3 reads prehrate (max index %.0f, rotation %.0f)"
+        % (max(r3["index"][505:536]), max(r3["rotation"][505:536])))
+    chk("prehrate" not in r2["phase"][505:536], "… where v2 reads only bezi (max index %.0f)" % max(r2["index"][505:536]))
+    chk("po_vrcholu" in r3["phase"][535:560], "po_vrcholu after alts fall")
+    chk("po_vrcholu" not in r3["phase"][:535] and "prehrate" not in r3["phase"][:500], "nothing before it")
+    # --- the same altseason flat for 70 weeks: no po_vrcholu while alts hold their dollars
+    weeks, s, rows = weak_altseason(70)
+    r3 = cycle.compute_index_v3(weeks, s, rows)
+    chk("po_vrcholu" not in r3["phase"][500:590], "a 70-week plateau never reads po_vrcholu while it runs")
+    # (after a year flat the one-year windows have drifted and the phase fell back
+    # before alts fell, so no po_vrcholu follows — PREREG_V3 "known_limit")
+    chk(all(p is None or p in cycle.PHASES_V2 for p in r3["phase"]), "every week has a known phase")
+    # --- the newest week has no right neighbour: a spike there is held back
+    ws = [cycle.START_WEEK + i * cycle.WEEK for i in range(6)]
+    sp = {"othersd": [10.0, 10.1, 10.2, 10.0, 10.1, 5.0], "btcd": [50.0] * 6, "others_usd": [1.0] * 6,
+          "breadth": [40.0] * 6}
+    an = cycle.clean_spikes(ws, sp)
+    chk(sp["othersd"][5] is None and sp["breadth"][5] is None and an and an[-1].get("held"),
+        "a spike in the newest week is held back")
+    sp = {"othersd": [10.0, 10.1, 13.0, 13.2, 13.1, 13.3], "btcd": [50.0] * 6, "others_usd": [1.0] * 6,
+          "breadth": [40.0] * 6}
+    chk(not cycle.clean_spikes(ws, sp), "a real 30 % move that holds is not a spike")
+    # --- data fixes: a Coinbase day needs both pairs; the memecoin row reads the newest of 7 days
+    d0 = cycle.COINBASE_PAIRS[1][1] + 100 * cycle.DAY
+    w = cycle.monday(d0 + 40 * cycle.DAY)
+    btc = {str(d0 + j * cycle.DAY): 100.0 for j in range(40)}
+    eth = {str(d0 + j * cycle.DAY): 50.0 for j in range(40) if j not in (35, 36, 37)}
+    H = {"cbx": {"BTC-USD": btc, "ETH-USD": eth}, "meme30": {str(w - 3 * cycle.DAY): 6e6}}
+    rw, _ = cycle.retail_rows(H, [w], cycle.V3_RULES)
+    chk(rw["coinbase"] == [150.0], "a day without ETH-USD is skipped, never counted as $0 (%s)" % rw["coinbase"])
+    chk(rw["degen"] == [6e6], "the memecoin row reads the newest value of the 7 days before the stamp")
+    rw, _ = cycle.retail_rows(H, [w], cycle.V2_RULES)
+    chk(rw["degen"] == [None], "… v2 kept the exact day")
+    return ok
+
+
 # ================================================================== report
 def svg_line(weeks, series_list, w=980, h=260, y_fmt=lambda v: "%.0f" % v, bands=None, shade=None,
              lines=None, marks=None, ymin=None, ymax=None):
@@ -576,18 +822,22 @@ td,th{padding:4px 10px;border-bottom:1px solid #2c2723;text-align:left}h1,h2,h3{
 """
 
 
-def report_html(summary, weeks, s, chosen, all_res, v2=None):
-    """v2 first (the page runs it), then v1 as it was locked and failed."""
-    return REPORT_HEAD + (report_v2_html(summary, weeks, s, v2) if v2 else "") + \
-        report_v1_html(summary, weeks, s, chosen, all_res)
+def report_html(summary, weeks, s, chosen, all_res, v2=None, v3=None, s3=None):
+    """v3 first (the page runs it), then v2 (PASS by construction), then v1 as it
+    was locked and failed."""
+    return REPORT_HEAD + (report_v2_html(summary, weeks, s3, v3, "v3", PREREG_V3) if v3 else "") + \
+        (report_v2_html(summary, weeks, s, v2) if v2 else "") + \
+        "<h2>v1 — zamčená 2026-09-26, beze změny</h2>" + report_v1_html(summary, weeks, s, chosen, all_res)
 
 
 def _yn(b):
     return "ano" if b else "NE"
 
 
-def report_v2_html(summary, weeks, s, v2):
-    S2 = summary["v2"]
+def report_v2_html(summary, weeks, s, v2, ver="v2", prereg=None):
+    """One registered version (v2 or v3): the index, the criteria, both lines."""
+    prereg = prereg or PREREG_V2
+    S2 = summary[ver]
     res = v2["_res"]
     I = res["index"]
     evi = {k: v for k, v in summary["events_idx"].items() if v is not None}
@@ -628,6 +878,11 @@ def report_v2_html(summary, weeks, s, v2):
         ("epizody „Blíží se konec“ mimo vrcholy (nejvýš 2)",
          "%d %s" % (len(S2["episodes_false"]), ", ".join("%s–%s" % (cycle.iso(a), cycle.iso(b)) for a, b in S2["episodes_false"]))),
     ]
+    if "quiet_2023_2026" in S2:
+        crit.append(("2023-01 až 2026-06 bez „Blíží se konec“ a bez indexu ≥ T (BTC na maximech, altseason žádná)",
+                     "%s %s" % (_yn(S2["quiet_2023_2026"]), ", ".join(cycle.iso(w) for w in S2["loud_weeks_2023_2026"][:8]))))
+        crit.append(("epizody „Po vrcholu“ (jen pro informaci)",
+                     ", ".join("%s–%s" % (cycle.iso(a), cycle.iso(b)) for a, b in S2["po_vrcholu_episodes"]) or "—"))
     fwd = []
     for p in ("prehrate", "po_vrcholu"):
         for e in (S2["forward_by_phase"].get(p) or []):
@@ -635,12 +890,16 @@ def report_v2_html(summary, weeks, s, v2):
                 PH_COL.get(p, "#ccc"), p, cycle.iso(e["start"]), e.get("usd13"), e.get("vbtc13"), e.get("usd26")))
     lead = " · ".join("%s %s" % (k, "—" if v is None else "%d t" % v) for k, v in S2["lead_weeks"].items())
     m23 = S2["max_since_2023"]
-    return """<h2>v2 — %s (zaregistrováno %s)</h2>
-<p class="v">Verdikt v2: %s · T = %s</p>
-<p>PREREG_V2 sha256 %s… · zamčeno %s · %s</p>
-<p class="note">v2 byla navržena až po selhání v1, s oběma altseasony před očima, a plánovací běh 2026-09-27
-spočítal tyto vzorce na skutečné historii ještě před registrací. Projde tedy z konstrukce: je to kontrola
-konzistence, ne test. Test je dopředný: <code>cycle_ledger.jsonl</code>, řádek za každý uzavřený týden.</p>
+    note = ("v3 byla zaregistrována 2026-09-28 dřív, než se jediné její číslo spočítalo na skutečné historii "
+            "(ladila se jen na syntetických řadách). Autoři ale obě minulé altseasony znali, takže historická kritéria "
+            "jsou kontrola konzistence; test je dopředný: <code>cycle_ledger.jsonl</code>." if ver == "v3" else
+            "v2 byla navržena až po selhání v1, s oběma altseasony před očima, a plánovací běh 2026-09-27 spočítal "
+            "tyto vzorce na skutečné historii ještě před registrací. Projde tedy z konstrukce: je to kontrola "
+            "konzistence, ne test. Test je dopředný: <code>cycle_ledger.jsonl</code>, řádek za každý uzavřený týden.")
+    tpl = """<h2>""" + ver + """ — %s (zaregistrováno %s)</h2>
+<p class="v">Verdikt """ + ver + """: %s · T = %s</p>
+<p>PREREG sha256 %s… · zamčeno %s · %s</p>
+<p class="note">""" + note + """</p>
 <h3>Index 2016 → dnes</h3><p>bílá = index, modrá = rotace do altů, zlatá = euforie (retail + BTC cyklus);
 pruh = T (konec altseasonu); body = P0, P1, P2</p>%s
 <table><tr><th>kritérium</th><th>výsledek</th></tr>%s</table>
@@ -649,8 +908,8 @@ pruh = T (konec altseasonu); body = P0, P1, P2</p>%s
 <h3>OTHERS.D — linie od vrcholu (týden vidí jen data do sebe)</h3>%s<p>%s</p>
 <h3>BTC.D — support ode dna</h3>%s<p>%s</p>
 <h3>Co alty udělaly po „Blíží se konec“ a „Po vrcholu“ (13 t v USD · 13 t proti BTC · 26 t v USD)</h3><table>%s</table>
-<h2>v1 — zamčená 2026-09-26, beze změny</h2>
-""" % (S2["prereg_id"], PREREG_V2["registered"], S2["verdict"], v2["T"], S2["prereg_sha256"][:12], S2["locked_utc"],
+"""
+    return tpl % (S2["prereg_id"], prereg["registered"], S2["verdict"], v2["T"], S2["prereg_sha256"][:12], S2["locked_utc"],
        "PREREG beze změny" if S2["prereg_ok"] else "PREREG ZMĚNĚN", idx_svg,
        "".join("<tr><td>%s</td><td>%s</td></tr>" % r for r in crit), lead,
        ("%s (%s)" % (m23["index"], cycle.iso(m23["week"]))) if m23 else "—",
@@ -736,6 +995,14 @@ def main():
     if drift:
         print("cycle.V2_RULES se liší od PREREG_V2 (%s) — kód už nepočítá zaregistrovanou v2" % ", ".join(drift))
         return 2
+    lk3, same3 = prereg_lock(PREREG_V3, LOCK_V3)
+    if not same3 or lk3.get("sha256") != V3_SHA256:
+        print("PREREG_V3 se změnil proti zámku %s — v3 je zamčená, změna potřebuje nové id" % LOCK_V3)
+        return 2
+    drift = sorted(k for k in PREREG_V3["rules"] if cycle.V3_RULES.get(k) != PREREG_V3["rules"][k])
+    if drift:
+        print("cycle.V3_RULES se liší od PREREG_V3 (%s) — kód už nepočítá zaregistrovanou v3" % ", ".join(drift))
+        return 2
     H, _ = cycle.load_history(os.getcwd())
     if not H:
         print("cycle_history.json chybí — nejdřív python tools/cycle_seed.py")
@@ -809,10 +1076,26 @@ def main():
     S2["forward_by_phase"] = forward_by_phase(weeks, s, r2["phase"])
     S2["latest"] = {"week": weeks[-1], "index": r1(r2["index"][-1]), "phase": r2["phase"][-1]}
     summary["v2"] = S2
+    # v3, the one the page runs: its own series (heat read on the newest of 7 days),
+    # the same events
+    s3 = cycle.series_from_history(H, weeks, cycle.V3_RULES)
+    rows3, _ = cycle.retail_rows(H, weeks, cycle.V3_RULES)
+    v3 = evaluate_v3(weeks, s3, rows3, evi)
+    r3 = v3["_res"]
+    S3 = {"prereg_id": PREREG_V3["id"], "prereg_sha256": lk3["sha256"], "locked_utc": lk3["locked_utc"],
+          "prereg_ok": same3, "verdict": "PASS" if v3["pass"] else "FAIL", "rules": {"T": v3["T"]},
+          "note": PREREG_V3["honesty"]}
+    S3.update({k: v for k, v in v3.items() if k not in ("_res", "T", "pass")})
+    for k in ("max_c1", "max_c2"):
+        S3[k] = weeks[S3[k]] if isinstance(S3[k], int) else None
+    S3["index_at"] = {k: r1(r3["index"][i]) for k, i in evi.items() if i is not None}
+    S3["forward_by_phase"] = forward_by_phase(weeks, s3, r3["phase"])
+    S3["latest"] = {"week": weeks[-1], "index": r1(r3["index"][-1]), "phase": r3["phase"][-1]}
+    summary["v3"] = S3
     with io.open("cycle_backtest_summary.json", "w", encoding="utf-8") as f:
         json.dump(summary, f, ensure_ascii=False, indent=1, allow_nan=False)
     with io.open("cycle_backtest_report.html", "w", encoding="utf-8") as f:
-        f.write(report_html(summary, weeks, s, ch, variants, v2))
+        f.write(report_html(summary, weeks, s, ch, variants, v2, v3, s3))
     print("v1: verdikt %s · varianta %s · T %.0f · index P1 %s P2 %s · dnes %s (%s)" % (
         summary["verdict"], chosen, ch["T"], summary["index_at"].get("P1"), summary["index_at"].get("P2"),
         summary["latest"]["index"], summary["latest"]["phase"]))
@@ -820,6 +1103,11 @@ def main():
         S2["verdict"], v2["T"], S2["index_at"].get("P0"), S2["index_at"].get("P1"), S2["index_at"].get("P2"),
         S2["share_ge_T"], S2["lead_weeks"], (S2["max_since_2023"] or {}).get("index"), S2["latest"]["index"],
         S2["latest"]["phase"]))
+    print("v3: verdikt %s · T %s · index P0 %s P1 %s P2 %s P2b %s · týdnů ≥ T %.1f %% · 2023–26 klid %s · náskok %s · "
+          "max od 2023 %s · dnes %s (%s)" % (
+              S3["verdict"], v3["T"], S3["index_at"].get("P0"), S3["index_at"].get("P1"), S3["index_at"].get("P2"),
+              S3["index_at"].get("P2b"), S3["share_ge_T"], _yn(S3["quiet_2023_2026"]), S3["lead_weeks"],
+              (S3["max_since_2023"] or {}).get("index"), S3["latest"]["index"], S3["latest"]["phase"]))
     return 0
 
 
