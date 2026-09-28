@@ -11,9 +11,13 @@
 
 The look is defined by the reference code (`template.html`) and this spec; running it is optional, if you want to see the charts live (§0). All texts are in English (our copy is in §7).
 
-> **WHAT TO REPLACE on cymetica.com/gem-screener:** the existing **"Altseason Index"** panel — the card showing a big percentage (e.g. `56%`), "Altseason Index · In between (3 months ago 20%)", "Share of the top-50 altcoins that beat BTC over ~90 days…", a bar from *BTC SEASON* to *ALTSEASON*, a "last 40 weeks" sparkline, BTC 1M / 3M returns, and the note "The last year had no altseason…". Screenshot: `current-panel-to-replace.webp` next to this file. **That card, and only that card, is replaced by the new Altseason panel described here**, in the same place on the page.
+> **WHAT TO REPLACE on cymetica.com/gem-screener — on TWO tabs, with ONE module.** The existing "Altseason Index" card appears in two versions today:
+> - **Top Picks tab:** a compact strip — `68%`, "Altseason index · In between", a bar from *BTC SEASON* to *ALTSEASON*. Screenshot: `current-top-picks-tab.webp`.
+> - **Sectors tab:** a wider card — `68%`, "Altseason index · In between (3 months ago 22%)", "Share of the top-50 altcoins that beat BTC over ~90 days…", the same bar, a "last 40 weeks" sparkline and BTC 1M / 3M. Screenshot: `current-sectors-tab.webp`.
 >
-> **SCOPE — READ FIRST.** Build or replace **only the Altseason panel** (the card with the five tiles *Altseason cycle · OTHERS.D · BTC.D · Retail · Volume*, its slider, its detail charts and info popovers). **Do not change anything else** on cymetica.com/gem-screener — no other sections, tables, tabs, filters, navigation or styles. The reference repository contains the whole Gem Screener; everything outside the files and sections named in §0 (the apps/chains screener, themes, sectors, degen view, backtest.py, liquidity, unlocks, etc.) is **out of scope — ignore it.**
+> **Replace both with the same new Altseason panel described here** — one component, identical on both tabs (same tiles, slider, charts, texts), each in the place of the old card. Not a compact variant on one tab and a full one on the other. The reference does exactly this: the one panel renders on its Start tab and above its Sectors tab.
+>
+> **SCOPE — READ FIRST.** Build or replace **only the Altseason panel** (the card with the five tiles *Altseason cycle · OTHERS.D · BTC.D · Retail · Volume*, its slider, its detail charts and info popovers). **Do not change anything else** on cymetica.com/gem-screener — no other sections, tables, tabs, filters, navigation or styles. The reference repository contains the whole Gem Screener; everything outside the files and sections named in §0 (the apps/chains screener, themes, the reference's own sector tables, degen view, backtest.py, liquidity, unlocks, etc.) is **out of scope — ignore it.** On your site the only change is the Altseason card on the Top Picks and Sectors tabs; everything else on those tabs stays.
 >
 > **The repository is a REFERENCE, not code to copy.** Use it mainly for the intended look, then for how we compute everything; you may run it to compare. Then build the panel natively in your own stack, with your own data pipeline, components and design system. Do not copy the repository, its files or its single-file HTML template into your product.
 >
@@ -89,7 +93,7 @@ A card containing, top to bottom:
 
 4. **Detail area** (when expanded): the chart of the selected tile (§6), an "i" button top-right, and for some tiles a short table.
 
-The panel may appear on more than one page. If two instances are in the DOM at once, no id may collide (gradient ids included).
+The panel appears on two tabs (Top Picks and Sectors). If both instances are in the DOM at once, no id may collide (gradient ids included); opening a tile on one may, but need not, open it on the other.
 
 ---
 
@@ -443,6 +447,6 @@ If your data vendor differs, small deviations are expected. Explain any deviatio
 
 ## 11. Deliverables
 
-1. The panel live at cymetica.com/gem-screener, in English, in your design system, matching the reference.
+1. The panel live at cymetica.com/gem-screener on **both the Top Picks and the Sectors tab** (the same module in both places), in English, in your design system, matching the reference.
 2. The backend job with durable history, freshness, anomalies and the forward ledger.
 3. A short review note: what you changed or improved and why, which data vendors you chose, and the acceptance results from §9.
