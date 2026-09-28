@@ -533,7 +533,7 @@ tbody tr:hover .msparkline .mb.partial{opacity:.45}
 .c-gold{stroke:var(--warn); fill:var(--warn)} .c-coral{stroke:var(--copper); fill:var(--copper)}
 .c-gem{stroke:var(--gem); fill:var(--gem)}
 .cyc-line.c-acc, .cyc-line.c-gold, .cyc-line.c-coral, .cyc-line.c-gem, .cyc-y2{fill:none}
-.cyc-mk.mk-gem{fill:var(--gem)} .cyc-mk.mk-acc{fill:var(--accent)} .cyc-mk.mk-warn{fill:var(--warn)}
+.cyc-mk.mk-gem{fill:var(--gem)} .cyc-mk.mk-warn{fill:var(--warn)}
 .cyc-mk.mk-hollow{fill:var(--surface); stroke:var(--copper); stroke-width:1.6}
 .cyc-mk.mk-hollow-gem{fill:var(--surface); stroke:var(--gem); stroke-width:1.8}
 .sh-muted{fill:var(--muted); opacity:.10}
@@ -2647,7 +2647,8 @@ function detailOthers(el){
       marks.push({t: Ln.since, v: Ln.since_v, cls: 'mk-gem', side: 'l', below: true, label: L('průlom ', 'break ') + monthOf(Ln.since)});
     legend.push([L('linie od vrcholu ', 'line from the top of ') + yearOf(Ln.anchor), 'c-coral']);
   }
-  if (o.day && o.value) marks.push({t: o.day, v: o.value, cls: o.verdict === 'pruraz_nepotvrzeny' ? 'mk-warn' : 'mk-acc'});
+  // no daily-point dot here (Adam, 2026-09-28: it floated apart from the pill's
+  // dotted line) — the pill alone carries today's value, as on BTC.D
   el.innerHTML = '<div class="ap-chart"></div>';
   cycleChart(el.querySelector('.ap-chart'), {weeks: ws, from: dsp(), y: {fit: true, fmt: PCT_AXIS},
     series: [{v: S.othersd, cls: 'c-acc', area: true}], lines: lines, marks: marks, extendTo: o.day, future: true,
