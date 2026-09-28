@@ -7,7 +7,7 @@
 > **HOW TO READ THIS SPEC — three levels of freedom:**
 > 1. **Method, data, architecture: inspiration only.** This is our proposal, built by one developer on free data. Take it as a starting point and improve anything you judge better: formulas, thresholds, data sources, retail and AI signals (§4.4), robustness. You don't need to ask; just document what you changed and why (§11).
 > 2. **Texts: may change, but stay ultra degen-friendly.** Reword freely, but keep the rules of §1: a tile is a name, a number and one plain word; no jargon and no paragraphs; explanations stay behind the "i" button in at most 20 plain words; every number is explained with this week's own numbers. §7 is our copy, a good default, not a contract.
-> Separate from the Altseason panel: **Appendix B** asks you to improve how chains are valued on the Chains tab.
+> Separate from the Altseason panel: **Appendix B** asks you to improve how chains are valued on the Chains tab, **Appendix C** the Sectors tab's theme chart.
 >
 > 3. **Design: keep it the same.** The owner likes the current design a lot. Keep the layout and the look as in the reference: the five tiles in one row with the wider first tile, the always-visible slider with the top-zone tick, one tall TradingView-style chart per tile (fitted axis, gradient area, value pill on the right, trend lines running into the future margin, year labels, legend), the rows under the charts, and the phone layout. Only the colours and fonts come from your design system.
 
@@ -452,7 +452,7 @@ If your data vendor differs, small deviations are expected. Explain any deviatio
 1. The panel live at cymetica.com/gem-screener on **both the Top Picks and the Sectors tab** (the same module in both places), in English, in your design system, matching the reference.
 2. The backend job with durable history, freshness, anomalies and the forward ledger.
 3. A short review note: what you changed or improved and why, which data vendors you chose, and the acceptance results from §9.
-4. Separately: the improved chain valuation (Appendix B).
+4. Separately: the improved chain valuation (Appendix B) and the improved Sectors tab (Appendix C).
 
 ---
 
@@ -471,3 +471,22 @@ This is **not** part of the Altseason panel. It concerns the **Chains** tab.
 **Your task:** tune it so it is top — the same quality and the same one-line clarity as apps. Choose the price tag, the benchmark and the data yourself (fees, DEX volume, users, paid sources…). Keep the Chains tab design, keep it degen-friendly, and write down what you changed and why.
 
 Reference code: `collector.py` (`compute_metrics`, `apply_valuation`, `adoption_index`), ARCHITECTURE.md §9.3 and §9.7.
+
+---
+
+## Appendix C — separate task: make the Sectors tab answer its own question
+
+This is **not** part of the Altseason panel. It concerns the **Sectors** tab: the themes table and the bubble chart ("Right = moves harder than BTC. Up = beat BTC this quarter…"). Your current version uses our method, so it has our weak spots. An independent review scored it 6/10: careful statistics, but it answers a different question than it promises ("which themes get hottest if an altseason starts").
+
+**What we don't like:**
+1. **The ranking uses the wrong factor.** Themes are sorted and tiered by beta to BTC — how hard a theme moves with BTC, up and down. That is riskiness, not altseason performance (an altseason is alts beating BTC), and it was measured in a year with no altseason. Yet the page calls beta "the direct answer". A closer measure already exists in the code (`gamma`: sensitivity to alts outrunning BTC) but only sits in a tooltip.
+2. **"Bottom right = the most room" / "Waiting to run" is partly mechanical.** When BTC falls, a high-beta theme falls further and lands bottom right by construction, then reads as an opportunity. The tag text even says "barely moved against BTC" next to −35%. "Already leading" also mixes beta with real outperformance. The vertical axis and the tags should use performance vs BTC *beyond* what beta explains.
+3. **Survivorship is only half handled.** The "basket as it stood a year ago" is picked only from today's CoinGecko top 30 per category, so coins that dropped out were never candidates. The info text claims otherwise.
+4. **The L1/L2 fundament is stablecoins** (mostly USDT on Ethereum and Tron, plus Base without a token) — the same weakness as Appendix B. L1/L2 can never earn "fundament rising".
+5. **Coverage and purity:** exchange tokens (BNB, OKB, MNT) sit in L1/L2 and drag them down; themes such as ecosystem rotations (Solana, Base) or BTCfi are missing; 11 columns with β ±SE, ρ and tier are not readable in 5 seconds.
+
+**Keep:** the bubble chart and its design, the uncertainty whiskers ("overlapping whiskers = statistically the same" is honest and good), the degen tone, no composite score, tags as tags (not filters).
+
+**Your task:** tune it so it is top and really answers "which themes run hardest in an altseason, and which already run". Method, factors, themes and data are your call. Keep the design, and write down what you changed and why.
+
+Reference code: `themes.py` (`build_themes`, beta/tier, `rs1m`/`rs3m`, tags), `audit_sectors.py`, ARCHITECTURE.md §12–§13.7.
