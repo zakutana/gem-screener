@@ -871,10 +871,11 @@ is v2.
   next week exists — it used to pass unchecked into the tile and the ledger.
   App Store: a day whose chart did not come back (< 50 entries) is not written
   (empty ranks scored 5 and pulled retail down).
-- **Page**: five tiles (Altseason cyklus, OTHERS.D, BTC.D, Retail, Objem), each a
+- **Page**: five tiles (Altseason cyklus, OTHERS.D, BTC.D, Retail, Objem burz — CMC's
+  global volume, labelled as exchange volume so nobody reads it as everything), each a
   name, a number and one word (BTC.D: "podpora prolomená" when its support line is
-  broken, else the 13-week direction; Objem: the 7-day average and its multiple of
-  the 1-year norm); the slider always visible, its tick at T labelled "zóna vrcholů
+  broken, else the 13-week direction; Objem: the 7-day average and its word — no
+  "1,3×" multiple, Adam: nobody reads it); the slider always visible, its tick at T labelled "zóna vrcholů
   · 75"; a click opens one tall chart from 2016 (§15.3). Under the cycle chart the
   rotation's three parts in this week's numbers beside the same numbers at the 2018
   and 2021 ends (`rotation_at_events`), and above them one fixed exit sentence
@@ -971,8 +972,9 @@ market's call failed (a partial sum would overwrite good weeks) and warns.
   `cloudflare`, `needs`). A row's `score` is the one at the newest week (null when
   the row has no sample there); `week` is the newest sample shown.
 - `volume`: `day`, `vol24h`, `avg7`, `ratio_1y`, `verdict` (`slaby`, `normalni`,
-  `zvyseny`, `extremni`), `alt_share`, `alt_share_13w`, `alt_share_2021`, `chart`,
-  `fake_volume_span`.
+  `zvyseny`, `extremni`), `alt_share`, `alt_share_13w`, `alt_share_2021`, `chart`
+  (`weeks`, `avg7_bn`, `others_usd` — OTHERS in dollars on the right axis, not BTC's
+  price: the panel is about alts), `fake_volume_span`.
 
 ### 13.9 Which theme a row belongs to — the join
 

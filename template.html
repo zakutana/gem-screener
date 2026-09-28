@@ -475,6 +475,7 @@ tbody tr:hover .msparkline .mb.partial{opacity:.45}
 .ap-w{font-size:13px; font-weight:700; white-space:nowrap; overflow:hidden; text-overflow:ellipsis}
 .ap-w.pos, .altpanel .pos{color:var(--gem)} .ap-w.neg, .altpanel .neg{color:var(--copper)}
 .ap-w.warn, .altpanel .warn{color:var(--warn)} .ap-w.flat{color:var(--ink-2)}
+@media (max-width:359px){.ap-w{white-space:normal}}   /* 320 px phones: wrap the word instead of cutting it */
 .ap-toggle{appearance:none; font-family:"IBM Plex Mono",monospace; font-size:11px; cursor:pointer; color:var(--accent-ink);
   background:transparent; border:1px solid var(--rule); border-radius:8px; padding:0 10px; white-space:nowrap}
 :root[data-theme="dark"] .ap-toggle, :root:not([data-theme="light"]) .ap-toggle{color:var(--accent)}
@@ -2405,7 +2406,7 @@ var CYCLE_VERDICT = {
   'pruraz': {cs: 'průlom trendu', en: 'trend broken', cls: 'pos'},
   'pruraz_nepotvrzeny': {cs: 'prolamuje trend', en: 'breaking the trend', cls: 'warn'},
   'downtrend': {cs: 'pod linií', en: 'below the line', cls: 'flat'},
-  'podpora_prolomena': {cs: 'podpora prolomená', en: 'support broken', cls: 'pos'},
+  'podpora_prolomena': {cs: 'podpora padla', en: 'support broken', cls: 'pos'},
   'zpet_pod': {cs: 'falešný průlom', en: 'false breakout', cls: 'neg'},
   'bez_trendu': {cs: 'bez trendu', en: 'no trend', cls: 'flat'},
   'alty_vedou': {cs: 'alty vedou', en: 'alts lead', cls: 'pos'},
@@ -2476,9 +2477,8 @@ function tileHtml(t, sel){
     w = vword(r.verdict);
   } else if (t.key === 'volume') {
     var vo = comp.volume || {};
-    // the number and how far it is from its 1-year norm (a review: "$105 bn" alone says nothing)
-    k = L('Objem', 'Volume'); v = vo.avg7 ? '$' + czNum(Math.round(vo.avg7)) + '<small>' + L(' mld', 'bn') +
-      (vo.ratio_1y ? ' · ' + czNum(Number(vo.ratio_1y).toFixed(1)) + '×' : '') + '</small>' : '—';
+    // no "1,3×" beside it (Adam: nobody reads a multiple) — the word under it says it
+    k = L('Objem burz', 'Exchange volume'); v = vo.avg7 ? '$' + czNum(Math.round(vo.avg7)) + '<small>' + L(' mld', 'bn') + '</small>' : '—';
     w = vword(vo.verdict);
   }
   return '<button type="button" class="ap-tile' + (t.key === 'cycle' ? ' ap-main' : '') + (sel ? ' sel' : '') +
@@ -2575,7 +2575,6 @@ function dsp(){
   return i;
 }
 
-var BTC_FMT = function(x){ return '$' + (x >= 1000 ? czNum(Math.round(x / 1000)) + 'k' : num0(x)); };
 var PCT_AXIS = function(v, dec){ return czNum(v.toFixed(dec || 0)) + L(' %', '%'); };
 
 /* The index as an area on 0–100, OTHERS in dollars on the log right axis, the dashed
@@ -2780,13 +2779,14 @@ function detailVolume(el){
   el.innerHTML = '<div class="ap-chart"></div>';
   cycleChart(el.querySelector('.ap-chart'), {weeks: ch.weeks, y: {fit: true, floor: 0, fmt: function(x){ return '$' + num0(x); }},
     series: [{v: ch.avg7_bn, cls: 'c-acc', area: true}],
-    y2: [{v: ch.btc, cls: 'c-gold', fmt: BTC_FMT}],
+    y2: [{v: ch.others_usd, cls: 'c-coral', fmt: usdBn}],
     shade: [{t0: v.fake_volume_span[0], t1: v.fake_volume_span[1], cls: 'sh-muted', label: L('burzy tehdy nafukovaly objem (wash trading)', 'exchanges inflated volume then (wash trading)'),
       short: L('wash trading burz', 'exchange wash trading')}],
     pill: {fmt: function(x){ return '$' + num0(x) + L(' mld', 'bn'); }},
     tip: function(i){ return '<b>' + fmtDate(ch.weeks[i]) + '</b><br>' + L('objem $', 'volume $') + num0(ch.avg7_bn[i]) + L(' mld/den', 'bn/day') +
-      '<br><span class="t2">BTC $' + grp(ch.btc[i] || 0, ' ') + '</span>'; },
-    legend: [[L('objem v $ mld/den (7denní průměr)', 'volume, $bn/day (7-day avg)'), 'c-acc'], ['BTC', 'c-gold']]});
+      '<br><span class="t2">OTHERS ' + usdBn((ch.others_usd || [])[i]) + '</span>'; },
+    legend: [[L('objem burz v $ mld/den (7denní průměr)', 'exchange volume, $bn/day (7-day avg)'), 'c-acc'],
+      [L('OTHERS v $ (log)', 'OTHERS in $ (log)'), 'c-coral']]});
 }
 
 /* 4–6 round ticks (0 / 5 / 10 / 15 / 20 %): the finest step of 1, 2, 2.5 or 5 x 10^k
@@ -4061,10 +4061,10 @@ var INFO_TEXT = {
       '<span class="pk">Google, Wikipedia and Fear & Greed are not measured: lookups moved into chatbots, and Fear & Greed is mostly price.</span>');
   },
   cycVolume: function(){
-    return L('<b>Objem</b> — denní obchody celého trhu (7denní průměr) proti ročnímu normálu. Vrcholy mívaly 2–4×, ale krachy taky.' +
+    return L('<b>Objem burz</b> — kolik se denně zobchoduje na krypto burzách (7denní průměr), proti ročnímu normálu. Vrcholy mívaly 2–4×, ale krachy taky.' +
       '<span class="pk">Upravený objem z CoinMarketCapu. 2019–20 obsahuje falešný objem burz. Podíl altů bez stablecoinů: ' +
       'v květnu 2021 až 76 %.</span>',
-      '<b>Volume</b> — the whole market’s daily trading (7-day average) against its 1-year norm. Tops ran 2–4×, but so did crashes.' +
+      '<b>Exchange volume</b> — daily trading on crypto exchanges (7-day average) against its 1-year norm. Tops ran 2–4×, but so did crashes.' +
       '<span class="pk">Adjusted volume from CoinMarketCap. 2019–20 contains fake exchange volume. Alts’ share ex stablecoins: ' +
       'up to 76% in May 2021.</span>');
   }

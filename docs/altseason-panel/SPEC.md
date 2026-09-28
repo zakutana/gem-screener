@@ -13,7 +13,7 @@ The look is defined by the reference code (`template.html`) and this spec; runni
 
 > **WHAT TO REPLACE on cymetica.com/gem-screener:** the existing **"Altseason Index"** panel — the card showing a big percentage (e.g. `56%`), "Altseason Index · In between (3 months ago 20%)", "Share of the top-50 altcoins that beat BTC over ~90 days…", a bar from *BTC SEASON* to *ALTSEASON*, a "last 40 weeks" sparkline, BTC 1M / 3M returns, and the note "The last year had no altseason…". Screenshot: `current-panel-to-replace.webp` next to this file. **That card, and only that card, is replaced by the new Altseason panel described here**, in the same place on the page.
 >
-> **SCOPE — READ FIRST.** Build or replace **only the Altseason panel** (the card with the five tiles *Altseason cycle · OTHERS.D · BTC.D · Retail · Volume*, its slider, its detail charts and info popovers). **Do not change anything else** on cymetica.com/gem-screener — no other sections, tables, tabs, filters, navigation or styles. The reference repository contains the whole Gem Screener; everything outside the files and sections named in §0 (the apps/chains screener, themes, sectors, degen view, backtest.py, liquidity, unlocks, etc.) is **out of scope — ignore it.**
+> **SCOPE — READ FIRST.** Build or replace **only the Altseason panel** (the card with the five tiles *Altseason cycle · OTHERS.D · BTC.D · Retail · Exchange volume*, its slider, its detail charts and info popovers). **Do not change anything else** on cymetica.com/gem-screener — no other sections, tables, tabs, filters, navigation or styles. The reference repository contains the whole Gem Screener; everything outside the files and sections named in §0 (the apps/chains screener, themes, sectors, degen view, backtest.py, liquidity, unlocks, etc.) is **out of scope — ignore it.**
 >
 > **The repository is a REFERENCE, not code to copy.** Use it mainly for the intended look, then for how we compute everything; you may run it to compare. Then build the panel natively in your own stack, with your own data pipeline, components and design system. Do not copy the repository, its files or its single-file HTML template into your product.
 >
@@ -71,7 +71,7 @@ A card containing, top to bottom:
    | **OTHERS.D** | OTHERS.D today, e.g. `8.04%` | status of the OTHERS.D trend line (§5.5) |
    | **BTC.D** | BTC dominance today, e.g. `58.5%` | `support broken` when its support line (§5.5) is broken, otherwise the 13-week direction: falling / rising / sideways |
    | **Retail** | retail index, e.g. `55/100` | asleep (<35) / waking up / rushing in (≥70) |
-   | **Volume** | 7-day average market volume and its multiple of the 1-year norm, e.g. `$105bn · 1.3×` | weak / normal / elevated / extreme |
+   | **Exchange volume** | 7-day average volume on crypto exchanges, e.g. `$105bn` | weak / normal / elevated / extreme (against its 1-year norm; no multiplier on the tile — degens don't read it) |
 
    Word colours are semantic: good for alts, caution, bad/late, neutral. Use your palette.
    - Tablet: first tile full width, the others 2×2.
@@ -125,7 +125,7 @@ The panel may appear on more than one page. If two instances are in the DOM at o
 | **Retail: memecoins** daily | 30-day revenue of DeFiLlama categories Launchpad + Telegram Bot + Trading App | 2019 → (scored from first $5M day, 2023-05) | DeFiLlama fees overview (per-protocol breakdown) |
 | **Retail: App Store** daily snapshot | US App Store ranks (overall top-100 and Finance top-100) of crypto apps | from launch of your ledger | Apple RSS |
 | Facts (not scored) | USDT+USDC supply; Coinbase web traffic rank; AI crypto questions | recent | Coin Metrics, Tranco, Anthropic Economic Index |
-| **Volume** daily | Total market 24h volume (adjusted) | 2016 → | CMC global daily |
+| **Volume** daily | Total market 24h spot volume (adjusted). The reference uses CMC's global figure; which DEX and derivatives venues it covers is CMC's choice. With paid data, measure CEX spot + DEX spot (and consider perps, incl. perp DEXs like Hyperliquid) explicitly — DEXs are a large share of degen trading today | 2016 → | CMC global daily |
 
 **Note on OTHERS.D:** use the vendor's *ranked* list. CMC appends unranked derivatives (stETH, WBTC, WETH…) with large caps after rank ~199. Sorting everything by market cap pulls them into the top 125 and gives ~12% instead of ~8%. TradingView's OTHERS.D includes them, which is why TradingView reads higher. Either definition is acceptable if documented, but the trend-line acceptance values in §9 are for the ranked (CMC) definition.
 
@@ -292,7 +292,7 @@ Per tile:
 | OTHERS | OTHERS.D (area, fitted axis); the red resistance line; hollow marks at the anchor (`top 2022`) and the touching pivot; a green mark labelled `break <Mon YYYY>` under the point where the break started; the newest daily point | — |
 | BTC.D | BTC.D (area, fitted); the red support line (anchor labelled `low 2022 · 37.9%`); the break mark; the green 2018→2022 line with its value today under its end point | — |
 | Retail | Retail index (area, 0–100); OTHERS in $ on the log right axis (**no BTC line**) | A header `Retail 55 waking up · pace flat`, then a table (§7.4) |
-| Volume | 7-day average $bn (area, fitted, floor 0); BTC price on the log right axis; the 2019–2020 span shaded, labelled `exchanges inflated volume then (wash trading)` (short on a phone) | — |
+| Volume | 7-day average $bn (area, fitted, floor 0); OTHERS in $ on the log right axis (no BTC line — the panel is about alts); the 2019–2020 span shaded, labelled `exchanges inflated volume then (wash trading)` (short on a phone) | — |
 
 The panel must also render cleanly on a phone (375 px), with no horizontal overflow.
 
@@ -302,7 +302,7 @@ The panel must also render cleanly on a phone (375 px), with no horizontal overf
 
 ### 7.1 Tiles, slider, notes
 
-- Tiles: `ALTSEASON CYCLE`, `OTHERS.D`, `BTC.D`, `RETAIL`, `VOLUME`
+- Tiles: `ALTSEASON CYCLE`, `OTHERS.D`, `BTC.D`, `RETAIL`, `EXCHANGE VOLUME`
 - Toggle: `Expand ▾` / `Collapse ▴`
 - Slider: `CALM` · `TOP ZONE · 75` · `WEEK OF <Mon D>`
 - Words:
@@ -330,7 +330,7 @@ The panel must also render cleanly on a phone (375 px), with no horizontal overf
 - **Retail:** "**Retail** — how much people actually trade, against each row's own 4-year high. High = where past tops happened."
   - How it is calculated: "Coinbase (US), Upbit (Korea), memecoins on-chain and the top crypto app. A row reads 100 at its 4-year high and 0 at a twentieth of it (log scale); the index = the mean of the rows. Blue area = retail, red = OTHERS in dollars."
   - "Google, Wikipedia and Fear & Greed are not measured: lookups moved into chatbots, and Fear & Greed is mostly price."
-- **Volume:** "**Volume** — the whole market's daily trading (7-day average) against its 1-year norm. Tops ran 2–4×, but so did crashes."
+- **Exchange volume:** "**Exchange volume** — daily trading on crypto exchanges (7-day average) against its 1-year norm. Tops ran 2–4×, but so did crashes."
   - "2019–20 contains fake exchange volume. Alts' share ex stablecoins: up to 76% in May 2021."
 
 ### 7.3 Altseason cycle: the exit sentence and the breakdown

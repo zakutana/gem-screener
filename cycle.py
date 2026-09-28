@@ -1676,18 +1676,19 @@ def volume_block(H, weeks, s, now_ts, R):
         return 100.0 * r["va"] / (r["va"] + r["vb"]) if r.get("va") and r.get("vb") else None
     shares = [share(w) for w in weeks]
     sh4 = roll_mean(shares, 4)
-    # weekly samples of the 7-day average for the chart (2016 ->, as every chart), BTC price beside it
+    # weekly samples of the 7-day average for the chart (2016 ->, as every chart), OTHERS in
+    # dollars beside it (Adam, 2026-09-28: the panel is about alts — BTC's price said little here)
     pos = {d: i for i, d in enumerate(ds)}
     chart_w = [w for w in weeks if w >= DISPLAY_FROM]
     ser = [_r(avg7[pos[w - DAY]] / 1e9, 1) if (w - DAY) in pos and avg7[pos[w - DAY]] else None for w in chart_w]
-    btc = s["btc"]
+    ou = s["others_usd"]
     wi = {w: i for i, w in enumerate(weeks)}
     return {"day": ds[last], "vol24h": _r(vs[last] / 1e9, 1), "avg7": _r(avg7[last] / 1e9, 1) if avg7[last] else None,
             "ratio_1y": _r(rt, 2), "verdict": verdict,
             "alt_share": _r(sh4[-1], 1), "alt_share_13w": _r(sh4[-14] if len(sh4) > 14 else None, 1),
             "alt_share_2021": _r(max((x for w, x in zip(weeks, sh4) if x is not None
                                       and 1609459200 <= w <= 1640995199), default=None), 1),
-            "chart": {"weeks": chart_w, "avg7_bn": ser, "btc": [_r(btc[wi[w]], 0) for w in chart_w]},
+            "chart": {"weeks": chart_w, "avg7_bn": ser, "others_usd": [_r(ou[wi[w]], 0) for w in chart_w]},
             "fake_volume_span": [1546300800, 1609459199]}
 
 
