@@ -168,6 +168,28 @@ Robinhood publishes only monthly crypto volume (press releases) with no history 
 
 ---
 
+### 4.4 Retail and AI: where you can do better than the reference
+
+The reference is built on free, public data by a single developer. Retail and AI interest are its weakest measured parts. You are an AI-native company with your own infrastructure and paid data, so **treat this section as an open brief, not a spec**. Rethink it freely, keeping the principles at the end.
+
+**Known gaps in the reference:**
+- **Retail moves between venues.** Coinbase's share of retail shrinks over time, and each row is scored against its own 4-year high, so a venue losing share reads low. Offshore exchanges (Binance, Bybit, OKX…) and perp DEXs (Hyperliquid and similar), where many degens trade now, are not measured.
+- **The App Store row watches a hand-picked list of 10 apps.** A new hit app outside the list (the way pump.fun or fomo appeared) is missed. Robinhood, Cash App, Kalshi and Polymarket are tracked but unscored. Ranks, not downloads.
+- **AI interest is not in the index.** Google Trends was dropped because crypto questions moved to chatbots, but there is no public dataset of how often people ask AI assistants about crypto with history back to 2021. The reference only shows two unscored facts: Anthropic's Economic Index (crypto share of Claude conversations, published every 2–4 months) and Cloudflare Radar (AI assistants fetching crypto sites on a user's behalf; needs a free token).
+- **No social layer:** X, Telegram, Discord, TikTok and YouTube activity is not measured. The YouTube API terms forbid storing and aggregating its statistics, which is why the reference removed it.
+
+**Ideas, your call:**
+- Market-wide spot and perp volume by venue, including offshore and DEX (e.g. Kaiko, CCData, Coinalyze, Artemis, DeFiLlama), with retail-sized trade share where a vendor provides it.
+- App downloads and ranks for *every* finance or crypto app, with new ones detected automatically (e.g. Sensor Tower, Appfigures, data.ai), instead of a fixed list.
+- AI interest from sources you have access to: aggregate query-topic data, AI-assistant referral traffic to crypto sites (e.g. Similarweb), Cloudflare Radar. As an AI-native company you may have better signals of your own.
+- Social mindshare, e.g. Kaito, LunarCrush or Santiment, if the licence allows storing history.
+
+**Principles to keep:**
+1. Measure what people **do** (trade, download, deploy money), not what they merely look up.
+2. Score each row against its own history (the reference uses a 4-year log scale), so a series that grows structurally does not read as a permanent mania.
+3. A scored row needs enough history to be judged. It should cover the 2021 altseason, or at least a full year of warm-up before it counts. Anything newer can be shown as an unscored fact.
+4. If you change what the index scores, **write the new rules down before computing them on history** (as the reference did for v3), then compare against §9.
+
 ## 5. The method (v3; exact arithmetic in `cycle.py` `compute_index_v3`, locked rules in `cycle_backtest.py` `PREREG_V3`)
 
 v3 (2026-09-28) replaced v2 after three independent reviews: v2 fitted the two past altseasons but could miss the next one (BTC.D's floor rises every cycle, and both exit phases needed the index at 75). v3 was locked before it was computed on real data.
@@ -414,7 +436,7 @@ If your data vendor differs, small deviations are expected. Explain any deviatio
 2. **Data sources can break silently.** The reference uses unofficial or free endpoints (the CMC web API especially). Prefer robust vendors, alert your ops on failure, and show freshness on the panel.
 3. **"Past the top" is late by design** (1–2 months after the top). The panel is a map, not a sell signal, so keep the copy honest.
 4. **Only two historical altseasons** exist. The designers knew both, so the historical checks are consistency, not proof. The forward ledger is the real test.
-5. **The retail mix changes over time:** 2017 has only Coinbase, 2021 adds Upbit, and memecoins and App Store data are recent. Document how you handle it.
+5. **The retail mix changes over time:** 2017 has only Coinbase, 2021 adds Upbit, and memecoins and App Store data are recent. Document how you handle it. Retail and AI coverage is the biggest room for improvement: see §4.4.
 6. **"End is near" is on for long in a long, strong altseason:** in 2017–18 it stayed on for 11 months (April 2017 to March 2018), because rotation stayed ≥ 60 with high euphoria through both waves. A degen could read it as "sell" too early. It is also why v3 missed its 10% rule by 2 weeks. Improving this without tuning to 2017 is welcome — register the rule before computing it on history.
 7. **Weaker next altseason:** v3's BTC.D path and its "End is near" rule (euphoria ≥ 70 and rotation ≥ 60, even under 75) exist for this case; they were tested on synthetic series only.
 
