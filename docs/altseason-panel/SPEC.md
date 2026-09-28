@@ -4,12 +4,12 @@
 **From:** Adam (product owner, Gem Screener)
 **Scope:** rebuild ONE component, the Altseason panel with all its subsections, on Cymetica's infrastructure at https://cymetica.com/gem-screener.
 
-The look is defined by the reference code (`template.html`) and this spec; running it is optional, if you want to see the charts live (§0). **The result must look and behave like the reference.** There are two deliberate differences:
+> **HOW TO READ THIS SPEC — three levels of freedom:**
+> 1. **Method, data, architecture: inspiration only.** This is our proposal, built by one developer on free data. Take it as a starting point and improve anything you judge better: formulas, thresholds, data sources, retail and AI signals (§4.4), robustness. You don't need to ask; just document what you changed and why (§11).
+> 2. **Texts: may change, but stay ultra degen-friendly.** Reword freely, but keep the rules of §1: a tile is a name, a number and one plain word; no jargon and no paragraphs; explanations stay behind the "i" button in at most 20 plain words; every number is explained with this week's own numbers. §7 is our copy, a good default, not a contract.
+> 3. **Design: keep it the same.** The owner likes the current design a lot. Keep the layout and the look as in the reference: the five tiles in one row with the wider first tile, the always-visible slider with the top-zone tick, one tall TradingView-style chart per tile (fitted axis, gradient area, value pill on the right, trend lines running into the future margin, year labels, legend), the rows under the charts, and the phone layout. Only the colours and fonts come from your design system.
 
-1. **Language:** all texts in English. Exact copy is in §7.
-2. **Colours and fonts:** use your platform's existing design system. The reference shows layout, hierarchy and chart style, not a palette to copy.
-
-Everything else (layout, tiles, the slider, chart style) should match; the logic behind the numbers is our reference method, which you may improve (see §0). The owner is very satisfied with this version, so treat it as the target, not a draft.
+The look is defined by the reference code (`template.html`) and this spec; running it is optional, if you want to see the charts live (§0). All texts are in English (our copy is in §7).
 
 > **WHAT TO REPLACE on cymetica.com/gem-screener:** the existing **"Altseason Index"** panel — the card showing a big percentage (e.g. `56%`), "Altseason Index · In between (3 months ago 20%)", "Share of the top-50 altcoins that beat BTC over ~90 days…", a bar from *BTC SEASON* to *ALTSEASON*, a "last 40 weeks" sparkline, BTC 1M / 3M returns, and the note "The last year had no altseason…". Screenshot: `current-panel-to-replace.webp` next to this file. **That card, and only that card, is replaced by the new Altseason panel described here**, in the same place on the page.
 >
@@ -42,7 +42,7 @@ Everything else (layout, tiles, the slider, chart style) should match; the logic
   **To see the reference UI running** (the look to match), from the repo root on that branch: `pip install -r requirements.txt`, `python tools/cycle_seed.py` (one-time history build, ~40 min, resumable), `python collector.py` (3–6 min), then `python app.py` and open the Start tab (switch to EN top-right, expand the panel, click each tile). `python build_viewer.py --lang en --view start` writes a static `gem_screener.html` instead.
   Where this document and the code disagree, **this document states intent and the code states exact arithmetic.** Ask if they conflict.
 - **You own engineering choices:** stack, data vendors (paid APIs are welcome), storage, scheduling and caching. §4 says what the data must satisfy, not where it must come from.
-- **You have a free hand to review, change and improve anything** — method, data, architecture, robustness, UI details. The one thing to keep: the panel should look like the reference (in your colours, in English) and mean the same to a user. Recommendation, not a rule: if you change the index or phase rules, write the new rules down before computing them on history and compare against §9, so the result is not tuned to the two known altseasons.
+- **You have a free hand to review, change and improve** the method, data, architecture, robustness and wording (see the three levels at the top). The one thing to keep: the design — the panel must look like the reference (in your colours, in English) and stay ultra degen-friendly. Recommendation, not a rule: if you change the index or phase rules, write the new rules down before computing them on history and compare against §9, so the result is not tuned to the two known altseasons.
 - Known weak spots worth your attention are listed in §10.
 
 ---
@@ -298,7 +298,7 @@ The panel must also render cleanly on a phone (375 px), with no horizontal overf
 
 ---
 
-## 7. English copy (use as written; tone: plain, short, no jargon)
+## 7. English copy (our default wording: reword freely if it stays ultra degen-friendly — plain, short, no jargon)
 
 ### 7.1 Tiles, slider, notes
 
