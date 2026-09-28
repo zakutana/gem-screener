@@ -71,7 +71,7 @@ A card containing, top to bottom:
    | **OTHERS.D** | OTHERS.D today, e.g. `8.04%` | status of the OTHERS.D trend line (§5.5) |
    | **BTC.D** | BTC dominance today, e.g. `58.5%` | `support broken` when its support line (§5.5) is broken, otherwise the 13-week direction: falling / rising / sideways |
    | **Retail** | retail index, e.g. `55/100` | asleep (<35) / waking up / rushing in (≥70) |
-   | **Volume** | 7-day average spot volume on all exchanges including DEXs, e.g. `$105bn` | weak / normal / elevated / extreme (against its 1-year norm; no multiplier on the tile — degens don't read it) |
+   | **Volume** | 7-day average volume, spot + perps, on all exchanges including DEXs (the reference: spot only), e.g. `$105bn` | weak / normal / elevated / extreme (against its 1-year norm; no multiplier on the tile — degens don't read it) |
 
    Word colours are semantic: good for alts, caution, bad/late, neutral. Use your palette.
    - Tablet: first tile full width, the others 2×2.
@@ -125,7 +125,7 @@ The panel may appear on more than one page. If two instances are in the DOM at o
 | **Retail: memecoins** daily | 30-day revenue of DeFiLlama categories Launchpad + Telegram Bot + Trading App | 2019 → (scored from first $5M day, 2023-05) | DeFiLlama fees overview (per-protocol breakdown) |
 | **Retail: App Store** daily snapshot | US App Store ranks (overall top-100 and Finance top-100) of crypto apps | from launch of your ledger | Apple RSS |
 | Facts (not scored) | USDT+USDC supply; Coinbase web traffic rank; AI crypto questions | recent | Coin Metrics, Tranco, Anthropic Economic Index |
-| **Volume** daily | Total market 24h spot volume (adjusted). The reference uses CMC's aggregate volume: by CMC's methodology the sum of spot trading on every exchange it tracks, DEXs included, derivatives excluded. With paid data, measure each part on its own — CEX spot, DEX spot, perp DEXs like Hyperliquid — so nothing is counted twice, then show them **together on one chart** (see §6). DEXs are a large share of degen trading today | 2016 → | CMC global daily |
+| **Volume** daily | Total market 24h spot volume (adjusted). The reference uses CMC's aggregate volume: by CMC's methodology the sum of spot trading on every exchange it tracks, DEXs included, derivatives excluded. **Include perps.** With paid data, measure each part on its own — CEX spot, DEX spot, CEX perps, perp DEXs like Hyperliquid — so nothing is counted twice, then show them **together on one chart** (see §6). DEXs are a large share of degen trading today | 2016 → | CMC global daily |
 
 **Note on OTHERS.D:** use the vendor's *ranked* list. CMC appends unranked derivatives (stETH, WBTC, WETH…) with large caps after rank ~199. Sorting everything by market cap pulls them into the top 125 and gives ~12% instead of ~8%. TradingView's OTHERS.D includes them, which is why TradingView reads higher. Either definition is acceptable if documented, but the trend-line acceptance values in §9 are for the ranked (CMC) definition.
 
@@ -292,7 +292,7 @@ Per tile:
 | OTHERS | OTHERS.D (area, fitted axis); the red resistance line; hollow marks at the anchor (`top 2022`) and the touching pivot; a green mark labelled `break <Mon YYYY>` under the point where the break started; the newest daily point | — |
 | BTC.D | BTC.D (area, fitted); the red support line (anchor labelled `low 2022 · 37.9%`); the break mark; the green 2018→2022 line with its value today under its end point | — |
 | Retail | Retail index (area, 0–100); OTHERS in $ on the log right axis (**no BTC line**) | A header `Retail 55 waking up · pace flat`, then a table (§7.4) |
-| Volume | **One chart:** the 7-day average $bn as stacked areas — CEX spot, DEX spot and perp DEXs if you measure them (the reference has one CMC series) — so the top edge is the total and the tile shows the total (fitted, floor 0); OTHERS in $ on the log right axis (no BTC line — the panel is about alts); the 2019–2020 span shaded, labelled `exchanges inflated volume then (wash trading)` (short on a phone) | — |
+| Volume | **One chart, perps included:** the 7-day average $bn as stacked areas — CEX spot, DEX spot, CEX perps, perp DEXs (the reference has one CMC spot series) — so the top edge is the total and the tile shows the total, spot + perps (fitted, floor 0). Perps are several times spot: stack spot at the bottom so it stays readable, and say in the legend what is in the total; OTHERS in $ on the log right axis (no BTC line — the panel is about alts); the 2019–2020 span shaded, labelled `exchanges inflated volume then (wash trading)` (short on a phone) | — |
 
 The panel must also render cleanly on a phone (375 px), with no horizontal overflow.
 
