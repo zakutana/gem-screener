@@ -23,10 +23,11 @@ The Degen level is the one place where several checks become one number. In Part
 
 1. **Every risk flag icon in the Project column is replaced by one mini meter:** the level as a number plus ten small segments — filled up to the level, **green 1–3, light blue 4–6, red 7–10**, and with **dashed outlines** on the segments where the level is not fully certain (see B, range; diagonal hatching stays reserved for the partial month in Monthly revenue). The small "tradeable here" icon stays (it is a fact, not a risk).
 2. **Where the removed flags go; nothing is dropped silently.** Micro → Market cap · Thin liquidity → Slippage · Cliff and % in 90d → Unlocks · Revenue bought with emissions → Real yield · Post-crash, Declining and No trend → Trend · No holder share → Reaches you · New and Stale data → the data-quality rule in B. "No data" (no stablecoin data) is a Chains-tab flag and stays there.
-3. **No tooltip on the meter.** It is a picture, not a control; the row's other tooltips stay as they are.
+3. **No tooltip on the meter.** It is a picture, not a control; the row's other tooltips stay as they are, including the one in item 5.
 4. **Clicking the row (or the meter) opens the coin's detail**, and Enter does the same from the keyboard.
-5. **Nothing else is added to the row:** no report icon, no extra column. The report status lives in the detail only.
-6. **The Legend button and panel stay.** The flag section keeps the entries of every icon that still exists: the "tradeable here" icon and every flag still shown on the Chains tab. It gains the mini meter, the 18 check icons of C.3 and the colours (including "dashed = missing" and "solid grey = does not apply"), at most 8 words each. Columns, Tags and Trajectory words stay as they are. Clicking the "tradeable here" icon still opens the Legend on its entry, as a flag does today.
+5. **The Upside cell keeps its extra line.** Where the revenue goes to a staked or locked form of the token (C.4), the small light-blue line under the Upside pill ("≈6× eff. cap", dotted underline, as in `row.png`) stays in the row and keeps its tooltip (name, verdict, one line of context, source and date, at most 20 words). It explains a number, it is not a risk flag, so A.1 does not remove it. The pill and its colour are unchanged, and the sort, the gates and Top Picks keep using the headline Upside.
+6. **Nothing else is added to the row:** no report icon, no extra column. The report status lives in the detail only.
+7. **The Legend button and panel stay.** The flag section keeps the entries of every icon that still exists: the "tradeable here" icon and every flag still shown on the Chains tab. It gains the mini meter, the 18 check icons of C.3 and the colours (including "dashed = missing" and "solid grey = does not apply"), at most 8 words each. Columns, Tags and Trajectory words stay as they are. Clicking the "tradeable here" icon still opens the Legend on its entry, as a flag does today.
 
 ### B. The Degen level (computed in the background)
 
@@ -107,7 +108,7 @@ The coin endpoint returns the level (`level`, `low`, `high`, `band`) and all 18 
 
 ## Acceptance — check each point
 
-1. **Apps rows:** no risk flag icons; one mini meter (number + ten segments, band colours, dashed-outline range) plus the "tradeable here" icon; **no tooltip on the meter**; a click or Enter on the row opens the detail; every removed flag has its place as in A.2; the Chains tab is unchanged.
+1. **Apps rows:** no risk flag icons; one mini meter (number + ten segments, band colours, dashed-outline range) plus the "tradeable here" icon; the Upside cell keeps its "≈N× eff. cap" line and tooltip where it applies; **no tooltip on the meter**; a click or Enter on the row opens the detail; every removed flag has its place as in A.2; the Chains tab is unchanged.
 2. **The level is 1–10 from the 18 checks**, computed in the background on every refresh, deterministic, with the rules and thresholds written down and read literally at the edges (B). A check that cannot run is "not checked" and widens the range; it is never counted as good. The two floors and the n/a rule are implemented as written.
 3. **Display only:** the level is not in the sort, a filter, a gate, Top Picks, Degen picks or any fund, and neither is the effective-cap Upside.
 4. **The detail is in the order of C**, with no area breakdown under the level strip.
@@ -116,7 +117,7 @@ The coin endpoint returns the level (`level`, `low`, `high`, `band`) and all 18 
 7. **Emissions at today's price** is shown; **Upside on the effective cap** is shown where the revenue goes to a staked or locked form of the token, with the valuation method in the note.
 8. **Monthly revenue** looks as today; **Trajectory** is the stepper with four quarter bars; **Supply** appears where data exists.
 9. **The Degen report** sits at the bottom with the three states; when ready it is one calm card (Verdict, What it is, Good, Shady, The bet, about 150 words, colour only on the verdict rule, the ✓/✕ marks and the four icons), lists the four checks it filled in, turns their circles from dashed to coloured and firms up the level. **The level after the report stays inside the range shown before it, unless the data changed.**
-10. **The Legend** stays and is updated as in A.6: it keeps the entries for every icon that still exists (including the Chains tab's flags), and lists the meter, the 18 icons and the colours, at most 8 words each.
+10. **The Legend** stays and is updated as in A.7: it keeps the entries for every icon that still exists (including the Chains tab's flags), and lists the meter, the 18 icons and the colours, at most 8 words each.
 11. **The API and agent files** carry the level and the checks as in E.
 12. **Look:** the reference's look on desktop, big readable type, few words; nothing overflows the panel.
 13. **Data quality:** an app with under six months of data, or with stale data, shows the affected checks as not checked, and the level strip says why.
