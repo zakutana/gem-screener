@@ -126,7 +126,7 @@ tr.sub > td { padding: 18px 20px 22px; text-align: left; background: var(--inset
 .mini i:last-child { background: var(--accent); }
 .up { display: inline-block; background: var(--green); color: #04150c; font-weight: 700; border-radius: 6px; padding: 3px 12px; font-size: 16px; }
 .up.mid { background: rgba(0, 255, 136, .22); color: var(--green); }
-.eff { display: block; margin-top: 6px; font: 500 13px var(--font-mono); color: var(--blue); text-decoration: underline dotted; text-underline-offset: 3px; cursor: default; }
+.eff { display: block; margin-top: 6px; font: 500 13px var(--font-mono); color: var(--blue); }
 tr.clk { cursor: pointer; }
 tr.clk:hover > td { background: rgba(0, 255, 136, .09); }
 .c-blue { color: var(--blue); } .c-red { color: var(--red); }
@@ -687,7 +687,8 @@ function score(input) {
   var lvl = function (s) { return Math.min(10, Math.max(floor, Math.round(s))); };
   var unknown = Object.keys(r).filter(function (k) { return r[k] === null &amp;&amp; na.indexOf(k) &lt; 0; });
   return { r: r, bands: bands, why: why, pillars: mid, points: sum(mid), level: lvl(sum(mid)), low: lvl(sum(lo)), high: lvl(sum(hi)), unknown: unknown, floored: floored };
-}</pre><button class="copy" id="copy" type="button">Copy code</button></details>
+}
+</pre><button class="copy" id="copy" type="button">Copy code</button></details>
       </div>
     </div>
   </section>
@@ -699,7 +700,7 @@ function score(input) {
       <p>Each step already gives a usable screener. Calibrate the thresholds on about 30 known coins before step 2 goes live.</p>
     </div>
     <div class="build">
-      <div class="bs c1"><span class="n">STEP 1</span><div class="big">7<small>checks from data you already have</small></div><h3>Icons, tooltips, score v0</h3><ul><li>New row icons and tooltip card</li><li>Degen panel with wide ranges</li><li>Upside on effective cap</li></ul></div>
+      <div class="bs c1"><span class="n">STEP 1</span><div class="big">7<small>checks from data you already have</small></div><h3>Icons, tooltips, score v0</h3><ul><li>New row icons and tooltip card</li><li>Degen panel with wide ranges</li><li>Emissions at today’s price</li></ul></div>
       <div class="bs c2"><span class="n">STEP 2</span><div class="big">+7<small>automatic checks</small></div><h3>Contract scanner</h3><ul><li>Crawls owner → proxy admin → Safe</li><li>Holders API for float and whales</li><li>DefiLlama audits and hacks</li></ul></div>
       <div class="bs c3"><span class="n">STEP 3</span><div class="big">+4<small>checks from the report</small></div><h3>Dossier and triggers</h3><ul><li>AI agent on demand, cached 30 days</li><li>Redo on admin change, upgrade, revenue ±2×</li><li>Top Picks pre-generated</li></ul></div>
     </div>
@@ -822,6 +823,7 @@ function score(input) {
   return { r: r, bands: bands, why: why, pillars: mid, points: sum(mid), level: lvl(sum(mid)), low: lvl(sum(lo)), high: lvl(sum(hi)), unknown: unknown, floored: floored };
 }
 
+
 function $(s, r) { return (r || document).querySelector(s); }
 function $$(s, r) { return Array.prototype.slice.call((r || document).querySelectorAll(s)); }
 function ic(id) { return '<svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-' + id + '"/></svg>'; }
@@ -907,7 +909,7 @@ var INST_N = { y2: { val: 'Audited', ctx: 'A new audit covers the staking, migra
 var OVR = { ready: INST_R, old: INST_R, stale: Object.assign({}, INST_R, INST_S), fresh: Object.assign({}, INST_R, INST_S, INST_N) };
 var COINS = {
   exa: { name: 'Example DEX', sym: 'EXDX', logo: 'EX', real: false, hot: true,
-    c: { mc: '$2.8M', rev: '$1.9M', net: 'net +$800K', up: '>50x', eff: '≈6× eff. cap', str: '0.44x', sd: 'dn', gr: '+22.4%' },
+    c: { mc: '$2.8M', rev: '$1.9M', net: 'net +$800K', up: '>50x', eff: '11x if all tokens were out', str: '0.44x', sd: 'dn', gr: '+22.4%' },
     bars: [550, 1300, 750, 620, 600, 660, 520, 420, 550, 560, 950, 1800] },
   blue: { name: 'Blue chip', sym: 'EXAMPLE', logo: 'EX', real: false,
     c: { mc: '$2.3bn', rev: '$41M', net: 'net +$29M', up: '2.1x', mid: true, str: '1.24x', sd: 'up', gr: '+6.1%' },
@@ -944,7 +946,6 @@ function specForCheck(coin, id, mode) {
   return Object.assign(base, { val: c[v === 'green' ? 'g' : v === 'blue' ? 'b' : 'r'], ctx: c.q, src: 'EXAMPLE DATA', at: '' });
 }
 var CUSTOM = {
-  up: { icon: 'scale', name: 'Upside on effective cap', v: 'blue', pill: 'CAUTION', val: '≈6× (50× counts only the float)', ctx: 'Revenue goes to all staked tokens, not just the 8% float. At market value via a wrapper the cap is ≈ $54M, at exit value ≈ $27M: 6–12×.', src: 'ON-CHAIN · INFERRED', at: 'as of today' },
   more: { name: 'All 18 checks', v: 'info', val: 'Click + to open the fingerprint', ctx: 'Six pillars, three colors, dashed icons wait for a scan or the report.', src: 'ROW DETAILS', at: '' },
   ask: { icon: 'doc', name: 'Degen report', v: 'info', pill: 'NOT RESEARCHED', val: 'Ask the AI agent', ctx: 'Adds Team, Audit coverage, Track record and Token mechanics. About a minute, then cached for 30 days.', src: 'ON DEMAND', at: '' },
   ready: { icon: 'doccheck', name: 'Degen report', v: 'info', pill: 'READY', val: 'Researched 2 days ago', ctx: 'Open the drawer to read it. All 18 checks are in.', src: 'AI REPORT', at: 'Sep 27' },
@@ -999,7 +1000,7 @@ function renderTable() {
       '<td>' + c.c.mc + '</td>' +
       '<td>' + c.c.rev + '<span class="' + (c.c.net.indexOf('+') > -1 ? 'net-good' : 'net-none') + '">' + c.c.net + '</span></td>' +
       '<td>' + bars(c.bars) + '</td>' +
-      '<td><span class="up' + (c.c.mid ? ' mid' : '') + '">' + c.c.up + '</span>' + (c.c.eff ? '<span class="eff" tabindex="0" data-custom="up">' + c.c.eff + '</span>' : '') + '</td>' +
+      '<td><span class="up' + (c.c.mid ? ' mid' : '') + '">' + c.c.up + '</span>' + (c.c.eff ? '<span class="eff">' + c.c.eff + '</span>' : '') + '</td>' +
       '<td>' + sd + '</td><td class="upc">' + c.c.gr + '</td></tr>';
   });
   $('#tbody').innerHTML = out;
@@ -1178,7 +1179,7 @@ function stripHTML(s, note, prev) {
 }
 function tilesHTML() {
   var T = [['Market cap', '$2.8M', 'only the 8% float', 'c-red'], ['Revenue 30d', '$1.9M', 'net +$800K', 'c-green'], ['Emissions 30d', '$1.1M', '≈ $1.5M at today’s price', 'c-blue'],
-    ['FDV', '$36M', '8% of tokens out', 'c-blue'], ['Upside', '50x', '≈6× on effective cap', 'c-green', 'cap-blue'], ['Strength 3M', '0.44x', 'price ran ahead of revenue', 'c-red']];
+    ['FDV', '$36M', '8% of tokens out', 'c-blue'], ['Upside', '50x', '11x if all tokens were out', 'c-green', 'cap-blue'], ['Strength 3M', '0.44x', 'price ran ahead of revenue', 'c-red']];
   return '<div class="tiles6">' + T.map(function (x) { return '<div class="tl"><span class="k">' + x[0] + '</span><span class="v ' + x[3] + '">' + x[1] + '</span><span class="s ' + (x[4] || '') + '">' + x[2] + '</span></div>'; }).join('') + '</div>';
 }
 function monthlyHTML() {
