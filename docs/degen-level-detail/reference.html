@@ -566,7 +566,7 @@ footer { font: 500 13px var(--font-mono); color: var(--muted); border-top: 1px s
       <tbody id="tbody"></tbody>
     </table></div>
     <div class="legend2" id="legend2"></div>
-    <p class="note">All names and numbers here are made up.</p>
+    <p class="note">All names and numbers here are made up. Two live columns, Category · share · theme (after Degen) and Trajectory (last), are left out of this picture on purpose to keep it readable; they stay as they are.</p>
   </section>
 
   <section class="sec" id="drawer">
@@ -692,7 +692,14 @@ var BAND = {
     return &#x27;green&#x27;;
   },
   e3: function (i) { if (has(i.holderShare) &amp;&amp; i.holderShare &lt; 5) return &#x27;red&#x27;; if (!has(i.access)) return null; return i.access === &#x27;direct&#x27; ? &#x27;green&#x27; : i.access === &#x27;stake&#x27; ? &#x27;blue&#x27; : &#x27;red&#x27;; },
-  l1: function (i) { if (!has(i.slip)) return null; return i.slip &lt; 1 ? &#x27;green&#x27; : i.slip &lt;= 2.5 ? &#x27;blue&#x27; : &#x27;red&#x27;; },
+  // Slippage follows Degen gate 6: a $10K buy moves the DEX pool by 3% or less, or $2M or more traded on exchanges in 24 h. Passing the gate is never red.
+  l1: function (i) {
+    var volOk = has(i.vol24M) &amp;&amp; i.vol24M &gt;= 2;
+    if (!has(i.slip)) return volOk ? &#x27;blue&#x27; : null;
+    if (i.slip &lt; 1) return &#x27;green&#x27;;
+    if (i.slip &lt;= 3) return &#x27;blue&#x27;;
+    return volOk ? &#x27;blue&#x27; : &#x27;red&#x27;;
+  },
   l2: function (i) { if (!has(i.mcapM)) return null; return i.mcapM &gt; 20 ? &#x27;green&#x27; : i.mcapM &gt;= 3 ? &#x27;blue&#x27; : &#x27;red&#x27;; },
   l3: function (i) { if (!has(i.whale)) return null; return i.whale &lt; 2 ? &#x27;green&#x27; : i.whale &lt;= 5 ? &#x27;blue&#x27; : &#x27;red&#x27;; },
   h1: function (i) { if (!has(i.run30)) return null; if (i.run30 &gt; 70 || (i.run30 &gt;= 53 &amp;&amp; has(i.athDist) &amp;&amp; i.athDist &lt;= 10)) return &#x27;red&#x27;; return i.run30 &gt;= 30 ? &#x27;blue&#x27; : &#x27;green&#x27;; },
@@ -721,7 +728,12 @@ var RISK = {
   e1: function (i) { return has(i.realYield) ? knots([[0.5, 1], [1, 0.6], [2, 0.25], [4, 0]])(i.realYield) : null; },
   e2: function (i) { if (!has(i.phase)) return null; var P = { declining: 1, postcrash: 1, slowing: 0.4, notrend: 0.5, ignition: 0.5, steady: 0.1, accelerating: 0.1 }; var sp = has(i.spike) ? knots([[1.5, 0], [2.5, 0.25], [4.5, 0.6], [8, 1]])(i.spike) : 0; return Math.max(P[i.phase], sp); },
   e3: function (i) { if (has(i.holderShare) &amp;&amp; i.holderShare &lt; 5) return 1; if (!has(i.access)) return null; return { direct: 0.1, stake: 0.3, haircut: 0.7, none: 1 }[i.access]; },
-  l1: function (i) { return has(i.slip) ? knots([[0.5, 0], [1, 0.25], [2.5, 0.6], [6, 1]])(i.slip) : null; },
+  l1: function (i) {
+    var volOk = has(i.vol24M) &amp;&amp; i.vol24M &gt;= 2;
+    if (!has(i.slip)) return volOk ? 0.4 : null;
+    var r = knots([[0.5, 0], [1, 0.25], [3, 0.6], [6, 1]])(i.slip);
+    return (i.slip &gt; 3 &amp;&amp; volOk) ? Math.min(r, 0.55) : r;
+  },
   l2: function (i) { return has(i.mcapM) ? knots([[1, 1], [3, 0.6], [10, 0.35], [25, 0.2], [100, 0]])(i.mcapM) : null; },
   l3: function (i) { return has(i.whale) ? knots([[0, 0], [2, 0.25], [5, 0.6], [10, 1]])(i.whale) : null; },
   h1: function (i) { if (!has(i.run30)) return null; var r = knots([[20, 0], [30, 0.25], [70, 0.6], [120, 1]])(i.run30); return Math.min(1, r + (has(i.athDist) &amp;&amp; i.athDist &lt;= 10 ? 0.15 : 0)); },
@@ -844,7 +856,14 @@ var BAND = {
     return 'green';
   },
   e3: function (i) { if (has(i.holderShare) && i.holderShare < 5) return 'red'; if (!has(i.access)) return null; return i.access === 'direct' ? 'green' : i.access === 'stake' ? 'blue' : 'red'; },
-  l1: function (i) { if (!has(i.slip)) return null; return i.slip < 1 ? 'green' : i.slip <= 2.5 ? 'blue' : 'red'; },
+  // Slippage follows Degen gate 6: a $10K buy moves the DEX pool by 3% or less, or $2M or more traded on exchanges in 24 h. Passing the gate is never red.
+  l1: function (i) {
+    var volOk = has(i.vol24M) && i.vol24M >= 2;
+    if (!has(i.slip)) return volOk ? 'blue' : null;
+    if (i.slip < 1) return 'green';
+    if (i.slip <= 3) return 'blue';
+    return volOk ? 'blue' : 'red';
+  },
   l2: function (i) { if (!has(i.mcapM)) return null; return i.mcapM > 20 ? 'green' : i.mcapM >= 3 ? 'blue' : 'red'; },
   l3: function (i) { if (!has(i.whale)) return null; return i.whale < 2 ? 'green' : i.whale <= 5 ? 'blue' : 'red'; },
   h1: function (i) { if (!has(i.run30)) return null; if (i.run30 > 70 || (i.run30 >= 53 && has(i.athDist) && i.athDist <= 10)) return 'red'; return i.run30 >= 30 ? 'blue' : 'green'; },
@@ -873,7 +892,12 @@ var RISK = {
   e1: function (i) { return has(i.realYield) ? knots([[0.5, 1], [1, 0.6], [2, 0.25], [4, 0]])(i.realYield) : null; },
   e2: function (i) { if (!has(i.phase)) return null; var P = { declining: 1, postcrash: 1, slowing: 0.4, notrend: 0.5, ignition: 0.5, steady: 0.1, accelerating: 0.1 }; var sp = has(i.spike) ? knots([[1.5, 0], [2.5, 0.25], [4.5, 0.6], [8, 1]])(i.spike) : 0; return Math.max(P[i.phase], sp); },
   e3: function (i) { if (has(i.holderShare) && i.holderShare < 5) return 1; if (!has(i.access)) return null; return { direct: 0.1, stake: 0.3, haircut: 0.7, none: 1 }[i.access]; },
-  l1: function (i) { return has(i.slip) ? knots([[0.5, 0], [1, 0.25], [2.5, 0.6], [6, 1]])(i.slip) : null; },
+  l1: function (i) {
+    var volOk = has(i.vol24M) && i.vol24M >= 2;
+    if (!has(i.slip)) return volOk ? 0.4 : null;
+    var r = knots([[0.5, 0], [1, 0.25], [3, 0.6], [6, 1]])(i.slip);
+    return (i.slip > 3 && volOk) ? Math.min(r, 0.55) : r;
+  },
   l2: function (i) { return has(i.mcapM) ? knots([[1, 1], [3, 0.6], [10, 0.35], [25, 0.2], [100, 0]])(i.mcapM) : null; },
   l3: function (i) { return has(i.whale) ? knots([[0, 0], [2, 0.25], [5, 0.6], [10, 1]])(i.whale) : null; },
   h1: function (i) { if (!has(i.run30)) return null; var r = knots([[20, 0], [30, 0.25], [70, 0.6], [120, 1]])(i.run30); return Math.min(1, r + (has(i.athDist) && i.athDist <= 10 ? 0.15 : 0)); },
@@ -940,7 +964,7 @@ var CHECKS = [
   { id: 'e1', p: 'earnings', icon: 'coins', name: 'Real yield', q: 'Revenue ÷ emissions at today’s price', tier: 'live', g: '2× or more', b: '1 to under 2×', r: 'under 1×', need: 'emission data', chip: '1.3×' },
   { id: 'e2', p: 'earnings', icon: 'pulse', name: 'Trend', q: 'Shape of the last 12 months', tier: 'live', g: 'steady or accelerating', b: 'ignition, slowing, no trend, or a 2.5–4.5× spike', r: 'declining, post-crash, or a spike over 4.5×', need: 'revenue history', chip: 'ignition' },
   { id: 'e3', p: 'earnings', icon: 'funnel', name: 'Reaches you', q: 'Does a buyer of this token get the revenue?', tier: 'report', g: 'directly', b: 'after a stake or lock', r: 'haircut, wrapper, or under 5% share', need: 'the report (red on its own when the holder share is under 5%)', chip: '−50% haircut' },
-  { id: 'l1', p: 'liquidity', icon: 'drop', name: 'Slippage', q: 'What a $10K buy costs', tier: 'live', g: 'under 1%', b: '1–2.5%', r: 'over 2.5%', need: 'pool data', chip: '2.9%' },
+  { id: 'l1', p: 'liquidity', icon: 'drop', name: 'Slippage', q: 'What a $10K buy costs (the rule of Degen gate 6)', tier: 'live', g: 'under 1% on the DEX pool', b: '1–3%, or a thin pool with $2M+ traded a day', r: 'over 3% and under $2M a day', need: 'pool and volume data', chip: '3.4%' },
   { id: 'l2', p: 'liquidity', icon: 'bars', name: 'Market cap', q: 'Today’s “Micro” flag', tier: 'live', g: 'over $20M', b: '$3–20M', r: 'under $3M', need: 'market data', chip: '$2.8M' },
   { id: 'l3', p: 'liquidity', icon: 'pie', name: 'Whales', q: 'Fresh wallets or top holders, % of float', tier: 'auto', g: 'under 2%', b: '2–5%', r: 'over 5%', need: 'a holder scan', chip: '8.4% of float' },
   { id: 'h1', p: 'heat', icon: 'flame', name: 'Price run', q: '30-day change, distance to ATH', tier: 'live', g: 'under +30%', b: '+30–70%', r: 'over +70%, or +53% or more within 10% of ATH', need: 'price data', chip: '+74%' },
@@ -960,7 +984,7 @@ var VBG = { green: 'var(--green-bg)', blue: 'var(--blue-bg)', red: 'var(--red-bg
 
 /* ---- inputs ---- */
 var EXA = { admin: { kind: 'safe', m: 1, n: 3 }, timelockH: 0, powers: 2, hidden: 11.8, emitRate: 0.118, insiderOut: 0, unlock90: 0, cliff: false,
-  realYield: 1.27, phase: 'ignition', spike: 3.0, holderShare: 100, access: null, slip: 2.9, mcapM: 2.8, whale: 8.4, run30: 74, athDist: 12, strength: 0.44,
+  realYield: 1.27, phase: 'ignition', spike: 3.0, holderShare: 100, access: null, slip: 3.4, vol24M: 0.6, mcapM: 2.8, whale: 8.4, run30: 74, athDist: 12, strength: 0.44,
   team: null, audit: null, track: null, floatPct: 8 };
 var EXA_R = Object.assign({}, EXA, { access: 'haircut', team: 'anonfail', audit: 'sister', track: 'dead' });
 var EXA_S = Object.assign({}, EXA_R, { admin: { kind: 'safe', m: 3, n: 5 }, timelockH: 24 });   // admin key changed after the report was written
@@ -989,7 +1013,7 @@ var INST = {
   e1: { val: 'Revenue is 1.3× the new tokens', ctx: 'Revenue $1.9M vs $1.5M of new tokens in the next 30 days, at today’s price. Under 1× is red.', src: 'DATA', at: 'Sep 28' },
   e2: { val: 'Ignition, 3.0× spike', ctx: 'Fees went from about $0.6M a month to $1.8M in September.', src: 'DATA', at: 'Sep 28' },
   e3: { val: 'Stake needed, −50% haircut', ctx: 'Revenue goes to stakers. A wrapper token avoids the haircut.', src: 'AI REPORT', at: 'Sep 28' },
-  l1: { val: '$10K buy moves 2.9%', ctx: 'Main pool holds $0.5M.', src: 'DATA', at: 'Sep 28' },
+  l1: { val: '$10K buy moves 3.4%', ctx: 'Main pool holds $0.5M. Only $0.6M traded in 24 h.', src: 'DEX POOL', at: 'Sep 28' },
   l2: { val: 'Micro: $2.8M', ctx: 'One larger trade moves the price.', src: 'DATA', at: 'Sep 28' },
   l3: { val: 'Fresh wallet holds 8.4% of float', ctx: 'Funded a month ago and built up since.', src: 'ON-CHAIN', at: 'Sep 28' },
   h1: { val: '+74% in 30 days', ctx: '12% below its all-time high.', src: 'DATA', at: 'Sep 28' },

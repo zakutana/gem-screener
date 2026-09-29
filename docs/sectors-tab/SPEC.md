@@ -3,7 +3,7 @@
 **For:** the lead agent of the Cymetica SDLC pipeline
 **From:** Adam (product owner, Gem Screener)
 **Part 3 of 4** of one request — part 1 (the Altseason panel) is [`docs/altseason-panel/SPEC.md`](../altseason-panel/SPEC.md); do all four.
-**Scope:** only the **Sectors tab's themes** — the themes table and the bubble chart ("Right = moves harder than BTC. Up = beat BTC this quarter…"). The Top Picks "Hot sectors" cards show the same themes and use the same new tags and order, so a theme never shows two different tags on two tabs. Nothing else on the page changes. The Altseason card on this tab is part 1 (the Altseason panel spec).
+**Scope:** only the **Sectors tab's themes** — the themes table and the bubble chart ("Right = moves harder than BTC. Up = beat BTC this quarter…"). The Top Picks "Hot sectors" cards show the same themes and use the same new tags and order, so a theme never shows two different tags on two tabs; Degen gate 7 on Top Picks reads the same new measure (acceptance 12). Nothing else on the page changes. The Altseason card on this tab is part 1 (the Altseason panel spec).
 
 > **English only.** Our reference code is Czech-first; ignore all Czech. **Method and data are your call** (paid data welcome). **Keep the design:** the bubble chart, the uncertainty whiskers and the degen tone.
 
@@ -44,5 +44,6 @@ Your current version uses our method, so it has our weak spots. An independent r
 9. L1/L2 are not judged on stablecoins alone: the fundament uses part 2's chain-activity measure. Exchange tokens (BNB, OKB, MNT…) no longer sit in L1/L2.
 10. **Design unchanged:** bubble chart, whiskers, degen tone; no composite score; tags stay tags, not filters.
 11. A short note: what you changed and why, the data you used, and the themes' order before and after.
+12. **Degen gate 7 on Top Picks** ("its theme amplifies in an altseason or already leads") uses this part's new theme measure and tags, not the old beta tier. The note gives the number of Degen picks before and after (9 of 214 today).
 
 Reference code (inspiration, not to copy): `themes.py` (`build_themes`, beta/tier, `rs1m`/`rs3m`, tags), `audit_sectors.py`, ARCHITECTURE.md §12–§13.7 — public repo `zakutana/gem-screener`, branch `altseason-cycle-2r6d3t`.

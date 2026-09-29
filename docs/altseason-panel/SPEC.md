@@ -10,6 +10,8 @@
 > 3. **The Sectors tab's themes** — [`docs/sectors-tab/SPEC.md`](../sectors-tab/SPEC.md).
 > 4. **The Degen level in the Apps row and the redesigned coin detail** — [`docs/degen-level-detail/SPEC.md`](../degen-level-detail/SPEC.md).
 >
+> **Dependencies between the parts:** part 3 uses part 2's chain-activity measure, Degen gate 7 uses part 3's measure, and part 4's Chart column and card use the Chart Analyzer follow-up. Build 2, then 3, then 4; part 1 is independent.
+>
 > Wherever this document says "only the Altseason panel", "out of scope" or "do not change anything else", it means *within this part*; parts 2, 3 and 4 change other things through their own files, and those changes are in scope of the request.
 
 > **HOW TO READ THIS SPEC — three levels of freedom:**
