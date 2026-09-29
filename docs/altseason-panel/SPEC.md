@@ -4,12 +4,13 @@
 **From:** Adam (product owner, Gem Screener)
 **Scope:** rebuild ONE component, the Altseason panel with all its subsections, on Cymetica's infrastructure at https://cymetica.com/gem-screener.
 
-> **THIS REQUEST HAS THREE PARTS — do all three.** Each part has its own file, its own scope and its own acceptance checklist:
+> **THIS REQUEST HAS FOUR PARTS — do all four.** Each part has its own file, its own scope and its own acceptance checklist:
 > 1. **Altseason panel** — this document.
 > 2. **Chain valuation on the Chains tab** — [`docs/chains-valuation/SPEC.md`](../chains-valuation/SPEC.md).
 > 3. **The Sectors tab's themes** — [`docs/sectors-tab/SPEC.md`](../sectors-tab/SPEC.md).
+> 4. **The Degen level in the row and the redesigned coin detail** — [`docs/degen-level-detail/SPEC.md`](../degen-level-detail/SPEC.md).
 >
-> Wherever this document says "only the Altseason panel" or "out of scope", it means *within this part*; parts 2 and 3 are in scope of the request through their own files.
+> Wherever this document says "only the Altseason panel" or "out of scope", it means *within this part*; parts 2, 3 and 4 are in scope of the request through their own files.
 
 > **HOW TO READ THIS SPEC — three levels of freedom:**
 > 1. **Method, data, architecture: inspiration only.** This is our proposal, built by one developer on free data. Take it as a starting point and improve anything you judge better: formulas, thresholds, data sources, retail and AI signals (§4.4), robustness. You don't need to ask; just document what you changed and why (§11).
@@ -24,7 +25,7 @@ The look is defined by the reference code (`template.html`) and this spec; runni
 >
 > **Replace both with the same new Altseason panel described here** — one component, identical on both tabs (same tiles, slider, charts, texts), each in the place of the old card. Not a compact variant on one tab and a full one on the other. The reference does exactly this: the one panel renders on its Start tab and above its Sectors tab.
 >
-> **SCOPE — READ FIRST.** Build or replace **only the Altseason panel** (the card with the five tiles *Altseason cycle · OTHERS.D · BTC.D · Retail · Volume*, its slider, its detail charts and info popovers). **Do not change anything else** on cymetica.com/gem-screener — no other sections, tables, tabs, filters, navigation or styles. The reference repository contains the whole Gem Screener; everything outside the files and sections named in §0 (the apps/chains screener, themes, the reference's own sector tables, degen view, backtest.py, liquidity, unlocks, etc.) is **out of scope — ignore it.** On your site the only change is the Altseason card on the Top Picks and Sectors tabs; everything else on those tabs stays. (Chain valuation and the Sectors tab's themes are parts 2 and 3 of this request, with their own scope in their own files — see the box at the top.)
+> **SCOPE — READ FIRST.** Build or replace **only the Altseason panel** (the card with the five tiles *Altseason cycle · OTHERS.D · BTC.D · Retail · Volume*, its slider, its detail charts and info popovers). **Do not change anything else** on cymetica.com/gem-screener — no other sections, tables, tabs, filters, navigation or styles. The reference repository contains the whole Gem Screener; everything outside the files and sections named in §0 (the apps/chains screener, themes, the reference's own sector tables, degen view, backtest.py, liquidity, unlocks, etc.) is **out of scope — ignore it.** On your site the only change is the Altseason card on the Top Picks and Sectors tabs; everything else on those tabs stays. (Chain valuation, the Sectors tab's themes and the Degen level with the coin detail are parts 2, 3 and 4 of this request, with their own scope in their own files — see the box at the top.)
 >
 > **The repository is a REFERENCE, not code to copy.** Use it mainly for the intended look, then for how we compute everything; you may run it to compare. Then build the panel natively in your own stack, with your own data pipeline, components and design system. Do not copy the repository, its files or its single-file HTML template into your product.
 >
@@ -458,4 +459,4 @@ If your data vendor differs, small deviations are expected. Explain any deviatio
 1. The panel live at cymetica.com/gem-screener on **both the Top Picks and the Sectors tab** (the same module in both places), in English, in your design system, matching the reference.
 2. The backend job with durable history, freshness, anomalies and the forward ledger.
 3. A short review note: what you changed or improved and why, which data vendors you chose, and the acceptance results from §9.
-4. Parts 2 and 3: done to their own acceptance checklists (`docs/chains-valuation/SPEC.md`, `docs/sectors-tab/SPEC.md`).
+4. Parts 2, 3 and 4: done to their own acceptance checklists (`docs/chains-valuation/SPEC.md`, `docs/sectors-tab/SPEC.md`, `docs/degen-level-detail/SPEC.md`).
