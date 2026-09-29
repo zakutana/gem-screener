@@ -43,7 +43,7 @@ body {
   font-size: 17px;
   line-height: 1.45;
 }
-.wrap { max-width: 1280px; margin: 0 auto; padding-inline: 16px; padding-block: 36px 80px; display: grid; grid-template-columns: minmax(0, 1fr); gap: 72px; }
+.wrap { max-width: 1360px; margin: 0 auto; padding-inline: 16px; padding-block: 36px 80px; display: grid; grid-template-columns: minmax(0, 1fr); gap: 72px; }
 .sec, .head { min-width: 0; }
 h1, h2, h3, p { margin: 0; text-wrap: balance; }
 button { font: inherit; color: inherit; }
@@ -113,7 +113,7 @@ tr.sub > td { padding: 18px 20px 22px; text-align: left; background: var(--inset
 .exp:hover { background: var(--accent-bg); }
 .rk { font: 500 14px var(--font-mono); color: var(--muted); width: 16px; text-align: center; flex: none; }
 .logo { width: 36px; height: 36px; border-radius: 50%; background: var(--inset); border: 1px solid var(--line-2); display: grid; place-items: center; font: 700 12px var(--font-mono); flex: none; }
-.nm { display: grid; line-height: 1.25; min-width: 190px; margin-right: 6px; }
+.nm { display: grid; line-height: 1.25; min-width: 146px; margin-right: 6px; }
 .nm b { font-size: 17px; font-weight: 600; }
 .nm span { font: 500 13px var(--font-mono); color: var(--muted); }
 .ex-tag { font: 700 10.5px var(--font-mono); letter-spacing: .12em; border: 1px solid var(--muted); color: var(--muted); border-radius: 4px; padding: 1px 6px; font-style: normal; }
@@ -450,6 +450,52 @@ details.dev > .devbody { padding: 6px 26px 34px; display: grid; gap: 64px; }
 .rr-ban .cta { grid-column: 1 / -1; justify-self: start; }
 .btn2 { justify-self: start; background: transparent; color: var(--accent); border: 1.5px solid var(--accent); border-radius: 10px; padding: 11px 20px; font: 700 16px var(--font-body); cursor: pointer; }
 .btn2:hover { background: var(--accent-bg); }
+th.srt { padding: 0; }
+th.gl, td.gl { text-align: left; }
+.sb { background: transparent; border: 0; color: inherit; font: inherit; letter-spacing: inherit; text-transform: inherit; padding: 14px 10px; cursor: pointer; display: inline-flex; align-items: center; gap: 7px; }
+.sb:hover, .sb:focus-visible { color: var(--fg); outline: none; }
+.sb .car { width: 0; height: 0; border-left: 5px solid transparent; border-right: 5px solid transparent; border-top: 6px solid var(--seg); }
+th[aria-sort="descending"] .sb, th[aria-sort="ascending"] .sb { color: var(--fg); }
+th[aria-sort="descending"] .car { border-top-color: var(--accent); }
+th[aria-sort="ascending"] .car { border-top: 0; border-bottom: 6px solid var(--accent); }
+/* Chart Analyzer: the line and the card take the colour of the score band */
+.cz { display: inline-flex; align-items: center; gap: 8px; color: var(--c); }
+.cz svg { display: block; overflow: visible; }
+.cz b { font: 700 16px var(--font-mono); min-width: 26px; text-align: right; }
+.cz.none { color: var(--muted); }
+.cz.none i { display: block; width: 80px; height: 0; border-top: 2px dashed var(--seg); }
+.cz.none b { font-weight: 500; }
+.cza { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 18px 20px; display: grid; gap: 16px; min-width: 0; grid-template-columns: minmax(0, 1fr); }
+.cza.none { border: 1.5px dashed var(--line-2); }
+.cza-h { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 12px; }
+.cza-h b { font: 700 13px var(--font-mono); letter-spacing: .14em; text-transform: uppercase; color: var(--fg-2); }
+.cza-h .pill { font: 700 11px var(--font-mono); letter-spacing: .1em; padding: 3px 8px; border-radius: 6px; border: 1px solid var(--c); color: var(--c); background: var(--cb); }
+.cza-h .pill.grey { --c: var(--muted); --cb: transparent; border-style: dashed; }
+.cza-tf { margin-left: auto; display: inline-flex; border: 1px solid var(--line-2); border-radius: 8px; overflow: hidden; }
+.cza-tf button { background: transparent; border: 0; padding: 6px 14px; font: 600 14px var(--font-body); color: var(--fg-2); cursor: pointer; }
+.cza-tf button + button { border-left: 1px solid var(--line-2); }
+.cza-tf button[aria-pressed="true"] { background: var(--accent-bg); color: var(--accent); }
+.cza-cap { display: flex; justify-content: space-between; font: 500 13px var(--font-mono); color: var(--muted); margin-top: -8px; }
+.cza-top { display: flex; align-items: center; gap: 16px; }
+.cza-num { font: 700 48px/1 var(--font-mono); color: var(--c); }
+.cza-num small { font-size: 18px; color: var(--muted); font-weight: 500; }
+.cza-txt { display: grid; gap: 2px; font-size: 16.5px; color: var(--fg-2); }
+.cza-txt b { color: var(--c); font-size: 19px; }
+.cza-plot { border-radius: 10px; background: #0b1420; border: 1px solid var(--line); padding: 10px 8px 6px; color: var(--c); }
+.cza-plot svg { display: block; width: 100%; height: auto; }
+.cza-scale { display: grid; gap: 8px; }
+.cza-bar { position: relative; display: grid; grid-template-columns: 40fr 20fr 40fr; gap: 3px; height: 10px; }
+.cza-bar i { border-radius: 3px; display: block; opacity: .3; }
+.cza-bar i.r { background: var(--red); } .cza-bar i.b { background: var(--blue); } .cza-bar i.g { background: var(--green); }
+.cza-bar i.on { opacity: 1; }
+.cza-bar u { position: absolute; top: -5px; width: 3px; height: 20px; background: var(--fg); border-radius: 2px; margin-left: -1px; }
+.cza-sl { display: flex; justify-content: space-between; font: 500 13px var(--font-mono); color: var(--muted); }
+.cza-foot { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 18px; border-top: 1px solid var(--line); padding-top: 14px; }
+.cza-foot a.btn2 { text-decoration: none; display: inline-block; }
+.cza-foot span { font-size: 14.5px; color: var(--muted); max-width: 30ch; line-height: 1.35; }
+.cza-none-t { font-size: 17px; color: var(--fg-2); }
+.seg-l { font: 600 12px var(--font-mono); letter-spacing: .14em; text-transform: uppercase; color: var(--muted); margin: 0 0 6px; }
+.czl { gap: 8px !important; }
 .hist { display: grid; gap: 6px; border-top: 1px solid var(--line); padding-top: 14px; font-size: 16px; color: var(--fg-2); }
 .hist .k { font: 600 12px var(--font-mono); letter-spacing: .14em; text-transform: uppercase; color: var(--muted); }
 /* ---------- build ---------- */
@@ -505,11 +551,11 @@ footer { font: 500 13px var(--font-mono); color: var(--muted); border-top: 1px s
   <section class="sec" id="row">
     <div class="sec-h">
       <div class="eyebrow">The row</div>
-      <h2>A mini Degen panel, nothing more</h2>
-      <p>The meter is a picture, with no tooltip. Click the first row to open its drawer below.</p>
+      <h2>A Degen column and a Chart column</h2>
+      <p>The meter is a picture, with no tooltip. Click the Degen header to sort by it. The Chart column is coloured by the Chart Analyzer score. Click the first row to open its drawer below.</p>
     </div>
     <div class="tw"><table id="tbl">
-      <thead><tr><th class="l">Project</th><th>Market cap</th><th>Revenue 30d</th><th>12 months</th><th>Upside</th><th>Strength 3M</th><th>Growth 6M</th></tr></thead>
+      <thead><tr id="thr"></tr></thead>
       <tbody id="tbody"></tbody>
     </table></div>
     <div class="legend2" id="legend2"></div>
@@ -525,11 +571,20 @@ footer { font: 500 13px var(--font-mono); color: var(--muted); border-top: 1px s
     <div class="dsec">
       <div class="notes">
         <div class="nt"><span class="n">1</span><div><b>Degen level on top</b><span>One number, one meter.</span></div></div>
-        <div class="nt"><span class="n">2</span><div><b>One table for all 18 checks</b><span>A row per area, colored circles, the worst reason next to it.</span></div></div>
-        <div class="nt"><span class="n">3</span><div><b>Then the business</b><span>Earnings, Monthly revenue, Trajectory, Supply.</span></div></div>
-        <div class="nt"><span class="n">4</span><div><b>Report card sits at the bottom</b><span>Ready: a calm write-up, and the dashed circles fill in.</span></div></div>
+        <div class="nt"><span class="n">2</span><div><b>The chart, right under it</b><span>Same line as in the row, same colour, with a link to Chart Analyzer.</span></div></div>
+        <div class="nt"><span class="n">3</span><div><b>One table for all 18 checks</b><span>A row per area, colored circles, the worst reason next to it.</span></div></div>
+        <div class="nt"><span class="n">4</span><div><b>Then the business</b><span>Earnings, Monthly revenue, Trajectory, Supply.</span></div></div>
+        <div class="nt"><span class="n">5</span><div><b>Report card sits at the bottom</b><span>Ready: a calm write-up, and the dashed circles fill in.</span></div></div>
       </div>
       <div>
+        <div class="seg-l">Chart Analyzer score of this coin</div>
+        <div class="seg" id="seg2" role="group" aria-label="Chart Analyzer score">
+          <button type="button" data-c="bull" aria-pressed="true">Bullish · 75</button>
+          <button type="button" data-c="neutral" aria-pressed="false">Neutral · 54</button>
+          <button type="button" data-c="bear" aria-pressed="false">Bearish · 33</button>
+          <button type="button" data-c="none" aria-pressed="false">No Binance pair</button>
+        </div>
+        <div class="seg-l">Degen report state</div>
         <div class="seg" id="seg" role="group" aria-label="Report state">
           <button type="button" data-m="ask" aria-pressed="true">Not researched</button>
           <button type="button" data-m="gen" aria-pressed="false">Generating</button>
@@ -539,6 +594,7 @@ footer { font: 500 13px var(--font-mono); color: var(--muted); border-top: 1px s
           <button type="button" data-m="fresh" aria-pressed="false">After refresh</button>
         </div>
         <div class="drawer" id="drawer-el"></div>
+        <p class="note" style="margin-top:12px">In this mock the button opens ETH in Chart Analyzer, because Example DEX is made up. For a real coin it opens <span class="mono">chart-analyzer?symbol=&lt;ticker&gt;&amp;tf=1d</span>.</p>
       </div>
     </div>
   </section>
@@ -954,7 +1010,11 @@ var COINS = {
     c: { mc: '$8.0M', rev: '$1.1M', net: 'net unknown', up: '9.4x', mid: true, str: '0.90x', sd: 'flat', gr: '+12.0%' },
     bars: [30, 45, 38, 52, 40, 44, 50, 46, 55, 48, 58, 62] }
 };
-var INPUT_OF = { exa: EXA, blue: BLUE, unsc: UNS };
+var FALL = Object.assign({}, BLUE, { admin: { kind: 'safe', m: 2, n: 3 }, timelockH: 30, phase: 'declining', spike: 1.2, run30: -28, athDist: 75, strength: 0.6, realYield: 1.4, mcapM: 120, slip: 1.6, hidden: 0.4, emitRate: 0.05, floatPct: 55, team: 'anon', audit: 'sister', track: 'clean', access: 'stake' });
+COINS.fall = { name: 'Falling example', sym: 'EXAMPLE', logo: 'EX', real: false,
+  c: { mc: '$120M', rev: '$6.2M', net: 'net +$1.1M', up: '3.4x', mid: true, str: '0.62x', sd: 'dn', gr: '+1.8%' },
+  bars: [64, 60, 58, 55, 52, 50, 47, 45, 44, 40, 38, 36] };
+var INPUT_OF = { exa: EXA, blue: BLUE, fall: FALL, unsc: UNS };
 
 /* ---- tooltip engine ---- */
 var tip = $('#tip'), tipFor = null;
@@ -1016,6 +1076,63 @@ function flBtn(coin, id, mode) {
   var inp = inputFor(coin, mode), v = VER(id, inp), c = CK[id];
   return '<button type="button" class="fl ' + v + '" data-coin="' + coin + '" data-check="' + id + '" data-mode="' + (mode || 'ask') + '" aria-label="' + esc(c.name + ', ' + VLAB[v]) + '">' + ic(c.icon) + '</button>';
 }
+/* ---- Chart Analyzer (made-up candles and scores) ---- */
+function prng(seed) { var x = seed; return function () { x = (x * 1664525 + 1013904223) % 4294967296; return x / 4294967296; }; }
+function mkSeries(kind, seed, n, o) {   // n daily or weekly closes
+  n = n || 90; o = o || {};
+  var r = prng(seed), v = 100, out = [], i, d, noise = o.noise || 0.05, cut = o.cut != null ? o.cut : Math.round(n * 0.61), rally = Math.log(o.rally || 2) / (n - cut);
+  for (i = 0; i < n; i++) {
+    if (kind === 'bull') d = i < cut ? -0.0015 : rally;
+    else if (kind === 'bear') d = -0.011 * (90 / n) + (i > n * 0.9 ? 0.014 : 0);
+    else d = v > 103 ? -0.007 : v < 97 ? 0.007 : 0;
+    v = v * (1 + d + (r() - 0.5) * noise); out.push(v);
+  }
+  return out;
+}
+// d = daily, w = weekly. w: null with why = 'history' means fewer than 60 weekly candles.
+var CZDATA = {
+  bull: { d: { score: 75, band: 'bullish', vals: mkSeries('bull', 11), n: 3 }, w: { score: 57, band: 'neutral', vals: mkSeries('bull', 21, 52, { cut: 45, rally: 1.9, noise: 0.07 }), n: 1 } },
+  neutral: { d: { score: 54, band: 'neutral', vals: mkSeries('neutral', 5), n: 0 }, w: null },
+  bear: { d: { score: 33, band: 'bearish', vals: mkSeries('bear', 8), n: 2 }, w: { score: 29, band: 'bearish', vals: mkSeries('bear', 9, 52, { noise: 0.07 }), n: 2 } },
+  none: null
+};
+var TF = 'd';
+var CZ = 'bull';
+function czTone(b) { return b === 'bullish' || b === 'very bullish' ? 'green' : b === 'neutral' ? 'blue' : 'red'; }
+var cgId = 0;
+function spark(vals, w, h, o) {
+  o = o || {};
+  var pad = o.pad == null ? 3 : o.pad, min = Math.min.apply(null, vals), max = Math.max.apply(null, vals), n = vals.length;
+  var X = function (i) { return pad + i / (n - 1) * (w - 2 * pad); }, Y = function (v) { return pad + (1 - (v - min) / (max - min || 1)) * (h - 2 * pad); };
+  var d = vals.map(function (v, i) { return (i ? 'L' : 'M') + X(i).toFixed(1) + ' ' + Y(v).toFixed(1); }).join('');
+  var id = 'cg' + (++cgId), lx = X(n - 1), ly = Y(vals[n - 1]), grid = '', fill = '';
+  if (o.grid) grid = [0.2, 0.5, 0.8].map(function (t) { var y = (pad + t * (h - 2 * pad)).toFixed(1); return '<line x1="' + pad + '" x2="' + (w - pad) + '" y1="' + y + '" y2="' + y + '" stroke="#1d2b40" stroke-dasharray="3 5"/>'; }).join('');
+  if (o.fill) fill = '<defs><linearGradient id="' + id + '" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="currentColor" stop-opacity=".26"/><stop offset="1" stop-color="currentColor" stop-opacity="0"/></linearGradient></defs><path d="' + d + 'L' + lx.toFixed(1) + ' ' + (h - pad) + 'L' + X(0).toFixed(1) + ' ' + (h - pad) + 'Z" fill="url(#' + id + ')"/>';
+  return '<svg viewBox="0 0 ' + w + ' ' + h + '"' + (o.fixed ? ' width="' + w + '" height="' + h + '"' : '') + ' aria-hidden="true">' + grid + fill +
+    '<path d="' + d + '" fill="none" stroke="currentColor" stroke-width="' + (o.sw || 2) + '" stroke-linejoin="round" stroke-linecap="round"/>' +
+    '<circle cx="' + lx.toFixed(1) + '" cy="' + ly.toFixed(1) + '" r="' + (o.r || 3) + '" fill="currentColor"/></svg>';
+}
+function czRow(k) {
+  var st = k === 'exa' ? CZDATA[CZ] : k === 'blue' ? CZDATA.neutral : k === 'fall' ? CZDATA.bear : null, d = st && st.d;
+  if (!d) return '<span class="cz none" role="img" aria-label="No chart score: no Binance pair"><i></i><b>–</b></span>';
+  return '<span class="cz ' + czTone(d.band) + '" role="img" aria-label="Chart Analyzer ' + d.score + ', ' + d.band + '">' + spark(d.vals, 80, 34, { fixed: true, sw: 2, r: 2.6 }) + '<b>' + d.score + '</b></span>';
+}
+function czCard() {
+  var st = CZDATA[CZ];
+  if (!st) return '<div class="cza none"><div class="cza-h"><b>Chart</b><span class="pill grey">NO SCORE</span></div><p class="cza-none-t">Chart Analyzer reads Binance USDT pairs. This coin has none, so there is no chart score.</p></div>';
+  var d = st[TF], tf = TF === 'w' ? '1w' : '1d';
+  var sw = '<div class="cza-tf" role="group" aria-label="Timeframe"><button type="button" data-tf="d" aria-pressed="' + (TF === 'd') + '">Daily</button><button type="button" data-tf="w" aria-pressed="' + (TF === 'w') + '">Weekly</button></div>';
+  if (!d) return '<div class="cza none"><div class="cza-h"><b>Chart</b><span class="pill grey">NO WEEKLY SCORE</span>' + sw + '</div><p class="cza-none-t">Weekly needs 60 weekly candles, about 14 months. This coin is younger. The daily score works.</p></div>';
+  var t = czTone(d.band), pos = ((d.score - 1) / 99 * 100).toFixed(1);
+  var sub = d.n ? d.n + ' pattern' + (d.n > 1 ? 's' : '') + ' in the last 10 candles' : 'No pattern in the last 10 candles';
+  var foot = TF === 'w' ? 'Not a forecast. The rates come from daily candles; weekly was never checked.' : 'Not a forecast. On held-out data, high scores did not rise more often.';
+  return '<div class="cza ' + t + '"><div class="cza-h"><b>Chart</b><span class="pill">' + d.band.toUpperCase() + '</span>' + sw + '</div>' +
+    '<div class="cza-top"><div class="cza-num">' + d.score + '<small>/100</small></div><div class="cza-txt"><b>' + d.band.charAt(0).toUpperCase() + d.band.slice(1) + '</b><span>' + sub + '</span></div></div>' +
+    '<div class="cza-plot" role="img" aria-label="Price, last ' + (TF === 'w' ? '52 weekly' : '90 daily') + ' candles. Chart Analyzer score ' + d.score + ', ' + d.band + '.">' + spark(d.vals, 520, 150, { fill: 1, grid: 1, sw: 2.5, r: 4, pad: 8 }) + '</div>' +
+    '<div class="cza-cap"><span>last ' + (TF === 'w' ? '52 weeks' : '90 days') + '</span><span>Chart Analyzer</span></div>' +
+    '<div class="cza-scale"><div class="cza-bar"><i class="r' + (d.score <= 40 ? ' on' : '') + '"></i><i class="b' + (d.score > 40 && d.score <= 60 ? ' on' : '') + '"></i><i class="g' + (d.score > 60 ? ' on' : '') + '"></i><u style="left:' + pos + '%"></u></div><div class="cza-sl"><span>1 bearish</span><span>100 bullish</span></div></div>' +
+    '<div class="cza-foot"><a class="btn2" href="https://cymetica.com/chart-analyzer?symbol=ETH&tf=' + tf + '" target="_blank" rel="noopener">Open in Chart Analyzer ↗</a><span>' + foot + '</span></div></div>';
+}
 /* ---- table ---- */
 function miniHTML(k) {
   var s = score(INPUT_OF[k]), b = band(s.level), seg = '';
@@ -1023,29 +1140,46 @@ function miniHTML(k) {
   return '<span class="mini-dg ' + b + '" role="img" aria-label="Degen level ' + s.level + ' of 10"><b>' + s.level + '</b><span class="sg10">' + seg + '</span></span>';
 }
 function bars(a) { var m = Math.max.apply(null, a); return '<span class="mini">' + a.map(function (v) { return '<i style="height:' + Math.max(8, Math.round(v / m * 34)) + 'px"></i>'; }).join('') + '</span>'; }
+var SORTD = 0;   // 0 = the table's own order, -1 = Degen level high to low, 1 = low to high
+function rowOrder() {
+  var keys = ['exa', 'blue', 'fall', 'unsc'];
+  if (!SORTD) return keys;
+  return keys.map(function (k, i) { var s = score(INPUT_OF[k]); return { k: k, i: i, v: s.level, h: s.high }; })
+    .sort(function (a, b) { return SORTD * (a.v - b.v) || SORTD * (a.h - b.h) || a.i - b.i; }).map(function (x) { return x.k; });
+}
+// Project, the Degen level, the money numbers, the two small charts side by side (revenue bars, price line), then Upside, Strength, Growth.
+var COLORDER = ['proj', 'degen', 'mc', 'rev', 'm12', 'chart', 'up', 'str', 'gr'];
+var COLDEF = {
+  proj: { th: '<th class="l">Project</th>', td: function (k, idx, c) {
+    return '<td class="proj"><div class="pj"><span class="rk">' + (idx + 1) + '</span><span class="logo">' + c.logo + '</span>' +
+      '<div class="nm"><b>' + c.name + '</b><span>' + (c.real ? c.sym : '<em class="ex-tag">EXAMPLE</em>') + '</span></div></div></td>'; } },
+  degen: { th: '<th class="srt gl" id="thDegen" aria-sort="none"><button type="button" class="sb" id="sortDegen" title="Sort by Degen level">Degen <i class="car"></i></button></th>', td: function (k) { return '<td class="gl">' + miniHTML(k) + '</td>'; } },
+  chart: { th: '<th class="gl">Chart</th>', td: function (k) { return '<td class="gl">' + czRow(k) + '</td>'; } },
+  mc: { th: '<th>Market cap</th>', td: function (k, i, c) { return '<td>' + c.c.mc + '</td>'; } },
+  rev: { th: '<th>Revenue 30d</th>', td: function (k, i, c) { return '<td>' + c.c.rev + '<span class="' + (c.c.net.indexOf('+') > -1 ? 'net-good' : 'net-none') + '">' + c.c.net + '</span></td>'; } },
+  m12: { th: '<th class="gl">12 months</th>', td: function (k, i, c) { return '<td class="gl">' + bars(c.bars) + '</td>'; } },
+  up: { th: '<th>Upside</th>', td: function (k, i, c) { return '<td><span class="up' + (c.c.mid ? ' mid' : '') + '">' + c.c.up + '</span>' + (c.c.eff ? '<span class="eff">' + c.c.eff + '</span>' : '') + '</td>'; } },
+  str: { th: '<th>Strength 3M</th>', td: function (k, i, c) { return '<td>' + (c.c.sd === 'dn' ? '<span class="dn">↓ ' + c.c.str + '</span>' : c.c.sd === 'up' ? '<span class="upc">↑ ' + c.c.str + '</span>' : '<span class="flat">→ ' + c.c.str + '</span>') + '</td>'; } },
+  gr: { th: '<th>Growth 6M</th>', td: function (k, i, c) { return '<td class="upc">' + c.c.gr + '</td>'; } }
+};
+function renderHead() { $('#thr').innerHTML = COLORDER.map(function (id) { return COLDEF[id].th; }).join(''); }
 function renderTable() {
+  $('#thDegen').setAttribute('aria-sort', SORTD === -1 ? 'descending' : SORTD === 1 ? 'ascending' : 'none');
   var out = '';
-  ['exa', 'blue', 'unsc'].forEach(function (k, idx) {
+  rowOrder().forEach(function (k, idx) {
     var c = COINS[k];
-    var sd = c.c.sd === 'dn' ? '<span class="dn">↓ ' + c.c.str + '</span>' : c.c.sd === 'up' ? '<span class="upc">↑ ' + c.c.str + '</span>' : '<span class="flat">→ ' + c.c.str + '</span>';
-    out += '<tr class="' + (c.hot ? 'hot clk' : '') + '" data-k="' + k + '"><td class="proj"><div class="pj">' +
-      '<span class="rk">' + (idx + 1) + '</span><span class="logo">' + c.logo + '</span>' +
-      '<div class="nm"><b>' + c.name + '</b><span>' + (c.real ? c.sym : '<em class="ex-tag">EXAMPLE</em>') + '</span></div>' +
-      '<div class="flags">' + miniHTML(k) + '</div>' +
-      '</div></td>' +
-      '<td>' + c.c.mc + '</td>' +
-      '<td>' + c.c.rev + '<span class="' + (c.c.net.indexOf('+') > -1 ? 'net-good' : 'net-none') + '">' + c.c.net + '</span></td>' +
-      '<td>' + bars(c.bars) + '</td>' +
-      '<td><span class="up' + (c.c.mid ? ' mid' : '') + '">' + c.c.up + '</span>' + (c.c.eff ? '<span class="eff">' + c.c.eff + '</span>' : '') + '</td>' +
-      '<td>' + sd + '</td><td class="upc">' + c.c.gr + '</td></tr>';
+    out += '<tr class="' + (c.hot ? 'hot clk' : '') + '" data-k="' + k + '">' + COLORDER.map(function (id) { return COLDEF[id].td(k, idx, c); }).join('') + '</tr>';
   });
   $('#tbody').innerHTML = out;
 }
+renderHead();
+$('#sortDegen').addEventListener('click', function () { SORTD = SORTD === 0 ? -1 : SORTD === -1 ? 1 : 0; renderTable(); });
 document.addEventListener('click', function (e) {
   var r = e.target.closest && e.target.closest('tr.clk'); if (!r) return;
   var d = $('#drawer'); if (d && d.scrollIntoView) d.scrollIntoView({ behavior: 'smooth', block: 'start' });
 });
 $('#legend2').innerHTML =
+  '<span class="czl"><span class="cz green">' + spark(mkSeries('bull', 3), 44, 20, { fixed: true, r: 2 }) + '</span><span class="cz blue">' + spark(mkSeries('neutral', 4), 44, 20, { fixed: true, r: 2 }) + '</span><span class="cz red">' + spark(mkSeries('bear', 6), 44, 20, { fixed: true, r: 2 }) + '</span>Chart: colour = Chart Analyzer score. 61–100 green, 41–60 light blue, 1–40 red, dashed = no Binance pair.</span>' +
   '<span><span class="sg10"><i class="f green"></i><i class="f green"></i><i class="f green"></i><i class="f blue"></i><i class="f blue"></i><i class="f blue"></i><i class="f red"></i><i class="f red"></i><i class="h"></i><i></i></span>Degen level. 1–3 green, 4–6 blue, 7–10 red, dashed = not fully checked.</span>';
 function topThree(coin) {
   var inp = INPUT_OF[coin];
@@ -1249,7 +1383,7 @@ function renderDrawer() {
     '<div class="dh"><div class="dh-t"><span class="logo">EX</span><div><h3>Example DEX</h3><span class="s">EXDX · Dexs</span></div><span class="x">' + ic('x') + '</span></div>' +
     '<p>A DEX on a smaller chain with vote-lock rewards. Every name and number here is made up.</p>' +
     '<div class="dh-b"><span class="webb">web ↗</span><button type="button" class="rg ' + glyph + '" data-custom="' + glyph + '" aria-label="Degen report status">' + ic(gicon) + '</button></div></div>' +
-    stripHTML(s, NOTE[m], PREV[m]) + checksTableHTML(dmode) + tilesHTML() + earningsHTML(s) + monthlyHTML() + trajHTML() + supplyHTML(s) + reportHTML(dmode);
+    stripHTML(s, NOTE[m], PREV[m]) + czCard() + checksTableHTML(dmode) + tilesHTML() + earningsHTML(s) + monthlyHTML() + trajHTML() + supplyHTML(s) + reportHTML(dmode);
   $$('#seg button').forEach(function (b) { b.setAttribute('aria-pressed', String(b.dataset.m === dmode)); });
   var cta = $('#cta'); if (cta) cta.addEventListener('click', function () { setMode('gen'); });
   $$('[data-refresh]', el).forEach(function (b) { b.addEventListener('click', function () { setMode('gen'); }); });
@@ -1258,6 +1392,8 @@ function renderDrawer() {
 }
 function setMode(m) { clearTimers(); if (m === 'gen' && dmode !== 'gen') genFrom = dmode === 'fresh' ? 'ready' : dmode; dmode = m; hideTip(); renderDrawer(); }
 $('#seg').addEventListener('click', function (e) { var b = e.target.closest('button'); if (b) setMode(b.dataset.m); });
+$('#drawer-el').addEventListener('click', function (e) { var b = e.target.closest && e.target.closest('.cza-tf button'); if (!b) return; TF = b.dataset.tf; renderDrawer(); });
+$('#seg2').addEventListener('click', function (e) { var b = e.target.closest('button'); if (!b) return; CZ = b.dataset.c; $$('#seg2 button').forEach(function (x) { x.setAttribute('aria-pressed', String(x === b)); }); renderTable(); renderDrawer(); });
 
 /* ---- code block ---- */
 $('#copy').addEventListener('click', function () {
