@@ -4,12 +4,13 @@
 **From:** Adam (product owner, Gem Screener)
 **Scope:** rebuild ONE component, the Altseason panel with all its subsections, on Cymetica's infrastructure at https://cymetica.com/gem-screener.
 
-> **THIS REQUEST HAS THREE PARTS — do all three.** Each part has its own file, its own scope and its own acceptance checklist:
+> **THIS REQUEST HAS FOUR PARTS — do all four.** Each part has its own file, its own scope and its own acceptance checklist:
 > 1. **Altseason panel** — this document.
 > 2. **Chain valuation on the Chains tab** — [`docs/chains-valuation/SPEC.md`](../chains-valuation/SPEC.md).
 > 3. **The Sectors tab's themes** — [`docs/sectors-tab/SPEC.md`](../sectors-tab/SPEC.md).
+> 4. **The Degen level in the Apps row and the redesigned coin detail** — [`docs/degen-level-detail/SPEC.md`](../degen-level-detail/SPEC.md).
 >
-> Wherever this document says "only the Altseason panel" or "out of scope", it means *within this part*; parts 2 and 3 are in scope of the request through their own files.
+> Wherever this document says "only the Altseason panel", "out of scope" or "do not change anything else", it means *within this part*; parts 2, 3 and 4 change other things through their own files, and those changes are in scope of the request.
 
 > **HOW TO READ THIS SPEC — three levels of freedom:**
 > 1. **Method, data, architecture: inspiration only.** This is our proposal, built by one developer on free data. Take it as a starting point and improve anything you judge better: formulas, thresholds, data sources, retail and AI signals (§4.4), robustness. You don't need to ask; just document what you changed and why (§11).
@@ -24,13 +25,13 @@ The look is defined by the reference code (`template.html`) and this spec; runni
 >
 > **Replace both with the same new Altseason panel described here** — one component, identical on both tabs (same tiles, slider, charts, texts), each in the place of the old card. Not a compact variant on one tab and a full one on the other. The reference does exactly this: the one panel renders on its Start tab and above its Sectors tab.
 >
-> **SCOPE — READ FIRST.** Build or replace **only the Altseason panel** (the card with the five tiles *Altseason cycle · OTHERS.D · BTC.D · Retail · Volume*, its slider, its detail charts and info popovers). **Do not change anything else** on cymetica.com/gem-screener — no other sections, tables, tabs, filters, navigation or styles. The reference repository contains the whole Gem Screener; everything outside the files and sections named in §0 (the apps/chains screener, themes, the reference's own sector tables, degen view, backtest.py, liquidity, unlocks, etc.) is **out of scope — ignore it.** On your site the only change is the Altseason card on the Top Picks and Sectors tabs; everything else on those tabs stays. (Chain valuation and the Sectors tab's themes are parts 2 and 3 of this request, with their own scope in their own files — see the box at the top.)
+> **SCOPE — READ FIRST.** Build or replace **only the Altseason panel** (the card with the five tiles *Altseason cycle · OTHERS.D · BTC.D · Retail · Volume*, its slider, its detail charts and info popovers). **Do not change anything else** on cymetica.com/gem-screener — no other sections, tables, tabs, filters, navigation or styles. The reference repository contains the whole Gem Screener; everything outside the files and sections named in §0 (the apps/chains screener, themes, the reference's own sector tables, degen view, backtest.py, liquidity, unlocks, etc.) is **out of scope — ignore it.** On your site the only change is the Altseason card on the Top Picks and Sectors tabs; everything else on those tabs stays. (Chain valuation, the Sectors tab's themes, and the Degen level with the coin detail are parts 2, 3 and 4 of this request, with their own scope in their own files — see the box at the top.)
 >
 > **The repository is a REFERENCE, not code to copy.** Use it mainly for the intended look, then for how we compute everything; you may run it to compare. Then build the panel natively in your own stack, with your own data pipeline, components and design system. Do not copy the repository, its files or its single-file HTML template into your product.
 >
 > **English only — ignore all Czech.** The reference is Czech-first: Czech UI text, Czech data keys (`zima`, `prehrate`, `pruraz`, `spi`…), Czech comments, commit messages and log lines. None of it goes into your build. Every user-visible string is English (§7 has the copy); name your own keys and code in English too (the Czech keys map to the English labels in §5.4, §7.1).
 >
-> **Data sources are your choice.** Pull the data from wherever you judge best — your existing feeds, paid APIs, your own indexers. The sources the reference uses (free CMC web API, Coin Metrics community, Upbit, Coinbase candles, DeFiLlama, Apple RSS) are only examples of what works; §4 lists what the data must satisfy, not where it must come from.
+> **Data sources are your choice.** Pull the data from wherever you judge best — your existing feeds, paid APIs, your own indexers. The sources the reference uses (free CMC web API, Coin Metrics community, Upbit, Coinbase candles, DeFiLlama, Apple RSS) are only examples of what works; §4 lists what the data must satisfy, not where it must come from. **Use a paid market feed for the whole screener:** on 2026-09-29, 240 of 241 prices on the live site were carried over from the previous run (CoinGecko answered 429/403).
 >
 > **Architecture is your choice.** The reference is a *local desktop app*: a Python script (`collector.py`) fetches everything and writes one `snapshot.json`, which is embedded into a single static HTML file; `app.py` serves it on localhost (or as a Windows exe), and CI publishes the static page. There is no real server, database or API. You will change it on your side as you see fit; one natural client–server mapping, only as a suggestion:
 > - **Backend worker (scheduled, e.g. every 6 h):** fetch, validate, compute the whole `cycle` result (§5) and append the weekly ledger. All computation happens here, never in the browser and never per request.
@@ -250,7 +251,7 @@ Heat = the mean of the trailing percentiles of MVRV ratio, Puell (issuance ÷ it
 | `bezi` | **Altseason is on** | rotation ≥ 60, or index ≥ T |
 | `zacina` | **Alts are starting** | rotation ≥ 30 and (rotation +15 vs 13 weeks ago, or an OTHERS.D breakout event in the 13 weeks t−12..t) |
 | `btc_sezona` | **Only BTC runs** | heat ≥ 50 and rotation < 30 |
-| `zima` | **Alts not moving yet** | otherwise |
+| `zima` | **No altseason yet** | otherwise |
 
 ### 5.5 Trend lines (TradingView-style, week t sees only data ≤ t)
 
@@ -318,7 +319,7 @@ The panel must also render cleanly on a phone (375 px), with no horizontal overf
 - Toggle: `Expand ▾` / `Collapse ▴`
 - Slider: `CALM` · `TOP ZONE · 75` · `WEEK OF <Mon D>`
 - Words:
-  - phases: `Alts not moving yet`, `Only BTC runs`, `Alts are starting`, `Altseason is on`, `End is near`, `Past the top`;
+  - phases: `No altseason yet`, `Only BTC runs`, `Alts are starting`, `Altseason is on`, `End is near`, `Past the top`;
   - OTHERS.D: `trend broken`, `breaking the trend`, `false breakout`, `below the line`, `no trend`;
   - BTC.D: `support broken`, `falling`, `rising`, `sideways`;
   - retail: `asleep`, `waking up`, `rushing in`;
@@ -331,10 +332,11 @@ The panel must also render cleanly on a phone (375 px), with no horizontal overf
 
 ### 7.2 Info popovers ("i")
 
-- **Altseason cycle:** "**Altseason cycle** — how far money has rotated into alts and how euphoric the market is. Every past altseason top went above 75."
-  - How it is calculated: "⅔ rotation into alts (how much of the way from its 1-year high to the last cycle's low BTC dominance has covered, how much small alts rose from their 1-year low, how many alts beat BTC) and ⅓ euphoria (retail and Bitcoin heat). 'End is near' = euphoria at 70 or more with the index at 75 or more or rotation at 60 or more; 'Past the top' = after an altseason the index 15 below its half-year high and alts down 25% in dollars."
+- **Altseason cycle:** "**Altseason cycle** — how far money has rotated into alts and how euphoric the market is. Both big altseason tops (Jan 2018, May 2021) went above 75."
+  - How it is calculated: "⅔ rotation into alts (how much of the way from its 1-year high to the last cycle's low BTC dominance has covered, measured against a drop of at least 25 points, how much small alts rose from their 1-year low, how many alts beat BTC) and ⅓ euphoria (retail and Bitcoin heat). 'End is near' = euphoria at 70 or more with the index at 75 or more or rotation at 60 or more; 'Past the top' = after an altseason the index 15 below its half-year high and alts down 25% in dollars."
+  - "The old card's number, the share of the top-50 alts that beat BTC over ~90 days, is now the breadth line in the breakdown. So the headline number is a different one: 68% on the old card, about 23 on the new panel." (Adjust to the real values on release day.)
   - "Rules locked on 28 Sep 2026, before they were computed on the real history. The two past altseasons were known to the authors, so the real test is every week from now on."
-- **OTHERS.D:** "**OTHERS.D** — small alts' share of the market. Breaking the line from the 2022 top = money moving into alts."
+- **OTHERS.D:** "**OTHERS.D** — small alts' share of the top 125. Breaking the line from the 2022 top = money moving into alts."
   - How it is calculated: "a TradingView-style line — from the highest weekly close of 6 years over the lower highs down to the bottom. A break = two weekly closes more than 3% above the line; each week sees only its own past."
   - Add one line if your OTHERS.D definition differs from TradingView's.
 - **BTC.D:** "**BTC dominance** — Bitcoin's share of the market. When it falls, money flows into alts."
@@ -359,7 +361,7 @@ Then three rows under it (this week's numbers):
 Each number stands next to the same number at the 2018 and 2021 altseason ends (`rotation_at_events`, computed on the backend — never a hand-written range):
 
 1. **Is money moving into alts?** (chip = rotation), three short lines:
-   - `BTC dominance has covered 5% of the way from its 1-year high 60.0% to the last cycle's low 37.9% (2018: 100%, 2021: 78%)` (the path shown clamped to 0–100)
+   - When the 1-year high is 25 points or more above the last cycle's low: `BTC dominance has covered 5% of the way from its 1-year high 66.0% to the last cycle's low 37.9% (2018: 100%, 2021: 78%)`. When it is closer than 25 points (the path uses a 25-point span, §5.1): `BTC dominance has covered 5% of a 25-point drop from its 1-year high 60.0% (2018: 100%, 2021: 78%)`. The path is shown clamped to 0–100.
    - `small alts +23% above their 1-year low (2018: +251%, 2021: +215%)`
    - `24% of the top 50 alts beat BTC over 13 weeks (2018: 89%, 2021: 90%)`
 2. **Is the market euphoric?** (chip = euphoria): `retail 55/100 · Bitcoin heat 46/100`
@@ -419,7 +421,7 @@ Reference run of 2026-09-28 (the v3 rules were locked before it). The trend line
 
 - **Pre-registered verdict: FAIL, by 2 weeks.** 4 of the 5 checks pass: "End is near" within [−8, +2] weeks of P0, P1 and P2; each cycle's highest week near its tops; 1 "End is near" episode away from the tops (2016-09-05..09-12, limit 2); **no "End is near" and no index ≥ 75 from 2023-01 to 2026-06**. The fifth fails: 54 of 529 weeks (10.2%) at ≥ 75, the limit was 10% (52 weeks). The owner chose to run v3 anyway and keep the FAIL on record; nothing was tuned.
 - "End is near" episodes: 2017-04-03..2018-03-05 (continuous — see §10), 2021-04-19..06-14, 2021-11-15. "Past the top": 2018-03-26..08-27, 2021-07-05..08-16, 2022-02-14..05-30 (none between the two 2017 waves, where v2 wrongly had one).
-- Max since 2023: 46.5; yearly max 2024 46.5, 2025 46.5; today (week of 2026-09-21) 23.5, `Alts not moving yet`.
+- Max since 2023: 46.5; yearly max 2024 46.5, 2025 46.5; today (week of 2026-09-21) 23.5, `No altseason yet`.
 - For comparison, v2 on the same data: P0 99.7, P1 95.2, P2 79.7, P2b 62.3; ≥ 75 in 8.4% of weeks (PASS); "Past the top" Aug–Oct 2017 between the two alt waves.
 
 **Trend lines (ranked OTHERS.D definition):**
@@ -458,4 +460,4 @@ If your data vendor differs, small deviations are expected. Explain any deviatio
 1. The panel live at cymetica.com/gem-screener on **both the Top Picks and the Sectors tab** (the same module in both places), in English, in your design system, matching the reference.
 2. The backend job with durable history, freshness, anomalies and the forward ledger.
 3. A short review note: what you changed or improved and why, which data vendors you chose, and the acceptance results from §9.
-4. Parts 2 and 3: done to their own acceptance checklists (`docs/chains-valuation/SPEC.md`, `docs/sectors-tab/SPEC.md`).
+4. Parts 2, 3 and 4: done to their own acceptance checklists (`docs/chains-valuation/SPEC.md`, `docs/sectors-tab/SPEC.md`, `docs/degen-level-detail/SPEC.md`).

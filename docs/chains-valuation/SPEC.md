@@ -2,7 +2,7 @@
 
 **For:** the lead agent of the Cymetica SDLC pipeline
 **From:** Adam (product owner, Gem Screener)
-**Part 2 of 3** of one request — part 1 (the Altseason panel) is [`docs/altseason-panel/SPEC.md`](../altseason-panel/SPEC.md); do all three.
+**Part 2 of 4** of one request — part 1 (the Altseason panel) is [`docs/altseason-panel/SPEC.md`](../altseason-panel/SPEC.md); do all four.
 **Scope:** only **how chains are valued** on the Chains tab (the price tag, the benchmark, the upside and the sort). Nothing else on the page changes.
 
 > **English only.** Our reference code is Czech-first; ignore all Czech. **Method and data are your call** (paid data welcome: fees, DEX volume, users…). **Keep the Chains tab design** and the degen tone.
@@ -20,11 +20,12 @@
 ## Acceptance — check each point
 
 1. Chains show the **same one-line price tag as Apps**: "<leader> is priced at N× its yearly <measure>. Upside = what a chain is worth at the same price tag."
-2. The benchmark is a **named leader chain**, not the median.
-3. **Stablecoins alone are not the price tag.** The measure includes activity (e.g. yearly fees and/or DEX volume), is written down, and guards against wash-traded or incentivised volume.
+2. The benchmark is a **named leader chain**, not the median. Say how the leader is chosen and filter outliers first: on today's data Canton ($588M yearly fees at 9× market cap) would otherwise lead and leave almost no chain with upside.
+3. **Stablecoins alone are not the price tag.** The measure includes activity (e.g. yearly fees and/or DEX volume), is written down, and guards against wash-traded or incentivised volume. **Fees from stablecoin transfers are discounted or excluded:** on raw fees Tron is still #4 today (11.4×, $287M a year, mostly USDT transfers), which is the case this spec criticises.
 4. That activity **enters the upside and the sort**, not only a tooltip.
 5. Market cap ÷ TVL is not used.
-6. **Chains tab design unchanged**, degen-friendly.
-7. A short note: what you changed and why, the data you used, and the top 10 chains by upside before and after.
+6. **Chains tab design unchanged**, degen-friendly; the Stablecoins column shows the new measure, in the same layout.
+7. A short note: what you changed and why, the data you used, the top 10 chains by upside before and after, and Tron and Canton before and after.
+8. **The same chain-activity measure feeds part 3's L1/L2 fundament** (part 3, acceptance 9). The "No data (no stablecoin data)" flag becomes "no data" for the new measure.
 
 Reference code (inspiration, not to copy): `collector.py` (`compute_metrics`, `apply_valuation`, `adoption_index`), ARCHITECTURE.md §9.3 and §9.7 — public repo `zakutana/gem-screener`, branch `altseason-cycle-2r6d3t`.

@@ -2,7 +2,7 @@
 
 **For:** the lead agent of the Cymetica SDLC pipeline
 **From:** Adam (product owner, Gem Screener)
-**Part 4 of 4** of one request — part 1 (the Altseason panel) is [`docs/altseason-panel/SPEC.md`](../altseason-panel/SPEC.md); do all four. The files of parts 1 to 3 say "three parts": this is the fourth, and it belongs to the same request.
+**Part 4 of 4** of one request — part 1 (the Altseason panel) is [`docs/altseason-panel/SPEC.md`](../altseason-panel/SPEC.md); do all four.
 **Scope:** only (a) the **flag icons in the Project column of the Apps tab** and the flag badges on the **Degen pick cards of the Top Picks tab**, (b) the **coin detail panel** (the panel that opens when an Apps row is clicked) and (c) the **flag section of the Legend**. Nothing else changes in this part: not the other columns, the sort, the gates, the filters or the tabs, and **nothing on the Chains tab** (part 2 owns it; chain rows keep today's detail). **Part 1's "do not change anything else" limits part 1 only; this part changes the row, the detail and the Legend as written here.**
 
 > **English only.** **Method and data are your call** (paid data welcome). **Look: keep the reference** in this folder — `reference.html` and the screenshots — as exactly as your design system allows. It is a mock: every name and number in it is made up. Take the design, not the code; the repository is **not** a copy of what runs on your site, so build from what you see live plus this folder.
