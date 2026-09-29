@@ -420,19 +420,19 @@ details.dev > .devbody { padding: 6px 26px 34px; display: grid; gap: 64px; }
 .mr-x span { flex: 1; min-width: 0; text-align: center; font: 400 13px var(--font-body); color: var(--muted); }
 
 .rc h4 .dt { margin-left: auto; font: 500 13px var(--font-mono); color: var(--muted); }
-.rr { display: grid; gap: 10px; }
-.rr-v, .rr-b { border: 1px solid var(--c); background: var(--cb); border-radius: 12px; padding: 14px 18px; display: grid; gap: 6px; }
-.rr .k { font: 700 12px var(--font-mono); letter-spacing: .14em; text-transform: uppercase; color: var(--c); }
-.rr-v b { font-family: var(--font-display); font-weight: 400; font-size: 25px; line-height: 1.2; color: var(--fg); }
-.rr ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; font-size: 17px; }
-.rr li { display: flex; gap: 10px; align-items: baseline; }
-.rr li::before { font: 700 15px var(--font-mono); color: var(--c); flex: none; }
-.rr li.ok::before { content: "✓"; } .rr li.no::before { content: "✕"; }
-.rr-b p { margin: 0; font-size: 17px; color: var(--fg); }
-.rr-b p b { color: var(--c); }
-.rr-f { display: grid; gap: 8px; margin-top: 4px; }
-.rr-f .k { color: var(--muted); }
-.rr-f .row { display: flex; flex-wrap: wrap; gap: 8px; }
+.rr { display: grid; gap: 0; }
+.rr .k { font: 600 12px var(--font-mono); letter-spacing: .14em; text-transform: uppercase; color: var(--muted); }
+.rr-v { border-left: 3px solid var(--c); padding: 4px 0 4px 16px; margin-bottom: 18px; display: grid; gap: 6px; }
+.rr-v b { font-family: var(--font-display); font-weight: 400; font-size: 24px; line-height: 1.25; color: var(--fg); }
+.rr-s { display: grid; gap: 8px; padding: 16px 0; border-top: 1px solid var(--line); }
+.rr-s p { margin: 0; font-size: 17px; line-height: 1.5; color: var(--fg); }
+.rr ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 10px; font-size: 17px; line-height: 1.45; color: var(--fg); }
+.rr li { display: grid; grid-template-columns: 18px minmax(0, 1fr); gap: 8px; }
+.rr li::before { font: 700 15px/1.6 var(--font-mono); flex: none; }
+.rr li.ok::before { content: "✓"; color: var(--green); } .rr li.no::before { content: "✕"; color: var(--red); }
+.rr-l { display: grid; gap: 10px; }
+.rr-l .i { display: grid; grid-template-columns: 22px minmax(0, 1fr); gap: 10px; align-items: center; font-size: 17px; color: var(--fg); }
+.rr-l .i .ic { width: 22px; height: 22px; color: var(--c); }
 /* ---------- build ---------- */
 .build { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(300px, 100%), 1fr)); gap: 12px; }
 .bs { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 22px; display: grid; gap: 12px; align-content: start; }
@@ -508,7 +508,7 @@ footer { font: 500 13px var(--font-mono); color: var(--muted); border-top: 1px s
         <div class="nt"><span class="n">1</span><div><b>Degen level on top</b><span>One number, one meter.</span></div></div>
         <div class="nt"><span class="n">2</span><div><b>One table for all 18 checks</b><span>A row per area, colored circles, the worst reason next to it.</span></div></div>
         <div class="nt"><span class="n">3</span><div><b>Then the business</b><span>Earnings, Monthly revenue, Trajectory, Supply.</span></div></div>
-        <div class="nt"><span class="n">4</span><div><b>Report card sits at the bottom</b><span>Ready: a short verdict, and the dashed circles fill in.</span></div></div>
+        <div class="nt"><span class="n">4</span><div><b>Report card sits at the bottom</b><span>Ready: a calm write-up, and the dashed circles fill in.</span></div></div>
       </div>
       <div>
         <div class="seg" id="seg" role="group" aria-label="Report state">
@@ -737,7 +737,7 @@ var CHECKS = [
 ];
 var CK = {}; CHECKS.forEach(function (c) { CK[c.id] = c; });
 var PW = {}; PILLARS.forEach(function (p) { PW[p.id] = p; });
-var VLAB = { green: 'GOOD', blue: 'CAUTION', red: 'BAD', unknown: 'NOT CHECKED' };
+var VLAB = { green: 'GOOD', blue: 'CAUTION', red: 'BAD', unknown: 'NEEDS REPORT' };
 var VCOL = { green: 'var(--green)', blue: 'var(--blue)', red: 'var(--red)', unknown: 'var(--muted)', info: 'var(--line-2)' };
 var VBG = { green: 'var(--green-bg)', blue: 'var(--blue-bg)', red: 'var(--red-bg)', unknown: 'transparent', info: 'transparent' };
 
@@ -796,8 +796,10 @@ function tipHTML(s) {
 function specForCheck(coin, id, mode) {
   var c = CK[id], inp = mode === 'ready' ? PHAR_R : INPUT_OF[coin];
   var r = RISK[id](inp), v = verdict(r);
-  var base = { icon: c.icon, name: c.name, v: v, pill: VLAB[v] };
-  if (v === 'unknown') return Object.assign(base, { val: 'Not checked yet', ctx: 'Needs ' + c.need + '.', src: c.tier === 'report' ? 'ASK FOR REPORT' : 'NEEDS SCAN', at: '' });
+  var base = { icon: c.icon, name: c.name, v: v, pill: v === 'unknown' ? (c.tier === 'report' ? 'NEEDS REPORT' : 'NOT SCANNED') : VLAB[v] };
+  if (v === 'unknown') return c.tier === 'report'
+    ? Object.assign(base, { val: 'Needs the Degen report', ctx: 'Ask for the report at the bottom to fill this in.', src: 'ASK FOR REPORT', at: '' })
+    : Object.assign(base, { val: 'Not scanned yet', ctx: 'Needs ' + c.need + '.', src: 'NEEDS SCAN', at: '' });
   if (coin === 'phar') {
     var t = (mode === 'ready' && INST_R[id]) || INST[id];
     return Object.assign(base, t);
@@ -917,7 +919,7 @@ function panelHTML(s, opt) {
   var b = band(s.level), bl = BAND[b];
   var meter = '';
   for (var i = 1; i <= 10; i++) meter += '<i class="' + (i <= s.level ? 'f ' + band(i) : i <= s.high ? 'h' : '') + '"></i>';
-  var rng = s.low === s.high ? (opt.note || 'All 18 checks in.') : 'Range ' + s.low + '–' + s.high + ' · ' + s.unknown.length + ' checks not scanned';
+  var rng = s.low === s.high ? (opt.note || 'All 18 checks in.') : 'Range ' + s.low + '–' + s.high + ' · ' + unkText(s);
   var rows = PILLARS.map(function (p) {
     var pp = s.pillars.filter(function (x) { return x.id === p.id; })[0], v = verdict(pp.f);
     var unk = Object.keys(PILLAR_OF).filter(function (k) { return PILLAR_OF[k] === p.id && s.r[k] === null; }).length;
@@ -947,7 +949,7 @@ var STEPS = ['Reading docs and site', 'Checking audits', 'Searching exploits and
 function clearTimers() { timers.forEach(clearInterval); timers = []; }
 function checksTableHTML(mode) {
   var inp = mode === 'ready' ? PHAR_R : PHAR;
-  var key = '<div class="ct-key"><span class="green"><i></i>Good</span><span class="blue"><i></i>Caution</span><span class="red"><i></i>Bad</span><span class="unknown"><i></i>Not checked</span></div>';
+  var key = '<div class="ct-key"><span class="green"><i></i>Good</span><span class="blue"><i></i>Caution</span><span class="red"><i></i>Bad</span><span class="unknown"><i></i>Needs report</span></div>';
   var rows = PILLARS.map(function (p) {
     var cs = CHECKS.filter(function (c) { return c.p === p.id; });
     var circles = cs.map(function (c) { return flBtn('phar', c.id, mode); }).join('');
@@ -972,17 +974,18 @@ function reportHTML(mode) {
     return '<div class="rc gen"><h4>' + ic('doc') + 'Writing the report…</h4><ol class="steps" id="steps">' + STEPS.map(function (s) { return '<li>' + s + '</li>'; }).join('') + '</ol></div>';
   }
   var vb = band(score(PHAR_R).level);
-  var filled = ['e3', 'y1', 'y2', 'y3'].map(function (id) {
-    var c = CK[id], v = verdict(RISK[id](PHAR_R)), txt = id === 'y2' ? 'sister code only' : c.chip;
-    return '<span class="cf ' + v + '" data-coin="phar" data-check="' + id + '" data-mode="ready" tabindex="0">' + ic(c.icon) + c.name + ' <i>' + esc(txt) + '</i></span>';
+  var filled = [['e3', 'Reaches you: stake needed, −50% haircut'], ['y1', 'Team: anonymous'], ['y2', 'Audit: sister code only'], ['y3', 'Track record: all 4 sister forks dead or −99%']].map(function (x) {
+    var c = CK[x[0]], v = verdict(RISK[x[0]](PHAR_R));
+    return '<div class="i ' + v + '" data-coin="phar" data-check="' + x[0] + '" data-mode="ready" tabindex="0">' + ic(c.icon) + '<span>' + esc(x[1]) + '</span></div>';
   }).join('');
   return '<div class="rc ready"><h4>' + ic('doccheck') + 'Degen report<span class="dt">Sep 28</span></h4>' +
     '<div class="rr">' +
     '<div class="rr-v ' + vb + '"><span class="k">Verdict</span><b>Real business, shaky door. Lottery ticket.</b></div>' +
-    '<div class="rr-b green"><span class="k">Good</span><ul><li class="ok">Clean token contract</li><li class="ok">Fees match three sources</li><li class="ok">No insider sells in 60 days</li></ul></div>' +
-    '<div class="rr-b red"><span class="k">Shady</span><ul><li class="no">1-of-3 admin key, 0 s timelock</li><li class="no">73% of staked xPHAR on one EOA</li><li class="no">Fresh wallet holds 9.8% of float</li></ul></div>' +
-    '<div class="rr-b blue"><span class="k">The bet</span><p>Fees stay above $2M a month. <b>Watch:</b> xPHAR exits.</p></div>' +
-    '<div class="rr-f"><span class="k">Filled in above</span><div class="row">' + filled + '</div></div>' +
+    '<div class="rr-s"><span class="k">What it is</span><p>A ve(3,3)-style DEX on Avalanche, built on the Ramses and Shadow code family. Swap fees on four big pools go to xPHAR voters, about 97% of them.</p></div>' +
+    '<div class="rr-s"><span class="k">Good</span><ul><li class="ok">The token contract is clean: no owner, no proxy, no pause or blacklist.</li><li class="ok">Fees match DefiLlama, DexScreener and GeckoTerminal.</li><li class="ok">No insider sells or exchange deposits in the last 60 days.</li></ul></div>' +
+    '<div class="rr-s"><span class="k">Shady</span><ul><li class="no">One of three signers can act alone, and the timelock delay is 0 seconds.</li><li class="no">73% of the staked xPHAR sits behind one wallet.</li><li class="no">A fresh wallet holds 9.8% of the float, built up during September.</li></ul></div>' +
+    '<div class="rr-s"><span class="k">The bet</span><p>Avalanche stays busy and fees hold above $2M a month. Watch weekly fees against weekly emissions, and any exit from xPHAR.</p></div>' +
+    '<div class="rr-s"><span class="k">Filled in above</span><div class="rr-l">' + filled + '</div></div>' +
     '</div>' +
     '<span class="foot">Redone when the admin key changes, a contract is upgraded, revenue moves ±2× or an unlock is near</span></div>';
 }
@@ -1002,13 +1005,19 @@ function supplyHTML(s) {
     '<div class="lg"><div><i style="background:var(--accent)"></i><span>Float</span><span class="v">35.9M</span></div><div><i style="background:var(--red)"></i><span>Admin signers and treasury helper, in xPHAR (inferred)</span><span class="v">~139.5M</span></div><div><i style="background:var(--seg)"></i><span>Other xPHAR</span><span class="v">~354M</span></div></div>' +
     '<div class="big-n">5M PHAR<small>printed every week = 14% of the float</small></div></div>';
 }
+function unkText(s) {
+  var rep = s.unknown.filter(function (k) { return CK[k].tier === 'report'; }).length, scan = s.unknown.length - rep, parts = [];
+  if (rep) parts.push(rep + (rep === 1 ? ' check needs' : ' checks need') + ' the report');
+  if (scan) parts.push(scan + ' not scanned');
+  return parts.join(', ');
+}
 function meterSegs(s) {
   var m = ''; for (var i = 1; i <= 10; i++) m += '<i class="' + (i <= s.level ? 'f ' + band(i) : i <= s.high ? 'h' : '') + '"></i>';
   return m;
 }
 function stripHTML(s, note) {
   var b = band(s.level), bl = BAND[b];
-  var rng = s.low === s.high ? (note || 'All 18 checks in.') : 'Range ' + s.low + '–' + s.high + ' · ' + s.unknown.length + ' checks not scanned';
+  var rng = s.low === s.high ? (note || 'All 18 checks in.') : 'Range ' + s.low + '–' + s.high + ' · ' + unkText(s);
   return '<div class="dstrip ' + b + '"><div class="ds-top"><div class="ds-num">' + s.level + '<small>/10</small></div><div class="ds-lab"><b>Degen level</b><span>' + bl[1] + '</span><em>' + rng + '</em></div></div>' +
     '<div><div class="m10">' + meterSegs(s) + '</div><div class="m10-s"><span>Blue chip</span><span>Casino</span></div></div></div>';
 }

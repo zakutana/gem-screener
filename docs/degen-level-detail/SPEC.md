@@ -13,7 +13,7 @@
 
 **The detail.** It is a long stack, and the most useful pieces (Monthly revenue, Trajectory, "is the revenue real") are hard to find. New order, few words, big type, and **one table that shows which checks light up and which do not.**
 
-**The report.** The existing Degen report button stays, but moves to the very bottom of the detail. It does two things: it fills in the four checks that data alone cannot answer (team, audits, track record, token mechanics), and it shows a short verdict that a degen can take in at a glance, with no table and nothing that repeats the tiles above.
+**The report.** The existing Degen report button stays, but moves to the very bottom of the detail. It does two things: it fills in the four checks that data alone cannot answer (team, audits, track record, token mechanics), and it shows a short write-up that reads at a glance: a calm card with the verdict, what it is, the good, the shady and the bet, and no table.
 
 The Degen level is the one place where several checks become one number. In Part 3 "no composite score" is about the Sectors themes only. Here the level is **display only: it is never a sort key, a filter, a gate, or an input to Top Picks, Degen picks or any fund.**
 
@@ -61,13 +61,13 @@ Seven checks already exist on the live page in some form, seven are new and full
 - an area = 60% of its worst check + 40% of the average of its checks;
 - level = the sum of weight × area, rounded, at least 1 (the weights add up to 10);
 - floors: a source that is not verified, or a token an EOA can mint, gives at least 8;
-- **range:** run it twice, with every "not checked" as best case and as worst case. If the two levels differ, the meter hatches the segments up to the higher one and the detail says "Range 8–9 · 3 checks not scanned". The report removes most of the range.
+- **range:** run it twice, with every "not checked" as best case and as worst case. If the two levels differ, the meter hatches the segments up to the higher one and the detail says "Range 8–9 · 3 checks need the report". The report removes most of the range.
 
 ### C. The coin detail, top to bottom
 
 1. **Header:** logo, name, symbol · category, one plain line, "web ↗", the Trade button as today, and a small **report status icon**: dashed = not researched, solid = ready, solid with a dot = outdated.
-2. **Degen level strip:** the number big in its band colour ("8/10"), "Degen level", the band's sentence, the range line ("All 18 checks in" or "Range 8–9 · 3 checks not scanned"), and the ten-segment meter with "Blue chip" and "Casino" at its ends. **No breakdown by area under it.**
-3. **Checks table.** A legend line (Good · Caution · Bad · Not checked). One row per area: the area name, one **circle per check** (its own icon, the colour of its verdict; dashed grey = not checked), and on the right the area's **worst reason** as "Check name value" in that colour, or "Needs the report" when nothing in the area is checked. Hover or focus on a circle shows a tooltip: check name, verdict word, the value in one line, one line of context, and where it came from (on-chain / data / inferred / AI report) with its date; at most 20 words. Every circle is keyboard-focusable. The 18 icons must be distinct (`reference.html`, section "The 18 checks").
+2. **Degen level strip:** the number big in its band colour ("8/10"), "Degen level", the band's sentence, the range line ("All 18 checks in" or "Range 8–9 · 3 checks need the report"), and the ten-segment meter with "Blue chip" and "Casino" at its ends. **No breakdown by area under it.**
+3. **Checks table.** A legend line (Good · Caution · Bad · Needs report). One row per area: the area name, one **circle per check** (its own icon, the colour of its verdict; dashed grey = missing: "Needs report" for the four report checks, "Not scanned" for an automatic check that could not run), and on the right the area's **worst reason** as "Check name value" in that colour, or "Needs the report" when nothing in the area is checked. Hover or focus on a circle shows a tooltip: check name, verdict word, the value in one line, one line of context, and where it came from (on-chain / data / inferred / AI report) with its date; at most 20 words. Every circle is keyboard-focusable. The 18 icons must be distinct (`reference.html`, section "The 18 checks").
 4. **Six key numbers in tiles:** Market cap, Revenue 30d, Emissions 30d, FDV, Upside, Strength 3M. **Every big number is green, light blue or red** by its verdict (grey only when missing); one plain caption under each. Emissions also shows the next 30 days at today's price when it differs ("≈ $1.8M at today's price"). Upside also shows **the figure on the effective cap** when the revenue goes to a staked or locked form of the token rather than the listed one ("≈5× on effective cap"); how you value that form is your call, say how in the note.
 5. **Earnings:** two bars, revenue 30 d against next-30-day emissions at today's price, and one line on the gap.
 6. **Monthly revenue:** the chart as it is today (13 monthly bars, the latest one hatched as partial, the same caption).
@@ -76,7 +76,7 @@ Seven checks already exist on the live page in some form, seven are new and full
 9. **Degen report card, at the very bottom, three states:**
    - *Not researched:* a dashed card, the button "Ask for Degen report", and the four dashed circles it will fill in (Reaches you, Team, Audit, Track record).
    - *Generating:* a few plain steps ticking off.
-   - *Ready:* **no table.** Four coloured blocks, top to bottom, with a date in the card's corner: **Verdict** (one line, big, in the level's band colour), **Good** (at most 3 short lines, green), **Shady** (at most 3 short lines, red), **The bet** (one line plus the one metric to watch, light blue). Under them "Filled in above": the four checks the report just resolved, as coloured chips (icon, name, value), each with the same tooltip as its circle. One small line says when it will be redone (admin change, contract upgrade, revenue ±2×, unlock nearby). What the tiles, Earnings and the header already show (what it is, where the money comes from, the numbers) is not repeated.
+   - *Ready:* **calm, not colourful, and a little more text is welcome.** No table and no coloured boxes: one neutral card, sections stacked with a small label above each text, thin lines between them, a date in the corner. Colour only where it carries meaning: a rule in the level's band colour beside the Verdict, green ✓ and red ✕ marks in front of the Good and Shady lines, and the four small icons in "Filled in above". Sections, top to bottom: **Verdict** (one line, big), **What it is** (two sentences, including where the money comes from), **Good** (up to 3 sentences), **Shady** (up to 3 sentences), **The bet** (one or two sentences and the one metric to watch), **Filled in above** (the four checks the report just resolved, one line each with the check's icon; each has the same tooltip as its circle). About 150 words in total. One small line says when it will be redone (admin change, contract upgrade, revenue ±2×, unlock nearby). Do not repeat what the tiles and Earnings already show (the numbers).
    When the report is ready, the four circles in the checks table turn from dashed to coloured (their tooltips say "AI report" and the date) and the level's range disappears.
 
 Sections of today's detail that are not listed (Weekly history, Upside over time, the Growth windows table, "How it's calculated") are not part of this redesign. Keep any you find useful as **collapsed rows between Supply and the report**, and make sure nothing runs past the panel's edge (today the last columns of the quarter table and the Growth windows table are cut off).
@@ -87,7 +87,7 @@ Green = good for a buyer, **light blue = caution** (as in today's Legend: amber 
 
 ### E. Agents
 
-The coin endpoint returns the level (`level`, `low`, `high`, `band`) and all 18 checks (`id`, `area`, `verdict`, `value`, `unit`, `source`, `as_of`), with machine codes in English, units and as-of times on every number. The compact ranked list carries the level only. The report endpoint keeps the full eight lines (What it is / Money / Real or printed / Numbers / Good / Shady / The bet / Verdict) for agents; the detail shows only the four blocks above. llms.txt and the MCP coin tool mention them.
+The coin endpoint returns the level (`level`, `low`, `high`, `band`) and all 18 checks (`id`, `area`, `verdict`, `value`, `unit`, `source`, `as_of`), with machine codes in English, units and as-of times on every number. The compact ranked list carries the level only. The report endpoint keeps the full eight lines (What it is / Money / Real or printed / Numbers / Good / Shady / The bet / Verdict) for agents; the detail shows the sections listed in C.9. llms.txt and the MCP coin tool mention them.
 
 ## Acceptance — check each point
 
@@ -99,7 +99,7 @@ The coin endpoint returns the level (`level`, `low`, `high`, `band`) and all 18 
 6. **One colour rule** on every number in the row, the tiles, the table and the charts (D).
 7. **Emissions at today's price** is shown; **Upside on the effective cap** is shown where the revenue goes to a staked or locked form of the token, with the valuation method in the note.
 8. **Monthly revenue** looks as today; **Trajectory** is the stepper with four quarter bars; **Supply** appears where data exists.
-9. **The Degen report** sits at the bottom with the three states; when ready it shows Verdict / Good / Shady / The bet as four coloured blocks (no table, nothing repeated from above), lists the four checks it filled in, turns their circles from dashed to coloured and firms up the level.
+9. **The Degen report** sits at the bottom with the three states; when ready it is one calm card (Verdict, What it is, Good, Shady, The bet, about 150 words, colour only on the verdict rule, the ✓/✕ marks and the four icons), lists the four checks it filled in, turns their circles from dashed to coloured and firms up the level.
 10. **The Legend** lists the meter, the 18 icons and the four colours, at most 8 words each.
 11. **The API and agent files** carry the level and the checks as in E.
 12. **Look:** the reference's look on desktop, big readable type, few words; nothing overflows the panel.
