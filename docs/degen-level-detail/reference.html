@@ -439,6 +439,19 @@ details.dev > .devbody { padding: 6px 26px 34px; display: grid; gap: 64px; }
 .ph span.on { background: var(--c); border-color: var(--c); color: #04121a; }
 .qb .col i, .qb .lastq .col i { background: var(--c); box-shadow: none; }
 .qb .n, .qb .lastq .n { color: var(--c); }
+
+.ds-lab em.chg { color: var(--blue); font-weight: 600; }
+.rc.stale { border: 1px solid var(--blue); background: var(--card); }
+.rr.dim { opacity: .55; }
+.rr-ban { display: grid; grid-template-columns: auto minmax(0, 1fr); gap: 10px 14px; align-items: center; border: 1px solid var(--blue); background: var(--blue-bg); border-radius: 12px; padding: 14px 16px; margin: 2px 0 12px; }
+.rr-ban .dot { width: 12px; height: 12px; border-radius: 50%; background: var(--blue); box-shadow: 0 0 0 4px var(--blue-glow); }
+.rr-ban b { display: block; color: var(--blue); font: 700 13px var(--font-mono); letter-spacing: .12em; text-transform: uppercase; }
+.rr-ban span:not(.dot) { font-size: 16.5px; color: var(--fg); }
+.rr-ban .cta { grid-column: 1 / -1; justify-self: start; }
+.btn2 { justify-self: start; background: transparent; color: var(--accent); border: 1.5px solid var(--accent); border-radius: 10px; padding: 11px 20px; font: 700 16px var(--font-body); cursor: pointer; }
+.btn2:hover { background: var(--accent-bg); }
+.hist { display: grid; gap: 6px; border-top: 1px solid var(--line); padding-top: 14px; font-size: 16px; color: var(--fg-2); }
+.hist .k { font: 600 12px var(--font-mono); letter-spacing: .14em; text-transform: uppercase; color: var(--muted); }
 /* ---------- build ---------- */
 .build { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(300px, 100%), 1fr)); gap: 12px; }
 .bs { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 22px; display: grid; gap: 12px; align-content: start; }
@@ -520,7 +533,10 @@ footer { font: 500 13px var(--font-mono); color: var(--muted); border-top: 1px s
         <div class="seg" id="seg" role="group" aria-label="Report state">
           <button type="button" data-m="ask" aria-pressed="true">Not researched</button>
           <button type="button" data-m="gen" aria-pressed="false">Generating</button>
-          <button type="button" data-m="ready" aria-pressed="false">Report ready</button>
+          <button type="button" data-m="ready" aria-pressed="false">Ready · 1 day</button>
+          <button type="button" data-m="old" aria-pressed="false">Ready · 12 days</button>
+          <button type="button" data-m="stale" aria-pressed="false">Outdated</button>
+          <button type="button" data-m="fresh" aria-pressed="false">After refresh</button>
         </div>
         <div class="drawer" id="drawer-el"></div>
       </div>
@@ -845,6 +861,17 @@ var EXA = { admin: { kind: 'safe', m: 1, n: 3 }, timelockH: 0, powers: 2, hidden
   realYield: 1.27, phase: 'ignition', spike: 3.0, holderShare: 100, access: null, slip: 2.9, mcapM: 2.8, whale: 8.4, run30: 74, athDist: 12, strength: 0.44,
   team: null, audit: 'none', track: null };
 var EXA_R = Object.assign({}, EXA, { access: 'haircut', team: 'anonfail', audit: 'sister', track: 'dead' });
+var EXA_S = Object.assign({}, EXA_R, { admin: { kind: 'safe', m: 3, n: 5 }, timelockH: 24 });   // admin key changed after the report was written
+var EXA_N = Object.assign({}, EXA_S, { audit: 'deployed' });                                       // the refreshed report found a new audit
+var MODE = { ask: { inp: EXA }, ready: { inp: EXA_R }, old: { inp: EXA_R }, stale: { inp: EXA_S }, fresh: { inp: EXA_N } };
+var genFrom = 'ask';
+function inputFor(coin, mode) { if (coin === 'exa') { var m = mode === 'gen' ? genFrom : mode; if (MODE[m]) return MODE[m].inp; } return INPUT_OF[coin]; }
+function chipOf(id, inp) {
+  if (id === 'c1' && inp.admin && inp.admin.m) return inp.admin.m + ' of ' + inp.admin.n;
+  if (id === 'c2') return inp.timelockH <= 0 ? '0 s' : inp.timelockH + ' h';
+  if (id === 'y2') return { none: 'none listed', sister: 'sister code only', deployed: 'audited' }[inp.audit];
+  return CK[id].chip;
+}
 var BLUE = { admin: { kind: 'safe', m: 4, n: 7 }, timelockH: 24, powers: 0, hidden: 0.1, emitRate: 0.005, insiderOut: 0, unlock90: 0.5, realYield: 1.8, phase: 'steady', spike: 1.1, holderShare: 60, access: 'stake', slip: 0.3, mcapM: 2300, whale: 1, run30: 3, athDist: 45, strength: 0.8, team: 'doxxed', audit: 'deployed', track: 'clean' };
 var UNS = { admin: null, timelockH: null, powers: null, hidden: null, emitRate: 0.03, insiderOut: null, unlock90: 1, realYield: 0.8, phase: 'steady', spike: 1.2, holderShare: 40, access: null, slip: 2, mcapM: 8, whale: null, run30: 20, athDist: 40, strength: 0.9, team: null, audit: 'none', track: null };
 
@@ -872,6 +899,12 @@ var INST = {
 var INST_R = {
   y2: { val: 'Sister code only', ctx: 'Audits cover the parent code, not the staking, migrator or wrapper contracts.', src: 'AI REPORT', at: 'Sep 28' }
 };
+var INST_S = {
+  c1: { val: '3 of 5 signatures needed', ctx: 'Changed 2 days ago. The old Safe needed only 1 of 3.', src: 'ON-CHAIN', at: '2 days ago' },
+  c2: { val: 'Delay 24 h', ctx: 'Set together with the new Safe.', src: 'ON-CHAIN', at: '2 days ago' }
+};
+var INST_N = { y2: { val: 'Audited', ctx: 'A new audit covers the staking, migrator and wrapper contracts.', src: 'AI REPORT', at: 'just now' } };
+var OVR = { ready: INST_R, old: INST_R, stale: Object.assign({}, INST_R, INST_S), fresh: Object.assign({}, INST_R, INST_S, INST_N) };
 var COINS = {
   exa: { name: 'Example DEX', sym: 'EXDX', logo: 'EX', real: false, hot: true,
     c: { mc: '$2.8M', rev: '$1.9M', net: 'net +$800K', up: '>50x', eff: '≈6× eff. cap', str: '0.44x', sd: 'dn', gr: '+22.4%' },
@@ -893,7 +926,7 @@ function tipHTML(s) {
   return { col: col, bg: bg, html: head + '<div class="t-val">' + esc(s.val) + '</div>' + (s.ctx ? '<div class="t-ctx">' + esc(s.ctx) + '</div>' : '') + '<div class="t-foot"><span>' + esc(s.src || '') + '</span><span>' + esc(s.at || '') + '</span></div>' };
 }
 function specForCheck(coin, id, mode) {
-  var c = CK[id], inp = mode === 'ready' ? EXA_R : INPUT_OF[coin];
+  var c = CK[id], inp = inputFor(coin, mode);
   var r = RISK[id](inp), v = VER(id, inp);
   if (v === 'na') return { icon: c.icon, name: c.name, v: 'na', pill: 'N/A', val: 'Does not apply', ctx: 'This app has no such thing, so the check is left out.', src: 'N/A', at: '' };
   var why = SC(inp).why[id], base = { icon: c.icon, name: c.name, v: v, pill: v === 'unknown' ? ({ report: 'NEEDS REPORT', history: 'NEEDS HISTORY', stale: 'STALE DATA' }[why] || 'NOT SCANNED') : VLAB[v] };
@@ -905,7 +938,7 @@ function specForCheck(coin, id, mode) {
       : Object.assign(base, { val: 'Not scanned yet', ctx: 'Needs ' + c.need + '.', src: 'NEEDS SCAN', at: '' });
   }
   if (coin === 'exa') {
-    var t = (mode === 'ready' && INST_R[id]) || INST[id];
+    var om = OVR[mode === 'gen' ? genFrom : mode], t = (om && om[id]) || INST[id];
     return Object.assign(base, t);
   }
   return Object.assign(base, { val: c[v === 'green' ? 'g' : v === 'blue' ? 'b' : 'r'], ctx: c.q, src: 'EXAMPLE DATA', at: '' });
@@ -943,7 +976,7 @@ window.addEventListener('scroll', hideTip, true);
 
 /* ---- flag buttons ---- */
 function flBtn(coin, id, mode) {
-  var inp = mode === 'ready' ? EXA_R : INPUT_OF[coin], v = VER(id, inp), c = CK[id];
+  var inp = inputFor(coin, mode), v = VER(id, inp), c = CK[id];
   return '<button type="button" class="fl ' + v + '" data-coin="' + coin + '" data-check="' + id + '" data-mode="' + (mode || 'ask') + '" aria-label="' + esc(c.name + ', ' + VLAB[v]) + '">' + ic(c.icon) + '</button>';
 }
 /* ---- table ---- */
@@ -988,7 +1021,7 @@ function miniSpec(k) {
   return { name: 'Degen level ' + s.level + '/10', v: b, pill: LEVEL_TXT[b][0].toUpperCase(), val: (b === 'green' ? 'Nothing red. Closest: ' : 'Worst: ') + names.join(' · '), ctx: ctx, src: 'CLICK THE ROW FOR ALL 18', at: '' };
 }
 function fingerprint(coin, mode) {
-  var inp = mode === 'ready' ? EXA_R : INPUT_OF[coin], s = score(inp);
+  var inp = inputFor(coin, mode), s = score(inp);
   return PILLARS.map(function (p) {
     var pp = s.pillars.filter(function (x) { return x.id === p.id; })[0], v = verdict(pp.f);
     var icons = CHECKS.filter(function (c) { return c.p === p.id; }).map(function (c) { return flBtn(coin, c.id, mode); }).join('');
@@ -1052,7 +1085,7 @@ var dmode = 'ask', timers = [];
 var STEPS = ['Reading docs and site', 'Checking audits', 'Searching exploits and forks', 'Mapping token mechanics', 'Writing the report'];
 function clearTimers() { timers.forEach(clearInterval); timers = []; }
 function checksTableHTML(mode) {
-  var inp = mode === 'ready' ? EXA_R : EXA;
+  var inp = inputFor('exa', mode);
   var key = '<div class="ct-key"><span class="green"><i></i>Good</span><span class="blue"><i></i>Caution</span><span class="red"><i></i>Bad</span><span class="unknown"><i></i>Needs report</span></div>';
   var rows = PILLARS.map(function (p) {
     var cs = CHECKS.filter(function (c) { return c.p === p.id; });
@@ -1061,7 +1094,7 @@ function checksTableHTML(mode) {
     var w = known[0], txt;
     if (!w) txt = '<span class="ct-t unknown"><i>Needs the report</i></span>';
     else {
-      var chip = w.c.id === 'y2' ? (mode === 'ready' ? 'sister code only' : 'none listed') : w.c.chip;
+      var chip = chipOf(w.c.id, inp);
       txt = '<span class="ct-t ' + VER(w.c.id, inp) + '"><b>' + w.c.name + '</b> <i>' + esc(chip) + '</i></span>';
     }
     return '<div class="ct-r"><span class="ct-p">' + p.name + '</span><span class="ct-i">' + circles + '</span>' + txt + '</div>';
@@ -1075,23 +1108,38 @@ function reportHTML(mode) {
       '<button type="button" class="cta" id="cta">Ask for Degen report</button><span class="foot">About a minute · cached for 30 days</span></div>';
   }
   if (mode === 'gen') {
-    return '<div class="rc gen"><h4>' + ic('doc') + 'Writing the report…</h4><ol class="steps" id="steps">' + STEPS.map(function (s) { return '<li>' + s + '</li>'; }).join('') + '</ol></div>';
+    return '<div class="rc gen"><h4>' + ic('doc') + (genFrom === 'ask' ? 'Writing the report…' : 'Refreshing the report…') + '</h4><ol class="steps" id="steps">' + STEPS.map(function (s) { return '<li>' + s + '</li>'; }).join('') + '</ol></div>';
   }
-  var vb = band(score(EXA_R).level);
-  var filled = [['e3', 'Reaches you: stake needed, −50% haircut'], ['y1', 'Team: anonymous'], ['y2', 'Audit: sister code only'], ['y3', 'Track record: all 4 earlier forks dead or −99%']].map(function (x) {
-    var c = CK[x[0]], v = VER(x[0], EXA_R);
-    return '<div class="i ' + v + '" data-coin="exa" data-check="' + x[0] + '" data-mode="ready" tabindex="0">' + ic(c.icon) + '<span>' + esc(x[1]) + '</span></div>';
+  var fresh = mode === 'fresh', inp = inputFor('exa', mode), vb = band(score(inp).level);
+  var ages = { ready: 'Researched 1 day ago', old: 'Researched 12 days ago', stale: 'Researched 12 days ago', fresh: 'Researched just now' };
+  var auditTxt = fresh ? 'Audit: covers the deployed code' : 'Audit: sister code only';
+  var filled = [['e3', 'Reaches you: stake needed, −50% haircut'], ['y1', 'Team: anonymous'], ['y2', auditTxt], ['y3', 'Track record: all 4 earlier forks dead or −99%']].map(function (x) {
+    var c = CK[x[0]], v = VER(x[0], inp);
+    return '<div class="i ' + v + '" data-coin="exa" data-check="' + x[0] + '" data-mode="' + mode + '" tabindex="0">' + ic(c.icon) + '<span>' + esc(x[1]) + '</span></div>';
   }).join('');
-  return '<div class="rc ready"><h4>' + ic('doccheck') + 'Degen report<span class="dt">Sep 28</span></h4>' +
-    '<div class="rr">' +
-    '<div class="rr-v ' + vb + '"><span class="k">Verdict</span><b>Real business, shaky door. Lottery ticket.</b></div>' +
+  var verdictTxt = fresh ? 'Real business, sturdier door. Still a lottery ticket.' : 'Real business, shaky door. Lottery ticket.';
+  var good = fresh
+    ? ['The token contract is clean: no owner, no proxy, no pause or blacklist.', 'The admin key now needs 3 of 5 signatures, with a 24-hour timelock.', 'A new audit covers the staking, migrator and wrapper contracts.']
+    : ['The token contract is clean: no owner, no proxy, no pause or blacklist.', 'Fees match three public data sources.', 'No insider sells or exchange deposits in the last 60 days.'];
+  var shady = fresh
+    ? ['The admin can still upgrade and pause the staking contracts.', '68% of the staked tokens still sit behind one wallet.', 'A fresh wallet holds 8.4% of the float, built up over the last month.']
+    : ['One of three signers can act alone, and the timelock delay is 0 seconds.', '68% of the staked tokens sit behind one wallet.', 'A fresh wallet holds 8.4% of the float, built up over the last month.'];
+  var li = function (cls, arr) { return arr.map(function (x) { return '<li class="' + cls + '">' + x + '</li>'; }).join(''); };
+  var body = '<div class="rr' + (mode === 'stale' ? ' dim' : '') + '">' +
+    '<div class="rr-v ' + vb + '"><span class="k">Verdict</span><b>' + verdictTxt + '</b></div>' +
     '<div class="rr-s"><span class="k">What it is</span><p>A DEX on a smaller chain with vote-lock rewards. Swap fees on four big pools go to stakers of the staked token, about 97% of them.</p></div>' +
-    '<div class="rr-s"><span class="k">Good</span><ul><li class="ok">The token contract is clean: no owner, no proxy, no pause or blacklist.</li><li class="ok">Fees match three public data sources.</li><li class="ok">No insider sells or exchange deposits in the last 60 days.</li></ul></div>' +
-    '<div class="rr-s"><span class="k">Shady</span><ul><li class="no">One of three signers can act alone, and the timelock delay is 0 seconds.</li><li class="no">68% of the staked tokens sit behind one wallet.</li><li class="no">A fresh wallet holds 8.4% of the float, built up over the last month.</li></ul></div>' +
+    '<div class="rr-s"><span class="k">Good</span><ul>' + li('ok', good) + '</ul></div>' +
+    '<div class="rr-s"><span class="k">Shady</span><ul>' + li('no', shady) + '</ul></div>' +
     '<div class="rr-s"><span class="k">The bet</span><p>The chain stays busy and fees hold above $1.5M a month. Watch weekly fees against weekly emissions, and any exit from the staked token.</p></div>' +
-    '<div class="rr-s"><span class="k">Filled in above</span><div class="rr-l">' + filled + '</div></div>' +
-    '</div>' +
-    '<span class="foot">Redone when the admin key changes, a contract is upgraded, revenue moves ±2× or an unlock is near</span></div>';
+    '<div class="rr-s"><span class="k">Filled in above</span><div class="rr-l">' + filled + '</div></div></div>';
+  var banner = mode === 'stale'
+    ? '<div class="rr-ban"><span class="dot"></span><div><b>Outdated</b><span>The admin key changed 2 days ago. The text below was written before that.</span></div><button type="button" class="cta" data-refresh="1">Refresh report</button></div>' : '';
+  var when = { ready: 'A refresh opens in 6 days, or sooner if something changes.', old: 'A refresh is open now. After it, the next one opens in 7 days.', stale: 'A refresh is open because something changed.', fresh: 'The next refresh opens in 7 days, or sooner if something changes.' }[mode];
+  var btn = mode === 'old' ? '<button type="button" class="btn2" data-refresh="1">Refresh report</button>' : '';
+  var hist = fresh ? '<div class="hist"><span class="k">Earlier reports</span><div>12 days ago · level 8</div></div>' : '';
+  return '<div class="rc ' + (mode === 'stale' ? 'stale' : 'ready') + '"><h4>' + ic(mode === 'stale' ? 'refresh' : 'doccheck') + 'Degen report<span class="dt">' + ages[mode] + '</span></h4>' + banner + body + hist +
+    '<span class="foot">' + when + '</span>' + btn +
+    '<span class="foot">Redone by itself when the admin key changes, a contract is upgraded, revenue moves ±2×, an unlock is near or the level changes band.</span></div>';
 }
 function evHead(s, id) {
   var p = s.pillars.filter(function (x) { return x.id === id; })[0], v = verdict(p.f);
@@ -1122,10 +1170,10 @@ function meterSegs(s) {
   var m = ''; for (var i = 1; i <= 10; i++) m += '<i class="' + (i <= s.level ? 'f ' + band(i) : i <= s.high ? 'h' : '') + '"></i>';
   return m;
 }
-function stripHTML(s, note) {
+function stripHTML(s, note, prev) {
   var b = band(s.level), bl = LEVEL_TXT[b];
   var rng = s.low === s.high ? (note || 'All 18 checks in.') : 'Range ' + s.low + '–' + s.high + ' · ' + unkText(s);
-  return '<div class="dstrip ' + b + '"><div class="ds-top"><div class="ds-num">' + s.level + '<small>/10</small></div><div class="ds-lab"><b>Degen level</b><span>' + bl[1] + '</span><em>' + rng + '</em></div></div>' +
+  return '<div class="dstrip ' + b + '"><div class="ds-top"><div class="ds-num">' + s.level + '<small>/10</small></div><div class="ds-lab"><b>Degen level</b><span>' + bl[1] + '</span><em>' + rng + '</em>' + (has(prev) && prev !== s.level ? '<em class="chg">Was ' + prev + ' at the last report</em>' : '') + '</div></div>' +
     '<div><div class="m10">' + meterSegs(s) + '</div><div class="m10-s"><span>Blue chip</span><span>Casino</span></div></div></div>';
 }
 function tilesHTML() {
@@ -1153,20 +1201,25 @@ function trajHTML() {
     '<div class="qb ' + tv + '" role="img" aria-label="Revenue growth per month by quarter: 9 percent, 0.4, 2, then 61 percent in the last three months.">' + cols + '</div>' +
     '<p class="cap">Flat for nine months, then <b>+61% a month</b> over the last three. Bars show growth per month.</p></div>';
 }
+var NOTE = { ask: 'All 18 checks in.', ready: 'All 18 checks in. Report 1 day old.', old: 'All 18 checks in. Report 12 days old.', stale: 'All 18 checks in. The report is outdated.', fresh: 'All 18 checks in. Report from just now.' };
+var PREV = { stale: 8, fresh: 8 };
 function renderDrawer() {
-  var inp = dmode === 'ready' ? EXA_R : EXA, s = score(inp);
+  var m = dmode === 'gen' ? genFrom : dmode, inp = inputFor('exa', dmode), s = score(inp);
+  var glyph = m === 'stale' ? 'stale' : (m === 'ready' || m === 'old' || m === 'fresh') ? 'ready' : 'ask';
+  var gicon = glyph === 'stale' ? 'refresh' : glyph === 'ready' ? 'doccheck' : 'doc';
   var el = $('#drawer-el');
   el.innerHTML =
     '<div class="dh"><div class="dh-t"><span class="logo">EX</span><div><h3>Example DEX</h3><span class="s">EXDX · Dexs</span></div><span class="x">' + ic('x') + '</span></div>' +
     '<p>A DEX on a smaller chain with vote-lock rewards. Every name and number here is made up.</p>' +
-    '<div class="dh-b"><span class="webb">web ↗</span><button type="button" class="rg ' + (dmode === 'ready' ? 'ready' : 'ask') + '" data-custom="' + (dmode === 'ready' ? 'ready' : 'ask') + '" aria-label="Degen report status">' + ic(dmode === 'ready' ? 'doccheck' : 'doc') + '</button></div></div>' +
-    stripHTML(s, 'All 18 checks in. Report from Sep 28.') + checksTableHTML(dmode) + tilesHTML() + earningsHTML(s) + monthlyHTML() + trajHTML() + supplyHTML(s) + reportHTML(dmode);
+    '<div class="dh-b"><span class="webb">web ↗</span><button type="button" class="rg ' + glyph + '" data-custom="' + glyph + '" aria-label="Degen report status">' + ic(gicon) + '</button></div></div>' +
+    stripHTML(s, NOTE[m], PREV[m]) + checksTableHTML(dmode) + tilesHTML() + earningsHTML(s) + monthlyHTML() + trajHTML() + supplyHTML(s) + reportHTML(dmode);
   $$('#seg button').forEach(function (b) { b.setAttribute('aria-pressed', String(b.dataset.m === dmode)); });
   var cta = $('#cta'); if (cta) cta.addEventListener('click', function () { setMode('gen'); });
+  $$('[data-refresh]', el).forEach(function (b) { b.addEventListener('click', function () { setMode('gen'); }); });
   var st = $('#steps');
-  if (st) { var i = 0, lis = $$('li', st); lis[0].className = 'cur'; timers.push(setInterval(function () { lis[i].className = 'done'; i++; if (i >= lis.length) { clearTimers(); setMode('ready'); } else lis[i].className = 'cur'; }, 750)); }
+  if (st) { var i = 0, lis = $$('li', st); lis[0].className = 'cur'; timers.push(setInterval(function () { lis[i].className = 'done'; i++; if (i >= lis.length) { clearTimers(); setMode(genFrom === 'ask' ? 'ready' : 'fresh'); } else lis[i].className = 'cur'; }, 750)); }
 }
-function setMode(m) { clearTimers(); dmode = m; hideTip(); renderDrawer(); }
+function setMode(m) { clearTimers(); if (m === 'gen' && dmode !== 'gen') genFrom = dmode === 'fresh' ? 'ready' : dmode; dmode = m; hideTip(); renderDrawer(); }
 $('#seg').addEventListener('click', function (e) { var b = e.target.closest('button'); if (b) setMode(b.dataset.m); });
 
 /* ---- code block ---- */
