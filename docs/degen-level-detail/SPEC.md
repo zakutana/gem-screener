@@ -3,7 +3,7 @@
 **For:** the lead agent of the Cymetica SDLC pipeline
 **From:** Adam (product owner, Gem Screener)
 **Part 4 of 4** of one request — part 1 (the Altseason panel) is [`docs/altseason-panel/SPEC.md`](../altseason-panel/SPEC.md); do all four. The files of parts 1 to 3 say "three parts": this is the fourth, and it belongs to the same request.
-**Scope:** only (a) the **flag icons in the Project column of the Apps tab**, (b) the **coin detail panel** (the panel that opens when a row is clicked) and (c) the **flag section of the Legend**. Nothing else on the page changes: not the other columns, the sort, the gates, the filters, the tabs or the Chains tab.
+**Scope:** only (a) the **flag icons in the Project column of the Apps tab**, (b) the **coin detail panel** (the panel that opens when a row is clicked) and (c) the **flag section of the Legend**. Nothing else on the page changes: not the other columns, the sort, the gates, the filters, the tabs or the Chains tab. **Part 1's "do not change anything else" limits part 1 only; this part changes the row, the detail and the Legend as written here.**
 
 > **English only.** **Method and data are your call** (paid data welcome). **Look: keep the reference** in this folder — `reference.html` and the screenshots — as exactly as your design system allows. It is a mock: every name and number in it is made up. Take the design, not the code; the repository is **not** a copy of what runs on your site, so build from what you see live plus this folder.
 
@@ -92,11 +92,11 @@ Sections of today's detail that are not listed (Weekly history, Upside over time
 
 ### D. Colour rule
 
-Green = good for a buyer, **light blue = caution** (as in today's Legend: amber is off Cymetica's palette), red = bad, grey or dashed = missing. The same number has the same colour in the row, the tiles, the table and the charts. **Do not use the brand accent for anything that carries a verdict**: it is close to light blue. Charts without a verdict (Monthly revenue) may use it. Use your own palette and fonts; keep the look: dark, big readable type (body text 16 px or more, key numbers 28 px or more), few words.
+Green = good for a buyer, **light blue = caution** (as in today's Legend: amber is off Cymetica's palette), red = bad, grey or dashed = missing. These colours judge one coin for a buyer of that coin; the Altseason panel (part 1) colours its words for the market. They share a palette, not a meaning. The same number has the same colour in the row, the tiles, the table and the charts. **Do not use the brand accent for anything that carries a verdict**: it is close to light blue. Charts without a verdict (Monthly revenue) may use it. Use your own palette and fonts; keep the look: dark, big readable type (body text 16 px or more, key numbers 28 px or more), few words.
 
 ### E. Agents
 
-The coin endpoint returns the level (`level`, `low`, `high`, `band`) and all 18 checks (`id`, `area`, `verdict`, `value`, `unit`, `source`, `as_of`), with machine codes in English, units and as-of times on every number. The compact ranked list carries the level only. The report endpoint keeps the full eight lines (What it is / Money / Real or printed / Numbers / Good / Shady / The bet / Verdict) for agents; the detail shows the sections listed in C.9. If the site publishes llms.txt or an MCP coin tool, they mention them.
+The coin endpoint returns the level (`level`, `low`, `high`, `band`) and all 18 checks (`id`, `area`, `verdict`, `value`, `unit`, `source`, `as_of`), with machine codes in English (one vocabulary for the whole API, for example `insufficient_history`, `stale_data`, `needs_report`, `not_scanned`, `not_applicable`; part 3 already asks for `insufficient_history`), units and as-of times on every number. The compact ranked list carries the level only. The report endpoint keeps the full eight lines (What it is / Money / Real or printed / Numbers / Good / Shady / The bet / Verdict) for agents; the detail shows the sections listed in C.9. If the site publishes llms.txt or an MCP coin tool, they mention them.
 
 ## Acceptance — check each point
 
