@@ -573,7 +573,7 @@ footer { font: 500 13px var(--font-mono); color: var(--muted); border-top: 1px s
         <div class="nt"><span class="n">1</span><div><b>Degen level on top</b><span>One number, one meter.</span></div></div>
         <div class="nt"><span class="n">2</span><div><b>The chart, right under it</b><span>Same line as in the row, same colour, with a link to Chart Analyzer.</span></div></div>
         <div class="nt"><span class="n">3</span><div><b>One table for all 18 checks</b><span>A row per area, colored circles, the worst reason next to it.</span></div></div>
-        <div class="nt"><span class="n">4</span><div><b>Then the business</b><span>Earnings, Monthly revenue, Trajectory, Supply.</span></div></div>
+        <div class="nt"><span class="n">4</span><div><b>Then the business</b><span>Monthly revenue, Trajectory, Supply with the minting.</span></div></div>
         <div class="nt"><span class="n">5</span><div><b>Report card sits at the bottom</b><span>Ready: a calm write-up, and the dashed circles fill in.</span></div></div>
       </div>
       <div>
@@ -1316,18 +1316,12 @@ function evHead(s, id) {
   var p = s.pillars.filter(function (x) { return x.id === id; })[0], v = verdict(p.f);
   return '<div class="ev-h ' + v + '"><b>' + PW[id].name + '</b><span class="pill">' + VLAB[v] + '</span><span class="pts">' + p.pts.toFixed(1) + '<small> / ' + fw(p.w) + '</small></span></div>';
 }
-function earningsHTML(s) {
-  return '<div class="ev">' + evHead(s, 'earnings') +
-    '<div class="hb"><div class="r"><span>Revenue, last 30 d</span><span style="color:var(--green)">$1.9M</span></div><div class="tr"><i style="width:100%;background:var(--green)"></i></div></div>' +
-    '<div class="hb"><div class="r"><span>New tokens they mint, next 30 d</span><span style="color:var(--red)">$1.5M</span></div><div class="tr"><i style="width:79%;background:var(--red)"></i></div></div>' +
-    '<p style="font-size:16.5px;color:var(--fg-2);line-height:1.5">Price pumped, so they are now worth $1.5M, not $1.1M.<br>Revenue beats them only <b style="color:var(--blue)">1.3×</b>. Under 1× is red.</p></div>';
-}
 function supplyHTML(s) {
   return '<div class="ev">' + evHead(s, 'supply') +
     '<div class="stackb"><div style="width:7.8%;background:var(--accent)"></div><div style="width:30%;background:var(--red)"></div><div style="width:62.2%;background:var(--seg)"></div></div>' +
     '<div class="lg"><div><i style="background:var(--accent)"></i><span>Float</span><span class="v">22M</span></div><div><i style="background:var(--red)"></i><span>Admin signers and treasury, in staked form</span><span class="v">~84M</span></div><div><i style="background:var(--seg)"></i><span>Other staked</span><span class="v">~176M</span></div></div>' +
     '<div class="big-n">2.6M tokens<small>minted every week = 12% of the float</small></div>' +
-    '<p style="font-size:16.5px;color:var(--fg-2);line-height:1.5">Free for them, but holders pay: the new tokens get sold.</p></div>';
+    '<p style="font-size:16.5px;color:var(--fg-2);line-height:1.5">Free for them, but holders pay: the new tokens get sold.<br>Worth $1.5M a month at today’s price (price pumped, was $1.1M). Revenue $1.9M beats that only <b style="color:var(--blue)">1.3×</b>.</p></div>';
 }
 function unkText(s) {
   var n = { report: 0, scan: 0, history: 0, stale: 0 }, parts = [];
@@ -1384,7 +1378,7 @@ function renderDrawer() {
     '<div class="dh"><div class="dh-t"><span class="logo">EX</span><div><h3>Example DEX</h3><span class="s">EXDX · Dexs</span></div><span class="x">' + ic('x') + '</span></div>' +
     '<p>A DEX on a smaller chain with vote-lock rewards. Every name and number here is made up.</p>' +
     '<div class="dh-b"><span class="webb">web ↗</span><button type="button" class="rg ' + glyph + '" data-custom="' + glyph + '" aria-label="Degen report status">' + ic(gicon) + '</button></div></div>' +
-    stripHTML(s, NOTE[m], PREV[m]) + czCard() + checksTableHTML(dmode) + tilesHTML() + earningsHTML(s) + monthlyHTML() + trajHTML() + supplyHTML(s) + reportHTML(dmode);
+    stripHTML(s, NOTE[m], PREV[m]) + czCard() + checksTableHTML(dmode) + tilesHTML() + monthlyHTML() + trajHTML() + supplyHTML(s) + reportHTML(dmode);
   $$('#seg button').forEach(function (b) { b.setAttribute('aria-pressed', String(b.dataset.m === dmode)); });
   var cta = $('#cta'); if (cta) cta.addEventListener('click', function () { setMode('gen'); });
   $$('[data-refresh]', el).forEach(function (b) { b.addEventListener('click', function () { setMode('gen'); }); });
