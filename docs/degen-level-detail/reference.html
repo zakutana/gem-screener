@@ -1319,14 +1319,15 @@ function evHead(s, id) {
 function earningsHTML(s) {
   return '<div class="ev">' + evHead(s, 'earnings') +
     '<div class="hb"><div class="r"><span>Revenue, last 30 d</span><span style="color:var(--green)">$1.9M</span></div><div class="tr"><i style="width:100%;background:var(--green)"></i></div></div>' +
-    '<div class="hb"><div class="r"><span>Tokens they mint, next 30 d</span><span style="color:var(--red)">$1.5M</span></div><div class="tr"><i style="width:79%;background:var(--red)"></i></div></div>' +
-    '<p style="font-size:16.5px;color:var(--fg-2);line-height:1.5">Free for them, but holders pay: the new tokens get sold.<br>Now worth $1.5M (price pumped). Revenue beats that only <b style="color:var(--blue)">1.3×</b>.</p></div>';
+    '<div class="hb"><div class="r"><span>New tokens they mint, next 30 d</span><span style="color:var(--red)">$1.5M</span></div><div class="tr"><i style="width:79%;background:var(--red)"></i></div></div>' +
+    '<p style="font-size:16.5px;color:var(--fg-2);line-height:1.5">Price pumped, so they are now worth $1.5M, not $1.1M.<br>Revenue beats them only <b style="color:var(--blue)">1.3×</b>. Under 1× is red.</p></div>';
 }
 function supplyHTML(s) {
   return '<div class="ev">' + evHead(s, 'supply') +
     '<div class="stackb"><div style="width:7.8%;background:var(--accent)"></div><div style="width:30%;background:var(--red)"></div><div style="width:62.2%;background:var(--seg)"></div></div>' +
     '<div class="lg"><div><i style="background:var(--accent)"></i><span>Float</span><span class="v">22M</span></div><div><i style="background:var(--red)"></i><span>Admin signers and treasury, in staked form</span><span class="v">~84M</span></div><div><i style="background:var(--seg)"></i><span>Other staked</span><span class="v">~176M</span></div></div>' +
-    '<div class="big-n">2.6M tokens<small>minted every week = 12% of the float</small></div></div>';
+    '<div class="big-n">2.6M tokens<small>minted every week = 12% of the float</small></div>' +
+    '<p style="font-size:16.5px;color:var(--fg-2);line-height:1.5">Free for them, but holders pay: the new tokens get sold.</p></div>';
 }
 function unkText(s) {
   var n = { report: 0, scan: 0, history: 0, stale: 0 }, parts = [];
