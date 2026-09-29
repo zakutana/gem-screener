@@ -487,14 +487,14 @@ footer { font: 500 13px var(--font-mono); color: var(--muted); border-top: 1px s
     <div class="sec-h">
       <div class="eyebrow">The row</div>
       <h2>A mini Degen panel, nothing more</h2>
-      <p>The meter is a picture, with no tooltip. Click the PHAR row to open its drawer below.</p>
+      <p>The meter is a picture, with no tooltip. Click the first row to open its drawer below.</p>
     </div>
     <div class="tw"><table id="tbl">
       <thead><tr><th class="l">Project</th><th>Market cap</th><th>Revenue 30d</th><th>12 months</th><th>Upside</th><th>Strength 3M</th><th>Growth 6M</th></tr></thead>
       <tbody id="tbody"></tbody>
     </table></div>
     <div class="legend2" id="legend2"></div>
-    <p class="note">PHAR is real data from 28 Sep. Rows marked EXAMPLE are illustrative.</p>
+    <p class="note">All names and numbers here are made up.</p>
   </section>
 
   <section class="sec" id="drawer">
@@ -534,7 +534,7 @@ footer { font: 500 13px var(--font-mono); color: var(--muted); border-top: 1px s
     <div class="filters" id="filters"></div>
     <div class="pils" id="pils"></div>
     <div class="chain" aria-label="How the contract scan finds the admin key">
-      <div class="l">Contract scan: how the admin key is found without a human (PHAR)</div>
+      <div class="l">Contract scan: how the admin key is found without a human (example)</div>
       <span class="n">Token</span><span class="ar">→</span><span class="n">minter</span><span class="ar">→</span><span class="n">proxy admin</span><span class="ar">→</span><span class="n r">Safe 1 of 3</span><span class="ar">→</span><span class="n">3 signer wallets</span>
     </div>
   </section>
@@ -641,7 +641,7 @@ function score(input) {
       </div>
   </details>
 
-  <footer>PHAR figures: Avalanche RPC (Safe threshold 1, timelock delay 0), Routescan, DefiLlama, DexScreener, Gem Screener API, 28 Sep 2026. Thresholds are a first proposal.</footer>
+  <footer>All names and numbers in this mock are made up. Thresholds are a first proposal.</footer>
 </div>
 
 <div id="tip" role="tooltip"></div>
@@ -719,18 +719,18 @@ var CHECKS = [
   { id: 'c1', p: 'control', icon: 'key', name: 'Admin key', q: 'Who can change the rules?', tier: 'auto', map: 1, g: 'Safe with 3+ signers', b: 'Safe under 3 signers', r: 'EOA, or a 1-signer Safe', need: 'a contract scan', chip: '1 of 3' },
   { id: 'c2', p: 'control', icon: 'hourglass', name: 'Timelock', q: 'Delay before a change lands', tier: 'auto', map: 1, g: '48 h or more', b: 'under 48 h', r: 'none, or 0 s', need: 'a contract scan', chip: '0 s' },
   { id: 'c3', p: 'control', icon: 'power', name: 'Admin powers', q: 'Mint, pause, upgrade', tier: 'auto', g: 'none, or gated', b: 'one power', r: 'two or more', need: 'a contract scan', chip: 'upgrade + pause' },
-  { id: 's1', p: 'supply', icon: 'iceberg', name: 'Hidden supply', q: 'Tokens outside the float ÷ float', tier: 'auto', map: 1, g: 'under 0.25×', b: '0.25–1×', r: 'over 1×', need: 'a holder scan', chip: '13.7× float' },
-  { id: 's2', p: 'supply', icon: 'printer', name: 'Emission rate', q: 'Weekly emissions ÷ float', tier: 'auto', g: 'under 4%', b: '4–10%', r: 'over 10%', need: 'emission data', chip: '14% a week' },
+  { id: 's1', p: 'supply', icon: 'iceberg', name: 'Hidden supply', q: 'Tokens outside the float ÷ float', tier: 'auto', map: 1, g: 'under 0.25×', b: '0.25–1×', r: 'over 1×', need: 'a holder scan', chip: '11.2× float' },
+  { id: 's2', p: 'supply', icon: 'printer', name: 'Emission rate', q: 'Weekly emissions ÷ float', tier: 'auto', g: 'under 4%', b: '4–10%', r: 'over 10%', need: 'emission data', chip: '12% a week' },
   { id: 's3', p: 'supply', icon: 'exit', name: 'Insider flow', q: 'Insider wallets to DEX or CEX, 30 d', tier: 'auto', map: 1, g: 'under 0.5% of float', b: '0.5–1.5%', r: 'over 1.5%', need: 'a holder scan', chip: 'none' },
   { id: 's4', p: 'supply', icon: 'calendar', name: 'Unlocks', q: 'Scheduled unlocks, next 90 d', tier: 'live', g: 'under 3%', b: '3–8%', r: 'over 8%, or a cliff', need: 'unlock data', chip: '0%' },
-  { id: 'e1', p: 'earnings', icon: 'coins', name: 'Real yield', q: 'Revenue ÷ emissions at today’s price', tier: 'live', g: '2× or more', b: '1–2×', r: 'under 1×', need: 'emission data', chip: '1.2×' },
+  { id: 'e1', p: 'earnings', icon: 'coins', name: 'Real yield', q: 'Revenue ÷ emissions at today’s price', tier: 'live', g: '2× or more', b: '1–2×', r: 'under 1×', need: 'emission data', chip: '1.3×' },
   { id: 'e2', p: 'earnings', icon: 'pulse', name: 'Trend', q: 'Shape of the last 12 months', tier: 'live', g: 'steady or accelerating', b: 'ignition, or a 2.5–4.5× spike', r: 'declining, post-crash, spike over 4.5×', need: 'revenue history', chip: 'ignition' },
   { id: 'e3', p: 'earnings', icon: 'funnel', name: 'Reaches you', q: 'Does a buyer of this token get the revenue?', tier: 'report', g: 'directly', b: 'after a stake or lock', r: 'haircut, wrapper, or under 5% share', need: 'the report', chip: '−50% haircut' },
-  { id: 'l1', p: 'liquidity', icon: 'drop', name: 'Slippage', q: 'What a $10K buy costs', tier: 'live', g: 'under 1%', b: '1–2.5%', r: 'over 2.5%', need: 'pool data', chip: '3.1%' },
-  { id: 'l2', p: 'liquidity', icon: 'bars', name: 'Market cap', q: 'Today’s “Micro” flag', tier: 'live', g: 'over $20M', b: '$3–20M', r: 'under $3M', need: 'market data', chip: '$3.0M' },
-  { id: 'l3', p: 'liquidity', icon: 'pie', name: 'Whales', q: 'Fresh wallets or top holders, % of float', tier: 'auto', g: 'under 2%', b: '2–5%', r: 'over 5%', need: 'a holder scan', chip: '9.8% of float' },
-  { id: 'h1', p: 'heat', icon: 'flame', name: 'Price run', q: '30-day change, distance to ATH', tier: 'live', g: 'under +30%', b: '+30–70%', r: 'over +70%, or +55% near ATH', need: 'price data', chip: '+89%' },
-  { id: 'h2', p: 'heat', icon: 'scale', name: 'Strength 3M', q: 'Revenue growth ÷ price growth', tier: 'live', g: '1× or more', b: '0.5–1×', r: 'under 0.5×', need: 'revenue history', chip: '0.40×' },
+  { id: 'l1', p: 'liquidity', icon: 'drop', name: 'Slippage', q: 'What a $10K buy costs', tier: 'live', g: 'under 1%', b: '1–2.5%', r: 'over 2.5%', need: 'pool data', chip: '2.9%' },
+  { id: 'l2', p: 'liquidity', icon: 'bars', name: 'Market cap', q: 'Today’s “Micro” flag', tier: 'live', g: 'over $20M', b: '$3–20M', r: 'under $3M', need: 'market data', chip: '$2.8M' },
+  { id: 'l3', p: 'liquidity', icon: 'pie', name: 'Whales', q: 'Fresh wallets or top holders, % of float', tier: 'auto', g: 'under 2%', b: '2–5%', r: 'over 5%', need: 'a holder scan', chip: '8.4% of float' },
+  { id: 'h1', p: 'heat', icon: 'flame', name: 'Price run', q: '30-day change, distance to ATH', tier: 'live', g: 'under +30%', b: '+30–70%', r: 'over +70%, or +55% near ATH', need: 'price data', chip: '+74%' },
+  { id: 'h2', p: 'heat', icon: 'scale', name: 'Strength 3M', q: 'Revenue growth ÷ price growth', tier: 'live', g: '1× or more', b: '0.5–1×', r: 'under 0.5×', need: 'revenue history', chip: '0.44×' },
   { id: 'y1', p: 'history', icon: 'ghost', name: 'Team', q: 'Who ships it?', tier: 'report', g: 'public team or entity', b: 'anonymous', r: 'anonymous, with failed projects', need: 'the report', chip: 'anonymous' },
   { id: 'y2', p: 'history', icon: 'audit', name: 'Audit', q: 'Is the deployed code audited?', tier: 'report', g: 'yes, deployed code', b: 'sister code only', r: 'none listed', need: 'the report', chip: 'none listed' },
   { id: 'y3', p: 'history', icon: 'skull', name: 'Track record', q: 'Exploits, relaunches, sister forks', tier: 'report', g: 'clean', b: 'old exploit, repaid', r: 'open exploit, or dead siblings', need: 'the report', chip: 'siblings dead' }
@@ -742,41 +742,41 @@ var VCOL = { green: 'var(--green)', blue: 'var(--blue)', red: 'var(--red)', unkn
 var VBG = { green: 'var(--green-bg)', blue: 'var(--blue-bg)', red: 'var(--red-bg)', unknown: 'transparent', info: 'transparent' };
 
 /* ---- inputs ---- */
-var PHAR = { admin: { kind: 'safe', m: 1, n: 3 }, timelockH: 0, powers: 2, hidden: 13.7, emitRate: 0.139, insiderOut: 0, unlock90: 0, cliff: false,
-  realYield: 1.24, phase: 'ignition', spike: 3.3, holderShare: 100, access: null, slip: 3.1, mcapM: 2.99, whale: 9.8, run30: 89, athDist: 14.8, strength: 0.40,
+var EXA = { admin: { kind: 'safe', m: 1, n: 3 }, timelockH: 0, powers: 2, hidden: 11.2, emitRate: 0.118, insiderOut: 0, unlock90: 0, cliff: false,
+  realYield: 1.27, phase: 'ignition', spike: 3.0, holderShare: 100, access: null, slip: 2.9, mcapM: 2.8, whale: 8.4, run30: 74, athDist: 12, strength: 0.44,
   team: null, audit: 'none', track: null };
-var PHAR_R = Object.assign({}, PHAR, { access: 'haircut', team: 'anonfail', audit: 'sister', track: 0.7 });
+var EXA_R = Object.assign({}, EXA, { access: 'haircut', team: 'anonfail', audit: 'sister', track: 0.7 });
 var BLUE = { admin: { kind: 'safe', m: 4, n: 7 }, timelockH: 24, powers: 0, hidden: 0.1, emitRate: 0.005, insiderOut: 0, unlock90: 0.5, realYield: 1.8, phase: 'steady', spike: 1.1, holderShare: 60, access: 'stake', slip: 0.3, mcapM: 2300, whale: 1, run30: 3, athDist: 45, strength: 0.8, team: 'doxxed', audit: 'deployed', track: 0.1 };
 var UNS = { admin: null, timelockH: null, powers: null, hidden: null, emitRate: 0.03, insiderOut: null, unlock90: 1, realYield: 0.8, phase: 'steady', spike: 1.2, holderShare: 40, access: null, slip: 2, mcapM: 8, whale: null, run30: 20, athDist: 40, strength: 0.9, team: null, audit: 'none', track: null };
 
-/* ---- tooltip texts for PHAR (real, verified 28-29 Sep) ---- */
+/* ---- tooltip texts for the example project (all made up) ---- */
 var INST = {
-  c1: { val: '1 of 3 signers can act alone', ctx: 'Safe v1.4.1. The vault holding 73% of staked xPHAR sits behind 1 EOA.', src: 'ON-CHAIN', at: 'Sep 28' },
+  c1: { val: '1 of 3 signers can act alone', ctx: 'Safe v1.4.1. The vault holding 68% of the staked tokens sits behind 1 EOA.', src: 'ON-CHAIN', at: 'Sep 28' },
   c2: { val: 'Delay 0 s', ctx: 'The multisig is proposer, executor and admin of the timelock.', src: 'ON-CHAIN', at: 'Sep 28' },
-  c3: { val: 'Upgrade and pause by admin', ctx: 'The token itself has no owner and no proxy. Voter, AccessHub and xPHAR do.', src: 'ON-CHAIN', at: 'Sep 28' },
-  s1: { val: '13.7× the float can exit', ctx: '493M PHAR sit in xPHAR. Exit takes 12 h at −50%.', src: 'ON-CHAIN', at: 'Sep 28' },
-  s2: { val: '14% of the float, every week', ctx: '4.99M PHAR a week. The admin can move it ±25%.', src: 'ON-CHAIN', at: 'Sep 28' },
-  s3: { val: 'No insider sells in 60 d', ctx: 'Safe signers only added liquidity or restaked.', src: 'INFERRED', at: 'Sep 28' },
-  s4: { val: '0% unlocks in 90 d', ctx: 'Per DeFiLlama. The real overhang is xPHAR exits, see Hidden supply.', src: 'DATA', at: 'Sep 28' },
-  e1: { val: '1.2× at today’s price', ctx: 'Revenue $2.2M vs next-30-day emissions ≈ $1.8M. The trailing-price figure says $1.2M.', src: 'DATA', at: 'Sep 28' },
-  e2: { val: 'Ignition, 3.3× spike', ctx: 'Fees went from about $0.65M a month to $2.15M in September.', src: 'DATA', at: 'Sep 28' },
-  e3: { val: 'Stake needed, −50% haircut', ctx: 'Revenue goes to xPHAR holders. The p33 wrapper avoids the haircut.', src: 'AI REPORT', at: 'Sep 28' },
-  l1: { val: '$10K buy moves 3.1%', ctx: 'Main pool holds $0.6M.', src: 'DATA', at: 'Sep 28' },
-  l2: { val: 'Micro: $3.0M', ctx: 'One larger trade moves the price.', src: 'DATA', at: 'Sep 28' },
-  l3: { val: 'Fresh wallet holds 9.8% of float', ctx: '0x51f3…0a5d, funded Aug 28.', src: 'ON-CHAIN', at: 'Sep 28' },
-  h1: { val: '+89% in 30 days', ctx: '15% below its all-time high.', src: 'DATA', at: 'Sep 28' },
-  h2: { val: '0.40× strength', ctx: 'Revenue ×1.9 while price ×4.8 over 3 months.', src: 'DATA', at: 'Sep 28' },
-  y1: { val: 'Anonymous team', ctx: 'Sister forks Ramses, Nile, Cleopatra, Shadow: all down 99% or dead.', src: 'AI REPORT', at: 'Sep 28' },
+  c3: { val: 'Upgrade and pause by admin', ctx: 'The token itself has no owner and no proxy. The voter, access hub and staking contracts do.', src: 'ON-CHAIN', at: 'Sep 28' },
+  s1: { val: '11.2× the float can exit', ctx: '246M tokens sit in staking. Exit takes 12 h at −50%.', src: 'ON-CHAIN', at: 'Sep 28' },
+  s2: { val: '12% of the float, every week', ctx: '2.6M tokens a week. The admin can move it ±25%.', src: 'ON-CHAIN', at: 'Sep 28' },
+  s3: { val: 'No insider sells in 60 d', ctx: 'Admin-Safe signers only added liquidity or restaked.', src: 'INFERRED', at: 'Sep 28' },
+  s4: { val: '0% unlocks in 90 d', ctx: 'Per DeFiLlama. The real overhang is staking exits, see Hidden supply.', src: 'DATA', at: 'Sep 28' },
+  e1: { val: '1.3× at today’s price', ctx: 'Revenue $1.9M vs next-30-day emissions ≈ $1.5M. The trailing-price figure says $1.1M.', src: 'DATA', at: 'Sep 28' },
+  e2: { val: 'Ignition, 3.0× spike', ctx: 'Fees went from about $0.6M a month to $1.8M in September.', src: 'DATA', at: 'Sep 28' },
+  e3: { val: 'Stake needed, −50% haircut', ctx: 'Revenue goes to stakers. A wrapper token avoids the haircut.', src: 'AI REPORT', at: 'Sep 28' },
+  l1: { val: '$10K buy moves 2.9%', ctx: 'Main pool holds $0.5M.', src: 'DATA', at: 'Sep 28' },
+  l2: { val: 'Micro: $2.8M', ctx: 'One larger trade moves the price.', src: 'DATA', at: 'Sep 28' },
+  l3: { val: 'Fresh wallet holds 8.4% of float', ctx: 'Funded a month ago and built up since.', src: 'ON-CHAIN', at: 'Sep 28' },
+  h1: { val: '+74% in 30 days', ctx: '12% below its all-time high.', src: 'DATA', at: 'Sep 28' },
+  h2: { val: '0.44× strength', ctx: 'Revenue ×1.9 while price ×4.3 over 3 months.', src: 'DATA', at: 'Sep 28' },
+  y1: { val: 'Anonymous team', ctx: 'Four earlier forks of the same code are all down 99% or dead.', src: 'AI REPORT', at: 'Sep 28' },
   y2: { val: 'None listed', ctx: 'DefiLlama shows no audit.', src: 'DATA', at: 'Sep 28' },
-  y3: { val: 'All 4 sister forks −99% or dead', ctx: 'Ramses relaunched on a new chain with no migration for old holders.', src: 'AI REPORT', at: 'Sep 28' }
+  y3: { val: 'All 4 earlier forks −99% or dead', ctx: 'One of them relaunched on a new chain with no migration for old holders.', src: 'AI REPORT', at: 'Sep 28' }
 };
 var INST_R = {
-  y2: { val: 'Sister code only', ctx: 'Audits cover Ramses and Shadow, not Pharaoh’s xPHAR, migrator or p33.', src: 'AI REPORT', at: 'Sep 28' }
+  y2: { val: 'Sister code only', ctx: 'Audits cover the parent code, not the staking, migrator or wrapper contracts.', src: 'AI REPORT', at: 'Sep 28' }
 };
 var COINS = {
-  phar: { name: 'Pharaoh Exchange', sym: 'PHAR', logo: 'PH', real: true, hot: true,
-    c: { mc: '$3.0M', rev: '$2.2M', net: 'net +$999K', up: '>50x', eff: '≈5× eff. cap', str: '0.40x', sd: 'dn', gr: '+25.8%' },
-    bars: [648, 1597, 840, 705, 706, 762, 602, 482, 649, 634, 1098, 2149] },
+  exa: { name: 'Example DEX', sym: 'EXDX', logo: 'EX', real: false, hot: true,
+    c: { mc: '$2.8M', rev: '$1.9M', net: 'net +$800K', up: '>50x', eff: '≈6× eff. cap', str: '0.44x', sd: 'dn', gr: '+22.4%' },
+    bars: [550, 1300, 750, 620, 600, 660, 520, 420, 550, 560, 950, 1800] },
   blue: { name: 'Blue chip', sym: 'EXAMPLE', logo: 'EX', real: false,
     c: { mc: '$2.3bn', rev: '$41M', net: 'net +$29M', up: '2.1x', mid: true, str: '1.24x', sd: 'up', gr: '+6.1%' },
     bars: [50, 52, 55, 54, 58, 57, 60, 62, 61, 64, 66, 68] },
@@ -784,7 +784,7 @@ var COINS = {
     c: { mc: '$8.0M', rev: '$1.1M', net: 'net unknown', up: '9.4x', mid: true, str: '0.90x', sd: 'flat', gr: '+12.0%' },
     bars: [30, 45, 38, 52, 40, 44, 50, 46, 55, 48, 58, 62] }
 };
-var INPUT_OF = { phar: PHAR, blue: BLUE, unsc: UNS };
+var INPUT_OF = { exa: EXA, blue: BLUE, unsc: UNS };
 
 /* ---- tooltip engine ---- */
 var tip = $('#tip'), tipFor = null;
@@ -794,20 +794,20 @@ function tipHTML(s) {
   return { col: col, bg: bg, html: head + '<div class="t-val">' + esc(s.val) + '</div>' + (s.ctx ? '<div class="t-ctx">' + esc(s.ctx) + '</div>' : '') + '<div class="t-foot"><span>' + esc(s.src || '') + '</span><span>' + esc(s.at || '') + '</span></div>' };
 }
 function specForCheck(coin, id, mode) {
-  var c = CK[id], inp = mode === 'ready' ? PHAR_R : INPUT_OF[coin];
+  var c = CK[id], inp = mode === 'ready' ? EXA_R : INPUT_OF[coin];
   var r = RISK[id](inp), v = verdict(r);
   var base = { icon: c.icon, name: c.name, v: v, pill: v === 'unknown' ? (c.tier === 'report' ? 'NEEDS REPORT' : 'NOT SCANNED') : VLAB[v] };
   if (v === 'unknown') return c.tier === 'report'
     ? Object.assign(base, { val: 'Needs the Degen report', ctx: 'Ask for the report at the bottom to fill this in.', src: 'ASK FOR REPORT', at: '' })
     : Object.assign(base, { val: 'Not scanned yet', ctx: 'Needs ' + c.need + '.', src: 'NEEDS SCAN', at: '' });
-  if (coin === 'phar') {
+  if (coin === 'exa') {
     var t = (mode === 'ready' && INST_R[id]) || INST[id];
     return Object.assign(base, t);
   }
   return Object.assign(base, { val: c[v === 'green' ? 'g' : v === 'blue' ? 'b' : 'r'], ctx: c.q, src: 'EXAMPLE DATA', at: '' });
 }
 var CUSTOM = {
-  up: { icon: 'scale', name: 'Upside on effective cap', v: 'blue', pill: 'CAUTION', val: '≈5× (50× counts only the float)', ctx: 'Revenue goes to all 987M xPHAR, not just the 7% float. At market value via p33 the cap is ≈ $86M, at exit value ≈ $41M: 5–10×.', src: 'ON-CHAIN · INFERRED', at: 'as of today' },
+  up: { icon: 'scale', name: 'Upside on effective cap', v: 'blue', pill: 'CAUTION', val: '≈6× (50× counts only the float)', ctx: 'Revenue goes to all staked tokens, not just the 8% float. At market value via a wrapper the cap is ≈ $54M, at exit value ≈ $27M: 6–12×.', src: 'ON-CHAIN · INFERRED', at: 'as of today' },
   more: { name: 'All 18 checks', v: 'info', val: 'Click + to open the fingerprint', ctx: 'Six pillars, three colors, dashed icons wait for a scan or the report.', src: 'ROW DETAILS', at: '' },
   ask: { icon: 'doc', name: 'Degen report', v: 'info', pill: 'NOT RESEARCHED', val: 'Ask the AI agent', ctx: 'Adds Team, Audit coverage, Track record and Token mechanics. About a minute, then cached for 30 days.', src: 'ON DEMAND', at: '' },
   ready: { icon: 'doccheck', name: 'Degen report', v: 'info', pill: 'READY', val: 'Researched 2 days ago', ctx: 'Open the drawer to read it. All 18 checks are in.', src: 'AI REPORT', at: 'Sep 27' },
@@ -839,7 +839,7 @@ window.addEventListener('scroll', hideTip, true);
 
 /* ---- flag buttons ---- */
 function flBtn(coin, id, mode) {
-  var inp = mode === 'ready' ? PHAR_R : INPUT_OF[coin], v = verdict(RISK[id](inp)), c = CK[id];
+  var inp = mode === 'ready' ? EXA_R : INPUT_OF[coin], v = verdict(RISK[id](inp)), c = CK[id];
   return '<button type="button" class="fl ' + v + '" data-coin="' + coin + '" data-check="' + id + '" data-mode="' + (mode || 'ask') + '" aria-label="' + esc(c.name + ', ' + VLAB[v]) + '">' + ic(c.icon) + '</button>';
 }
 /* ---- table ---- */
@@ -851,7 +851,7 @@ function miniHTML(k) {
 function bars(a) { var m = Math.max.apply(null, a); return '<span class="mini">' + a.map(function (v) { return '<i style="height:' + Math.max(8, Math.round(v / m * 34)) + 'px"></i>'; }).join('') + '</span>'; }
 function renderTable() {
   var out = '';
-  ['phar', 'blue', 'unsc'].forEach(function (k, idx) {
+  ['exa', 'blue', 'unsc'].forEach(function (k, idx) {
     var c = COINS[k];
     var sd = c.c.sd === 'dn' ? '<span class="dn">↓ ' + c.c.str + '</span>' : c.c.sd === 'up' ? '<span class="upc">↑ ' + c.c.str + '</span>' : '<span class="flat">→ ' + c.c.str + '</span>';
     out += '<tr class="' + (c.hot ? 'hot clk' : '') + '" data-k="' + k + '"><td class="proj"><div class="pj">' +
@@ -880,11 +880,11 @@ function topThree(coin) {
 }
 function miniSpec(k) {
   var s = score(INPUT_OF[k]), b = band(s.level), names = topThree(k).map(function (x) { return x.c.name; });
-  var ctx = k === 'phar' ? '1 of 3 signers · 0 s timelock · 13.7× the float' : s.unknown.length ? s.unknown.length + ' checks not scanned yet. Range ' + s.low + '–' + s.high + '.' : 'All 18 checks are in.';
+  var ctx = k === 'exa' ? '1 of 3 signers · 0 s timelock · 11.2× the float' : s.unknown.length ? s.unknown.length + ' checks not scanned yet. Range ' + s.low + '–' + s.high + '.' : 'All 18 checks are in.';
   return { name: 'Degen level ' + s.level + '/10', v: b, pill: BAND[b][0].toUpperCase(), val: (b === 'green' ? 'Nothing red. Closest: ' : 'Worst: ') + names.join(' · '), ctx: ctx, src: 'CLICK THE ROW FOR ALL 18', at: '' };
 }
 function fingerprint(coin, mode) {
-  var inp = mode === 'ready' ? PHAR_R : INPUT_OF[coin], s = score(inp);
+  var inp = mode === 'ready' ? EXA_R : INPUT_OF[coin], s = score(inp);
   return PILLARS.map(function (p) {
     var pp = s.pillars.filter(function (x) { return x.id === p.id; })[0], v = verdict(pp.f);
     var icons = CHECKS.filter(function (c) { return c.p === p.id; }).map(function (c) { return flBtn(coin, c.id, mode); }).join('');
@@ -929,12 +929,12 @@ function panelHTML(s, opt) {
     '<div><div class="m10">' + meter + '</div><div class="m10-s"><span>Blue chip</span><span>Casino</span></div></div><div class="prows">' + rows + '</div></div>';
 }
 var PRESETS = [
-  ['pharb', 'PHAR, before the report', PHAR, 'phar', 'ask'],
-  ['pharr', 'PHAR, after the report', PHAR_R, 'phar', 'ready'],
+  ['exab', 'Example DEX, before the report', EXA, 'exa', 'ask'],
+  ['exar', 'Example DEX, after the report', EXA_R, 'exa', 'ready'],
   ['blue', 'Blue-chip example', BLUE, 'blue', 'ask'],
   ['unsc', 'Unscanned example', UNS, 'unsc', 'ask']
 ];
-var presetSel = 'pharb';
+var presetSel = 'exab';
 function renderScore() {
   $('#presets').innerHTML = PRESETS.map(function (p) { return '<button type="button" class="cb" data-p="' + p[0] + '" aria-pressed="' + (presetSel === p[0]) + '">' + p[1] + '</button>'; }).join('');
   var p = PRESETS.filter(function (x) { return x[0] === presetSel; })[0];
@@ -948,11 +948,11 @@ var dmode = 'ask', timers = [];
 var STEPS = ['Reading docs and site', 'Checking audits', 'Searching exploits and forks', 'Mapping token mechanics', 'Writing the report'];
 function clearTimers() { timers.forEach(clearInterval); timers = []; }
 function checksTableHTML(mode) {
-  var inp = mode === 'ready' ? PHAR_R : PHAR;
+  var inp = mode === 'ready' ? EXA_R : EXA;
   var key = '<div class="ct-key"><span class="green"><i></i>Good</span><span class="blue"><i></i>Caution</span><span class="red"><i></i>Bad</span><span class="unknown"><i></i>Needs report</span></div>';
   var rows = PILLARS.map(function (p) {
     var cs = CHECKS.filter(function (c) { return c.p === p.id; });
-    var circles = cs.map(function (c) { return flBtn('phar', c.id, mode); }).join('');
+    var circles = cs.map(function (c) { return flBtn('exa', c.id, mode); }).join('');
     var known = cs.map(function (c) { return { c: c, r: RISK[c.id](inp) }; }).filter(function (x) { return x.r !== null; }).sort(function (a, b) { return b.r - a.r; });
     var w = known[0], txt;
     if (!w) txt = '<span class="ct-t unknown"><i>Needs the report</i></span>';
@@ -973,18 +973,18 @@ function reportHTML(mode) {
   if (mode === 'gen') {
     return '<div class="rc gen"><h4>' + ic('doc') + 'Writing the report…</h4><ol class="steps" id="steps">' + STEPS.map(function (s) { return '<li>' + s + '</li>'; }).join('') + '</ol></div>';
   }
-  var vb = band(score(PHAR_R).level);
-  var filled = [['e3', 'Reaches you: stake needed, −50% haircut'], ['y1', 'Team: anonymous'], ['y2', 'Audit: sister code only'], ['y3', 'Track record: all 4 sister forks dead or −99%']].map(function (x) {
-    var c = CK[x[0]], v = verdict(RISK[x[0]](PHAR_R));
-    return '<div class="i ' + v + '" data-coin="phar" data-check="' + x[0] + '" data-mode="ready" tabindex="0">' + ic(c.icon) + '<span>' + esc(x[1]) + '</span></div>';
+  var vb = band(score(EXA_R).level);
+  var filled = [['e3', 'Reaches you: stake needed, −50% haircut'], ['y1', 'Team: anonymous'], ['y2', 'Audit: sister code only'], ['y3', 'Track record: all 4 earlier forks dead or −99%']].map(function (x) {
+    var c = CK[x[0]], v = verdict(RISK[x[0]](EXA_R));
+    return '<div class="i ' + v + '" data-coin="exa" data-check="' + x[0] + '" data-mode="ready" tabindex="0">' + ic(c.icon) + '<span>' + esc(x[1]) + '</span></div>';
   }).join('');
   return '<div class="rc ready"><h4>' + ic('doccheck') + 'Degen report<span class="dt">Sep 28</span></h4>' +
     '<div class="rr">' +
     '<div class="rr-v ' + vb + '"><span class="k">Verdict</span><b>Real business, shaky door. Lottery ticket.</b></div>' +
-    '<div class="rr-s"><span class="k">What it is</span><p>A ve(3,3)-style DEX on Avalanche, built on the Ramses and Shadow code family. Swap fees on four big pools go to xPHAR voters, about 97% of them.</p></div>' +
-    '<div class="rr-s"><span class="k">Good</span><ul><li class="ok">The token contract is clean: no owner, no proxy, no pause or blacklist.</li><li class="ok">Fees match DefiLlama, DexScreener and GeckoTerminal.</li><li class="ok">No insider sells or exchange deposits in the last 60 days.</li></ul></div>' +
-    '<div class="rr-s"><span class="k">Shady</span><ul><li class="no">One of three signers can act alone, and the timelock delay is 0 seconds.</li><li class="no">73% of the staked xPHAR sits behind one wallet.</li><li class="no">A fresh wallet holds 9.8% of the float, built up during September.</li></ul></div>' +
-    '<div class="rr-s"><span class="k">The bet</span><p>Avalanche stays busy and fees hold above $2M a month. Watch weekly fees against weekly emissions, and any exit from xPHAR.</p></div>' +
+    '<div class="rr-s"><span class="k">What it is</span><p>A DEX on a smaller chain with vote-lock rewards. Swap fees on four big pools go to stakers of the staked token, about 97% of them.</p></div>' +
+    '<div class="rr-s"><span class="k">Good</span><ul><li class="ok">The token contract is clean: no owner, no proxy, no pause or blacklist.</li><li class="ok">Fees match three public data sources.</li><li class="ok">No insider sells or exchange deposits in the last 60 days.</li></ul></div>' +
+    '<div class="rr-s"><span class="k">Shady</span><ul><li class="no">One of three signers can act alone, and the timelock delay is 0 seconds.</li><li class="no">68% of the staked tokens sit behind one wallet.</li><li class="no">A fresh wallet holds 8.4% of the float, built up over the last month.</li></ul></div>' +
+    '<div class="rr-s"><span class="k">The bet</span><p>The chain stays busy and fees hold above $1.5M a month. Watch weekly fees against weekly emissions, and any exit from the staked token.</p></div>' +
     '<div class="rr-s"><span class="k">Filled in above</span><div class="rr-l">' + filled + '</div></div>' +
     '</div>' +
     '<span class="foot">Redone when the admin key changes, a contract is upgraded, revenue moves ±2× or an unlock is near</span></div>';
@@ -995,15 +995,15 @@ function evHead(s, id) {
 }
 function earningsHTML(s) {
   return '<div class="ev">' + evHead(s, 'earnings') +
-    '<div class="hb"><div class="r"><span>Revenue, 30 d</span><span style="color:var(--green)">$2.2M</span></div><div class="tr"><i style="width:100%;background:var(--green)"></i></div></div>' +
-    '<div class="hb"><div class="r"><span>Emissions, next 30 d at today’s price</span><span style="color:var(--red)">$1.8M</span></div><div class="tr"><i style="width:82%;background:var(--red)"></i></div></div>' +
-    '<p style="font-size:15px;color:var(--muted)">The screener’s trailing-price figure says $1.2M. Today’s price is what the next 30 days cost.</p></div>';
+    '<div class="hb"><div class="r"><span>Revenue, 30 d</span><span style="color:var(--green)">$1.9M</span></div><div class="tr"><i style="width:100%;background:var(--green)"></i></div></div>' +
+    '<div class="hb"><div class="r"><span>Emissions, next 30 d at today’s price</span><span style="color:var(--red)">$1.5M</span></div><div class="tr"><i style="width:79%;background:var(--red)"></i></div></div>' +
+    '<p style="font-size:15px;color:var(--muted)">The screener’s trailing-price figure says $1.1M. Today’s price is what the next 30 days cost.</p></div>';
 }
 function supplyHTML(s) {
   return '<div class="ev">' + evHead(s, 'supply') +
-    '<div class="stackb"><div style="width:6.8%;background:var(--accent)"></div><div style="width:26.4%;background:var(--red)"></div><div style="width:66.8%;background:var(--seg)"></div></div>' +
-    '<div class="lg"><div><i style="background:var(--accent)"></i><span>Float</span><span class="v">35.9M</span></div><div><i style="background:var(--red)"></i><span>Admin signers and treasury helper, in xPHAR (inferred)</span><span class="v">~139.5M</span></div><div><i style="background:var(--seg)"></i><span>Other xPHAR</span><span class="v">~354M</span></div></div>' +
-    '<div class="big-n">5M PHAR<small>printed every week = 14% of the float</small></div></div>';
+    '<div class="stackb"><div style="width:7.8%;background:var(--accent)"></div><div style="width:30%;background:var(--red)"></div><div style="width:62.2%;background:var(--seg)"></div></div>' +
+    '<div class="lg"><div><i style="background:var(--accent)"></i><span>Float</span><span class="v">22M</span></div><div><i style="background:var(--red)"></i><span>Admin signers and treasury, in staked form</span><span class="v">~84M</span></div><div><i style="background:var(--seg)"></i><span>Other staked</span><span class="v">~176M</span></div></div>' +
+    '<div class="big-n">2.6M tokens<small>printed every week = 12% of the float</small></div></div>';
 }
 function unkText(s) {
   var rep = s.unknown.filter(function (k) { return CK[k].tier === 'report'; }).length, scan = s.unknown.length - rep, parts = [];
@@ -1022,35 +1022,35 @@ function stripHTML(s, note) {
     '<div><div class="m10">' + meterSegs(s) + '</div><div class="m10-s"><span>Blue chip</span><span>Casino</span></div></div></div>';
 }
 function tilesHTML() {
-  var T = [['Market cap', '$3.0M', 'only the 7% float', 'c-red'], ['Revenue 30d', '$2.2M', 'net +$999K', 'c-green'], ['Emissions 30d', '$1.2M', '≈ $1.8M at today’s price', 'c-blue'],
-    ['FDV', '$44.1M', '7% of tokens out', 'c-blue'], ['Upside', '50x', '≈5× on effective cap', 'c-blue'], ['Strength 3M', '0.40x', 'price ran ahead of revenue', 'c-red']];
+  var T = [['Market cap', '$2.8M', 'only the 8% float', 'c-red'], ['Revenue 30d', '$1.9M', 'net +$800K', 'c-green'], ['Emissions 30d', '$1.1M', '≈ $1.5M at today’s price', 'c-blue'],
+    ['FDV', '$36M', '8% of tokens out', 'c-blue'], ['Upside', '50x', '≈6× on effective cap', 'c-blue'], ['Strength 3M', '0.44x', 'price ran ahead of revenue', 'c-red']];
   return '<div class="tiles6">' + T.map(function (x) { return '<div class="tl"><span class="k">' + x[0] + '</span><span class="v ' + x[3] + '">' + x[1] + '</span><span class="s">' + x[2] + '</span></div>'; }).join('') + '</div>';
 }
 function monthlyHTML() {
   var L = ['09', '10', '11', '12', '01', '02', '03', '04', '05', '06', '07', '08', '09'];
-  var V = [1010, 627, 1515, 827, 693, 688, 742, 585, 467, 618, 615, 1073, 2094], max = 2094;
+  var V = [900, 550, 1300, 750, 620, 600, 660, 520, 420, 550, 560, 950, 1800], max = 1800;
   var bars = V.map(function (v, i) { return '<i class="' + (i === 12 ? 'part' : '') + '" style="height:' + Math.round(v / max * 100) + '%" title="$' + (v / 1000).toFixed(2) + 'M"></i>'; }).join('');
   return '<div class="mr"><div class="mr-t">Monthly revenue</div><div class="mr-card"><p class="mr-cap">Revenue (monthly sum) · the latest month is partial (hatched)</p>' +
     '<div class="mr-bars" role="img" aria-label="Monthly revenue from September 2025 to September 2026. September 2026 is the highest and still partial.">' + bars + '</div>' +
     '<div class="mr-x">' + L.map(function (m) { return '<span>' + m + '</span>'; }).join('') + '</div></div></div>';
 }
 function trajHTML() {
-  var Q = [['9–12 mo ago', 12.4], ['6–9 mo ago', 0.2], ['3–6 mo ago', 1.0], ['last 3 mo', 73.7]];
+  var Q = [['9–12 mo ago', 9.1], ['6–9 mo ago', 0.4], ['3–6 mo ago', 1.6], ['last 3 mo', 61.2]];
   var cols = Q.map(function (q, i) {
     var h = Math.max(1.5, q[1] / 80 * 100), n = q[1] >= 10 ? Math.round(q[1]) : q[1].toFixed(1);
     return '<div class="' + (i === 3 ? 'lastq' : '') + '"><span class="n">+' + n + '%</span><div class="col"><i style="height:' + h + '%;' + (i < 3 ? 'opacity:.6' : '') + '"></i></div><span class="l">' + q[0] + '</span></div>';
   }).join('');
   return '<div class="blk"><div class="blk-h"><b>Trajectory</b><span>at 100% of its 1-year high</span></div>' +
     '<div class="ph"><span class="on">Ignition</span><span class="ar">→</span><span>Accelerating</span><span class="ar">→</span><span>Slowing</span></div>' +
-    '<div class="qb" role="img" aria-label="Revenue growth per month by quarter: 12 percent, 0.2, 1, then 74 percent in the last three months.">' + cols + '</div>' +
-    '<p class="cap">Flat for nine months, then <b>+74% a month</b> over the last three. Bars show growth per month.</p></div>';
+    '<div class="qb" role="img" aria-label="Revenue growth per month by quarter: 9 percent, 0.4, 2, then 61 percent in the last three months.">' + cols + '</div>' +
+    '<p class="cap">Flat for nine months, then <b>+61% a month</b> over the last three. Bars show growth per month.</p></div>';
 }
 function renderDrawer() {
-  var inp = dmode === 'ready' ? PHAR_R : PHAR, s = score(inp);
+  var inp = dmode === 'ready' ? EXA_R : EXA, s = score(inp);
   var el = $('#drawer-el');
   el.innerHTML =
-    '<div class="dh"><div class="dh-t"><span class="logo">PH</span><div><h3>Pharaoh Exchange</h3><span class="s">PHAR · Dexs</span></div><span class="x">' + ic('x') + '</span></div>' +
-    '<p>A next-generation AMM built as Avalanche’s central liquidity hub, with vote-lock governance.</p>' +
+    '<div class="dh"><div class="dh-t"><span class="logo">EX</span><div><h3>Example DEX</h3><span class="s">EXDX · Dexs</span></div><span class="x">' + ic('x') + '</span></div>' +
+    '<p>A DEX on a smaller chain with vote-lock rewards. Every name and number here is made up.</p>' +
     '<div class="dh-b"><span class="webb">web ↗</span><button type="button" class="rg ' + (dmode === 'ready' ? 'ready' : 'ask') + '" data-custom="' + (dmode === 'ready' ? 'ready' : 'ask') + '" aria-label="Degen report status">' + ic(dmode === 'ready' ? 'doccheck' : 'doc') + '</button></div></div>' +
     stripHTML(s, 'All 18 checks in. Report from Sep 28.') + checksTableHTML(dmode) + tilesHTML() + earningsHTML(s) + monthlyHTML() + trajHTML() + supplyHTML(s) + reportHTML(dmode);
   $$('#seg button').forEach(function (b) { b.setAttribute('aria-pressed', String(b.dataset.m === dmode)); });
