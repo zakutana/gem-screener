@@ -415,13 +415,16 @@ details.dev > .devbody { padding: 6px 26px 34px; display: grid; gap: 64px; }
 .mr-t { font: 700 14px var(--font-mono); letter-spacing: .14em; text-transform: uppercase; color: var(--muted); }
 .mr-card { background: #0f1926; border: 1px solid var(--line); border-radius: 12px; padding: 18px 20px 16px; display: grid; gap: 14px; min-width: 0; }
 .mr-cap { font: 400 14px var(--font-mono); color: #5f7391; }
-.mr-bars { display: flex; align-items: flex-end; gap: 6px; height: 168px; }
-.mc { flex: 1; min-width: 0; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; gap: 5px; }
-.mv { font: 600 12.5px var(--font-mono); letter-spacing: -.03em; color: var(--fg-2); }
-.mc.best .mv { color: var(--fg); }
-.mc.part .mv { color: var(--accent); }
-.mr-note { font-size: 16.5px; color: var(--fg-2); margin: 0; }
-.mr-note b { color: var(--accent); font-weight: 700; }
+.mr-bars { display: flex; align-items: flex-end; gap: 6px; height: 150px; }
+.mc { flex: 1; min-width: 0; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; cursor: default; border-radius: 4px; }
+.mc:hover i, .mc:focus-visible i { filter: brightness(1.25); }
+.mc:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.mr-two { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.3fr); gap: 14px; }
+.mr-two > div { display: grid; gap: 3px; }
+.mr-two .k { font: 600 12px var(--font-mono); letter-spacing: .12em; text-transform: uppercase; color: var(--muted); }
+.mr-two .v { font: 700 30px/1.1 var(--font-mono); color: var(--fg); }
+.mr-two .now .v { color: var(--accent); }
+.mr-two .s { font-size: 15px; color: var(--fg-2); }
 .mr-bars i { width: 100%; min-width: 0; background: #03b4e0; border-radius: 3px; display: block; }
 .mc.part i { background: repeating-linear-gradient(135deg, rgba(3, 180, 224, .6) 0 2px, transparent 2px 6px); box-shadow: inset 0 0 0 1px rgba(3, 180, 224, .18); }
 .mr-x { display: flex; gap: 6px; }
@@ -579,7 +582,7 @@ footer { font: 500 13px var(--font-mono); color: var(--muted); border-top: 1px s
       <div class="notes">
         <div class="nt"><span class="n">1</span><div><b>Degen level on top</b><span>One number, one meter.</span></div></div>
         <div class="nt"><span class="n">2</span><div><b>The chart, right under it</b><span>Same line as in the row, same colour, with a link to Chart Analyzer.</span></div></div>
-        <div class="nt"><span class="n">3</span><div><b>Monthly revenue, every month's number</b><span>Right under the chart: 13 bars, each with its $M above it.</span></div></div>
+        <div class="nt"><span class="n">3</span><div><b>Monthly revenue in two numbers</b><span>Last month and this month so far. The other months sit in a tooltip on each bar.</span></div></div>
         <div class="nt"><span class="n">4</span><div><b>One table for all 18 checks, then Supply</b><span>A row per area, colored circles. Supply carries the minting.</span></div></div>
         <div class="nt"><span class="n">5</span><div><b>Numbers, Trajectory, then the report</b><span>Report card sits at the bottom: a calm write-up, and the dashed circles fill in.</span></div></div>
       </div>
@@ -1352,7 +1355,7 @@ function supplyHTML(s) {
     '<div class="stackb"><div style="width:7.8%;background:var(--accent)"></div><div style="width:30%;background:var(--red)"></div><div style="width:62.2%;background:var(--seg)"></div></div>' +
     '<div class="lg"><div><i style="background:var(--accent)"></i><span>Float</span><span class="v">22M</span></div><div><i style="background:var(--red)"></i><span>Admin signers and treasury, in staked form</span><span class="v">~84M</span></div><div><i style="background:var(--seg)"></i><span>Other staked</span><span class="v">~176M</span></div></div>' +
     '<div class="big-n">2.6M tokens<small>minted every week = 12% of the float</small></div>' +
-    '<p style="font-size:16.5px;color:var(--fg-2);line-height:1.5">Free for them, but holders pay: the new tokens get sold.<br>Worth $1.5M a month at today’s price (price pumped, was $1.1M). Revenue $1.9M beats that only <b style="color:var(--blue)">1.3×</b>.</p></div>';
+    '<p style="font-size:16.5px;color:var(--fg-2);line-height:1.5">Free for them, but holders pay: the new tokens can be sold.<br>Worth $1.5M a month at today’s price (price pumped, was $1.1M). Revenue $1.9M beats that only <b style="color:var(--blue)">1.3×</b>.</p></div>';
 }
 function unkText(s) {
   var n = { report: 0, scan: 0, history: 0, stale: 0 }, parts = [];
@@ -1380,13 +1383,18 @@ function tilesHTML() {
 }
 function monthlyHTML() {
   var L = ['Sep', 'Oct', 'Nov', 'Dec', 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep'], YR = { 0: '’25', 4: '’26' };
-  var V = [900, 550, 1300, 750, 620, 600, 660, 520, 420, 550, 560, 950, 1800], max = 1800, best = 2;
-  var fmt = function (v) { return (v / 1000).toFixed(2); };
-  var cols = V.map(function (v, i) { return '<div class="mc' + (i === 12 ? ' part' : '') + (i === best ? ' best' : '') + '"><span class="mv">' + fmt(v) + '</span><i style="height:' + Math.max(4, Math.round(v / max * 140)) + 'px"></i></div>'; }).join('');
-  return '<div class="mr"><div class="mr-t">Monthly revenue</div><div class="mr-card"><p class="mr-cap">Revenue per month, $M · the latest month is partial (hatched)</p>' +
-    '<div class="mr-bars" role="img" aria-label="Monthly revenue in millions of dollars, September 2025 to September 2026: ' + V.map(fmt).join(', ') + '. September 2026 is the highest and still partial.">' + cols + '</div>' +
-    '<div class="mr-x">' + L.map(function (m, i) { return '<span>' + m + '<em>' + (YR[i] || '&nbsp;') + '</em></span>'; }).join('') + '</div>' +
-    '<p class="mr-note">This month: <b>$1.8M so far</b>, <b>3.0×</b> the usual month ($0.61M).</p></div></div>';
+  var FULL = ['September 2025', 'October 2025', 'November 2025', 'December 2025', 'January 2026', 'February 2026', 'March 2026', 'April 2026', 'May 2026', 'June 2026', 'July 2026', 'August 2026', 'September 2026'];
+  var V = [900, 550, 1300, 750, 620, 600, 660, 520, 420, 550, 560, 950, 1800], max = 1800, usual = 610, best = 2;
+  var money = function (v) { return '$' + (v / 1000).toFixed(2) + 'M'; };
+  var cols = V.map(function (v, i) {
+    CUSTOM['mr' + i] = { name: FULL[i], v: 'info', pill: i === 12 ? 'PARTIAL' : i === best ? 'BEST MONTH' : '', val: money(v), ctx: i === 12 ? 'So far this month.' : (v / usual).toFixed(1) + '× the usual month ($0.61M).', src: 'DATA', at: '' };
+    return '<div class="mc' + (i === 12 ? ' part' : '') + '" tabindex="0" data-custom="mr' + i + '" aria-label="' + FULL[i] + ': ' + money(v) + '"><i style="height:' + Math.max(4, Math.round(v / max * 150)) + 'px"></i></div>';
+  }).join('');
+  return '<div class="mr"><div class="mr-t">Monthly revenue</div><div class="mr-card">' +
+    '<div class="mr-two"><div><span class="k">Last month · Aug</span><span class="v">$0.95M</span></div><div class="now"><span class="k">This month so far · Sep</span><span class="v">$1.80M</span><span class="s">3.0× the usual month ($0.61M)</span></div></div>' +
+    '<p class="mr-cap">Revenue (monthly sum) · the latest month is partial (hatched)</p>' +
+    '<div class="mr-bars" role="group" aria-label="Monthly revenue, September 2025 to September 2026. Focus a bar for its amount.">' + cols + '</div>' +
+    '<div class="mr-x">' + L.map(function (m, i) { return '<span>' + m + '<em>' + (YR[i] || '&nbsp;') + '</em></span>'; }).join('') + '</div></div></div>';
 }
 function trajHTML() {
   var Q = [['9–12 mo ago', 9.1], ['6–9 mo ago', 0.4], ['3–6 mo ago', 1.6], ['last 3 mo', 61.2]];
