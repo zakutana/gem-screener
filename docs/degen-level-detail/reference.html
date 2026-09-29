@@ -612,7 +612,15 @@ var BAND = {
   s1: function (i) { if (!has(i.hidden)) return null; return i.hidden &lt; 0.25 ? &#x27;green&#x27; : i.hidden &lt;= 1 ? &#x27;blue&#x27; : &#x27;red&#x27;; },
   s2: function (i) { if (!has(i.emitRate)) return null; return i.emitRate &lt; 0.04 ? &#x27;green&#x27; : i.emitRate &lt;= 0.10 ? &#x27;blue&#x27; : &#x27;red&#x27;; },
   s3: function (i) { if (!has(i.insiderOut)) return null; return i.insiderOut &lt; 0.5 ? &#x27;green&#x27; : i.insiderOut &lt;= 1.5 ? &#x27;blue&#x27; : &#x27;red&#x27;; },
-  s4: function (i) { if (!has(i.unlock90)) return null; if (i.cliff) return &#x27;red&#x27;; return i.unlock90 &lt; 3 ? &#x27;green&#x27; : i.unlock90 &lt;= 8 ? &#x27;blue&#x27; : &#x27;red&#x27;; },
+  // Unlocks also carries today&#x27;s low-float flag: under 25% of the tokens out is light blue, under 10% red. If one of the two inputs is missing, the check can only turn worse, never green.
+  s4: function (i) {
+    var u = has(i.unlock90) ? (i.cliff ? &#x27;red&#x27; : i.unlock90 &lt; 3 ? &#x27;green&#x27; : i.unlock90 &lt;= 8 ? &#x27;blue&#x27; : &#x27;red&#x27;) : null;
+    var f = has(i.floatPct) ? (i.floatPct &lt; 10 ? &#x27;red&#x27; : i.floatPct &lt; 25 ? &#x27;blue&#x27; : &#x27;green&#x27;) : null;
+    var known = [u, f].filter(function (x) { return x !== null; });
+    if (!known.length) return null;
+    var w = known.indexOf(&#x27;red&#x27;) &gt; -1 ? &#x27;red&#x27; : known.indexOf(&#x27;blue&#x27;) &gt; -1 ? &#x27;blue&#x27; : &#x27;green&#x27;;
+    return (w === &#x27;green&#x27; &amp;&amp; known.length &lt; 2) ? null : w;
+  },
   e1: function (i) { if (!has(i.realYield)) return null; return i.realYield &gt;= 2 ? &#x27;green&#x27; : i.realYield &gt;= 1 ? &#x27;blue&#x27; : &#x27;red&#x27;; },
   e2: function (i) {
     if (!has(i.phase)) return null;
@@ -639,7 +647,14 @@ var RISK = {
   s1: function (i) { return has(i.hidden) ? knots([[0, 0], [0.25, 0.25], [1, 0.6], [3, 1]])(i.hidden) : null; },
   s2: function (i) { return has(i.emitRate) ? knots([[0, 0], [0.04, 0.25], [0.10, 0.6], [0.20, 1]])(i.emitRate) : null; },
   s3: function (i) { return has(i.insiderOut) ? knots([[0, 0], [0.5, 0.25], [1.5, 0.6], [3, 1]])(i.insiderOut) : null; },
-  s4: function (i) { if (!has(i.unlock90)) return null; var r = knots([[0, 0], [3, 0.25], [8, 0.6], [15, 1]])(i.unlock90); return i.cliff ? Math.max(r, 0.7) : r; },
+  s4: function (i) {
+    var u = has(i.unlock90) ? (function () { var r = knots([[0, 0], [3, 0.25], [8, 0.6], [15, 1]])(i.unlock90); return i.cliff ? Math.max(r, 0.7) : r; })() : null;
+    var f = has(i.floatPct) ? knots([[2, 1], [10, 0.6], [25, 0.25], [40, 0]])(i.floatPct) : null;
+    var known = [u, f].filter(function (x) { return x !== null; });
+    if (!known.length) return null;
+    var r = Math.max.apply(null, known);
+    return (r &lt;= 0.25 &amp;&amp; known.length &lt; 2) ? null : r;
+  },
   e1: function (i) { return has(i.realYield) ? knots([[0.5, 1], [1, 0.6], [2, 0.25], [4, 0]])(i.realYield) : null; },
   e2: function (i) { if (!has(i.phase)) return null; var P = { declining: 1, postcrash: 1, slowing: 0.4, notrend: 0.5, ignition: 0.5, steady: 0.1, accelerating: 0.1 }; var sp = has(i.spike) ? knots([[1.5, 0], [2.5, 0.25], [4.5, 0.6], [8, 1]])(i.spike) : 0; return Math.max(P[i.phase], sp); },
   e3: function (i) { if (has(i.holderShare) &amp;&amp; i.holderShare &lt; 5) return 1; if (!has(i.access)) return null; return { direct: 0.1, stake: 0.3, haircut: 0.7, none: 1 }[i.access]; },
@@ -658,8 +673,7 @@ var REPORT_CHECKS = [&#x27;e3&#x27;, &#x27;y1&#x27;, &#x27;y2&#x27;, &#x27;y3&#x
 var NEEDS_HISTORY = [&#x27;e2&#x27;, &#x27;h1&#x27;, &#x27;h2&#x27;];                       // apps with under 180 days of data
 var GOES_STALE = [&#x27;e1&#x27;, &#x27;e2&#x27;, &#x27;l1&#x27;, &#x27;l2&#x27;, &#x27;h1&#x27;, &#x27;h2&#x27;];        // latest data point over 10 days old
 function verdict(r) { return r === null ? &#x27;unknown&#x27; : r &gt;= 0.6 ? &#x27;red&#x27; : r &gt;= 0.25 ? &#x27;blue&#x27; : &#x27;green&#x27;; }   // areas only
-function pillarF(rs, fill) { // 60% worst + 40% average; a check that is not checked counts as `fill`
-  if (!rs.length) return fill;
+function pillarF(rs, fill) { // 60% worst + 40% average of the applicable checks; a check that is not checked counts as `fill`
   var v = rs.map(function (r) { return r === null ? fill : r; });
   var max = Math.max.apply(null, v), mean = v.reduce(function (a, b) { return a + b; }, 0) / v.length;
   return 0.6 * max + 0.4 * mean;
@@ -672,11 +686,15 @@ function score(input) {
   var na = input.na || [];   // checks that do not apply to this app (for example a timelock on a chain without one)
   na.forEach(function (k) { r[k] = null; bands[k] = &#x27;na&#x27;; why[k] = &#x27;na&#x27;; });
   Object.keys(r).forEach(function (k) { if (r[k] === null &amp;&amp; !why[k]) why[k] = REPORT_CHECKS.indexOf(k) &gt; -1 ? &#x27;report&#x27; : &#x27;scan&#x27;; });
+  // An area whose checks are all n/a is left out; the weights of the other areas are rescaled to add up to 10.
+  function keysOf(p) { return Object.keys(PILLAR_OF).filter(function (k) { return PILLAR_OF[k] === p.id &amp;&amp; na.indexOf(k) &lt; 0; }); }
+  var wsum = PILLARS.reduce(function (s, p) { return s + (keysOf(p).length ? p.w : 0); }, 0);
   function total(fill) {
     return PILLARS.map(function (p) {
-      var rs = Object.keys(PILLAR_OF).filter(function (k) { return PILLAR_OF[k] === p.id &amp;&amp; na.indexOf(k) &lt; 0; }).map(function (k) { return r[k]; });
-      var f = pillarF(rs, fill);
-      return { id: p.id, f: f, pts: f * p.w };
+      var ks = keysOf(p);
+      if (!ks.length) return { id: p.id, f: null, pts: 0, w: 0, omitted: true };
+      var f = pillarF(ks.map(function (k) { return r[k]; }), fill), w = p.w * 10 / wsum;
+      return { id: p.id, f: f, pts: f * w, w: w };
     });
   }
   var mid = total(0.5), lo = total(0), hi = total(1);
@@ -746,7 +764,15 @@ var BAND = {
   s1: function (i) { if (!has(i.hidden)) return null; return i.hidden < 0.25 ? 'green' : i.hidden <= 1 ? 'blue' : 'red'; },
   s2: function (i) { if (!has(i.emitRate)) return null; return i.emitRate < 0.04 ? 'green' : i.emitRate <= 0.10 ? 'blue' : 'red'; },
   s3: function (i) { if (!has(i.insiderOut)) return null; return i.insiderOut < 0.5 ? 'green' : i.insiderOut <= 1.5 ? 'blue' : 'red'; },
-  s4: function (i) { if (!has(i.unlock90)) return null; if (i.cliff) return 'red'; return i.unlock90 < 3 ? 'green' : i.unlock90 <= 8 ? 'blue' : 'red'; },
+  // Unlocks also carries today's low-float flag: under 25% of the tokens out is light blue, under 10% red. If one of the two inputs is missing, the check can only turn worse, never green.
+  s4: function (i) {
+    var u = has(i.unlock90) ? (i.cliff ? 'red' : i.unlock90 < 3 ? 'green' : i.unlock90 <= 8 ? 'blue' : 'red') : null;
+    var f = has(i.floatPct) ? (i.floatPct < 10 ? 'red' : i.floatPct < 25 ? 'blue' : 'green') : null;
+    var known = [u, f].filter(function (x) { return x !== null; });
+    if (!known.length) return null;
+    var w = known.indexOf('red') > -1 ? 'red' : known.indexOf('blue') > -1 ? 'blue' : 'green';
+    return (w === 'green' && known.length < 2) ? null : w;
+  },
   e1: function (i) { if (!has(i.realYield)) return null; return i.realYield >= 2 ? 'green' : i.realYield >= 1 ? 'blue' : 'red'; },
   e2: function (i) {
     if (!has(i.phase)) return null;
@@ -773,7 +799,14 @@ var RISK = {
   s1: function (i) { return has(i.hidden) ? knots([[0, 0], [0.25, 0.25], [1, 0.6], [3, 1]])(i.hidden) : null; },
   s2: function (i) { return has(i.emitRate) ? knots([[0, 0], [0.04, 0.25], [0.10, 0.6], [0.20, 1]])(i.emitRate) : null; },
   s3: function (i) { return has(i.insiderOut) ? knots([[0, 0], [0.5, 0.25], [1.5, 0.6], [3, 1]])(i.insiderOut) : null; },
-  s4: function (i) { if (!has(i.unlock90)) return null; var r = knots([[0, 0], [3, 0.25], [8, 0.6], [15, 1]])(i.unlock90); return i.cliff ? Math.max(r, 0.7) : r; },
+  s4: function (i) {
+    var u = has(i.unlock90) ? (function () { var r = knots([[0, 0], [3, 0.25], [8, 0.6], [15, 1]])(i.unlock90); return i.cliff ? Math.max(r, 0.7) : r; })() : null;
+    var f = has(i.floatPct) ? knots([[2, 1], [10, 0.6], [25, 0.25], [40, 0]])(i.floatPct) : null;
+    var known = [u, f].filter(function (x) { return x !== null; });
+    if (!known.length) return null;
+    var r = Math.max.apply(null, known);
+    return (r <= 0.25 && known.length < 2) ? null : r;
+  },
   e1: function (i) { return has(i.realYield) ? knots([[0.5, 1], [1, 0.6], [2, 0.25], [4, 0]])(i.realYield) : null; },
   e2: function (i) { if (!has(i.phase)) return null; var P = { declining: 1, postcrash: 1, slowing: 0.4, notrend: 0.5, ignition: 0.5, steady: 0.1, accelerating: 0.1 }; var sp = has(i.spike) ? knots([[1.5, 0], [2.5, 0.25], [4.5, 0.6], [8, 1]])(i.spike) : 0; return Math.max(P[i.phase], sp); },
   e3: function (i) { if (has(i.holderShare) && i.holderShare < 5) return 1; if (!has(i.access)) return null; return { direct: 0.1, stake: 0.3, haircut: 0.7, none: 1 }[i.access]; },
@@ -792,8 +825,7 @@ var REPORT_CHECKS = ['e3', 'y1', 'y2', 'y3'];
 var NEEDS_HISTORY = ['e2', 'h1', 'h2'];                       // apps with under 180 days of data
 var GOES_STALE = ['e1', 'e2', 'l1', 'l2', 'h1', 'h2'];        // latest data point over 10 days old
 function verdict(r) { return r === null ? 'unknown' : r >= 0.6 ? 'red' : r >= 0.25 ? 'blue' : 'green'; }   // areas only
-function pillarF(rs, fill) { // 60% worst + 40% average; a check that is not checked counts as `fill`
-  if (!rs.length) return fill;
+function pillarF(rs, fill) { // 60% worst + 40% average of the applicable checks; a check that is not checked counts as `fill`
   var v = rs.map(function (r) { return r === null ? fill : r; });
   var max = Math.max.apply(null, v), mean = v.reduce(function (a, b) { return a + b; }, 0) / v.length;
   return 0.6 * max + 0.4 * mean;
@@ -806,11 +838,15 @@ function score(input) {
   var na = input.na || [];   // checks that do not apply to this app (for example a timelock on a chain without one)
   na.forEach(function (k) { r[k] = null; bands[k] = 'na'; why[k] = 'na'; });
   Object.keys(r).forEach(function (k) { if (r[k] === null && !why[k]) why[k] = REPORT_CHECKS.indexOf(k) > -1 ? 'report' : 'scan'; });
+  // An area whose checks are all n/a is left out; the weights of the other areas are rescaled to add up to 10.
+  function keysOf(p) { return Object.keys(PILLAR_OF).filter(function (k) { return PILLAR_OF[k] === p.id && na.indexOf(k) < 0; }); }
+  var wsum = PILLARS.reduce(function (s, p) { return s + (keysOf(p).length ? p.w : 0); }, 0);
   function total(fill) {
     return PILLARS.map(function (p) {
-      var rs = Object.keys(PILLAR_OF).filter(function (k) { return PILLAR_OF[k] === p.id && na.indexOf(k) < 0; }).map(function (k) { return r[k]; });
-      var f = pillarF(rs, fill);
-      return { id: p.id, f: f, pts: f * p.w };
+      var ks = keysOf(p);
+      if (!ks.length) return { id: p.id, f: null, pts: 0, w: 0, omitted: true };
+      var f = pillarF(ks.map(function (k) { return r[k]; }), fill), w = p.w * 10 / wsum;
+      return { id: p.id, f: f, pts: f * w, w: w };
     });
   }
   var mid = total(0.5), lo = total(0), hi = total(1);
@@ -827,26 +863,27 @@ function score(input) {
 function $(s, r) { return (r || document).querySelector(s); }
 function $$(s, r) { return Array.prototype.slice.call((r || document).querySelectorAll(s)); }
 function ic(id) { return '<svg class="ic" viewBox="0 0 24 24" aria-hidden="true"><use href="#i-' + id + '"/></svg>'; }
+function fw(w) { return Math.round(w * 10) / 10; }
 function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
 
 var CHECKS = [
   { id: 'c1', p: 'control', icon: 'key', name: 'Admin key', q: 'Who can change the rules?', tier: 'auto', map: 1, g: 'Safe: 3+ signatures, half the owners', b: 'Safe: 2 signatures, or under half', r: 'EOA, or 1 signature', need: 'a contract scan', chip: '1 of 3' },
-  { id: 'c2', p: 'control', icon: 'hourglass', name: 'Timelock', q: 'Delay before a change lands', tier: 'auto', map: 1, g: '48 h or more', b: '24–48 h', r: 'under 24 h, or none', need: 'a contract scan', chip: '0 s' },
+  { id: 'c2', p: 'control', icon: 'hourglass', name: 'Timelock', q: 'Delay before a change lands', tier: 'auto', map: 1, g: '48 h or more', b: '24 to under 48 h', r: 'under 24 h, or none', need: 'a contract scan', chip: '0 s' },
   { id: 'c3', p: 'control', icon: 'power', name: 'Admin powers', q: 'Mint, pause, upgrade', tier: 'auto', g: 'none, or gated', b: 'one power', r: 'two or more', need: 'a contract scan', chip: 'upgrade + pause' },
   { id: 's1', p: 'supply', icon: 'iceberg', name: 'Hidden supply', q: 'Tokens outside the float ÷ float', tier: 'auto', map: 1, g: 'under 0.25×', b: '0.25–1×', r: 'over 1×', need: 'a holder scan', chip: '11.8× float' },
   { id: 's2', p: 'supply', icon: 'printer', name: 'Emission rate', q: 'Weekly emissions ÷ float', tier: 'auto', g: 'under 4%', b: '4–10%', r: 'over 10%', need: 'emission data', chip: '12% a week' },
   { id: 's3', p: 'supply', icon: 'exit', name: 'Insider flow', q: 'Insider wallets to DEX or CEX, 30 d', tier: 'auto', map: 1, g: 'under 0.5% of float', b: '0.5–1.5%', r: 'over 1.5%', need: 'a holder scan', chip: 'none' },
-  { id: 's4', p: 'supply', icon: 'calendar', name: 'Unlocks', q: 'Scheduled unlocks, next 90 d', tier: 'live', g: 'under 3%', b: '3–8%', r: 'over 8%, or a cliff', need: 'unlock data', chip: '0%' },
-  { id: 'e1', p: 'earnings', icon: 'coins', name: 'Real yield', q: 'Revenue ÷ emissions at today’s price', tier: 'live', g: '2× or more', b: '1–2×', r: 'under 1×', need: 'emission data', chip: '1.3×' },
+  { id: 's4', p: 'supply', icon: 'calendar', name: 'Unlocks', q: 'Unlocks in the next 90 d, and how many tokens are out', tier: 'live', g: 'under 3%, and 25% of tokens or more out', b: '3–8%, or under 25% of tokens out', r: 'over 8%, a cliff, or under 10% of tokens out', need: 'unlock data', chip: '8% out' },
+  { id: 'e1', p: 'earnings', icon: 'coins', name: 'Real yield', q: 'Revenue ÷ emissions at today’s price', tier: 'live', g: '2× or more', b: '1 to under 2×', r: 'under 1×', need: 'emission data', chip: '1.3×' },
   { id: 'e2', p: 'earnings', icon: 'pulse', name: 'Trend', q: 'Shape of the last 12 months', tier: 'live', g: 'steady or accelerating', b: 'ignition, slowing, no trend, or a 2.5–4.5× spike', r: 'declining, post-crash, or a spike over 4.5×', need: 'revenue history', chip: 'ignition' },
-  { id: 'e3', p: 'earnings', icon: 'funnel', name: 'Reaches you', q: 'Does a buyer of this token get the revenue?', tier: 'report', g: 'directly', b: 'after a stake or lock', r: 'haircut, wrapper, or under 5% share', need: 'the report', chip: '−50% haircut' },
+  { id: 'e3', p: 'earnings', icon: 'funnel', name: 'Reaches you', q: 'Does a buyer of this token get the revenue?', tier: 'report', g: 'directly', b: 'after a stake or lock', r: 'haircut, wrapper, or under 5% share', need: 'the report (red on its own when the holder share is under 5%)', chip: '−50% haircut' },
   { id: 'l1', p: 'liquidity', icon: 'drop', name: 'Slippage', q: 'What a $10K buy costs', tier: 'live', g: 'under 1%', b: '1–2.5%', r: 'over 2.5%', need: 'pool data', chip: '2.9%' },
   { id: 'l2', p: 'liquidity', icon: 'bars', name: 'Market cap', q: 'Today’s “Micro” flag', tier: 'live', g: 'over $20M', b: '$3–20M', r: 'under $3M', need: 'market data', chip: '$2.8M' },
   { id: 'l3', p: 'liquidity', icon: 'pie', name: 'Whales', q: 'Fresh wallets or top holders, % of float', tier: 'auto', g: 'under 2%', b: '2–5%', r: 'over 5%', need: 'a holder scan', chip: '8.4% of float' },
-  { id: 'h1', p: 'heat', icon: 'flame', name: 'Price run', q: '30-day change, distance to ATH', tier: 'live', g: 'under +30%', b: '+30–70%', r: 'over +70%, or +53% within 10% of ATH', need: 'price data', chip: '+74%' },
-  { id: 'h2', p: 'heat', icon: 'scale', name: 'Strength 3M', q: 'Revenue growth ÷ price growth', tier: 'live', g: '1× or more', b: '0.5–1×', r: 'under 0.5×', need: 'revenue history', chip: '0.44×' },
+  { id: 'h1', p: 'heat', icon: 'flame', name: 'Price run', q: '30-day change, distance to ATH', tier: 'live', g: 'under +30%', b: '+30–70%', r: 'over +70%, or +53% or more within 10% of ATH', need: 'price data', chip: '+74%' },
+  { id: 'h2', p: 'heat', icon: 'scale', name: 'Strength 3M', q: 'Revenue growth ÷ price growth', tier: 'live', g: '1× or more', b: '0.5 to under 1×', r: 'under 0.5×', need: 'revenue history', chip: '0.44×' },
   { id: 'y1', p: 'history', icon: 'ghost', name: 'Team', q: 'Who ships it?', tier: 'report', g: 'public team or entity', b: 'anonymous', r: 'anonymous, with failed projects', need: 'the report', chip: 'anonymous' },
-  { id: 'y2', p: 'history', icon: 'audit', name: 'Audit', q: 'Is the deployed code audited?', tier: 'report', g: 'yes, deployed code', b: 'sister code only', r: 'none listed', need: 'the report', chip: 'none listed' },
+  { id: 'y2', p: 'history', icon: 'audit', name: 'Audit', q: 'Is the deployed code audited?', tier: 'report', g: 'yes, deployed code', b: 'sister code only', r: 'none listed', need: 'the report (DefiLlama’s audit list is its input)', chip: 'none listed' },
   { id: 'y3', p: 'history', icon: 'skull', name: 'Track record', q: 'Exploits, relaunches, sister forks', tier: 'report', g: 'clean', b: 'old exploit, repaid', r: 'open exploit, or dead siblings', need: 'the report', chip: 'siblings dead' }
 ];
 var CK = {}; CHECKS.forEach(function (c) { CK[c.id] = c; });
@@ -861,7 +898,7 @@ var VBG = { green: 'var(--green-bg)', blue: 'var(--blue-bg)', red: 'var(--red-bg
 /* ---- inputs ---- */
 var EXA = { admin: { kind: 'safe', m: 1, n: 3 }, timelockH: 0, powers: 2, hidden: 11.8, emitRate: 0.118, insiderOut: 0, unlock90: 0, cliff: false,
   realYield: 1.27, phase: 'ignition', spike: 3.0, holderShare: 100, access: null, slip: 2.9, mcapM: 2.8, whale: 8.4, run30: 74, athDist: 12, strength: 0.44,
-  team: null, audit: 'none', track: null };
+  team: null, audit: null, track: null, floatPct: 8 };
 var EXA_R = Object.assign({}, EXA, { access: 'haircut', team: 'anonfail', audit: 'sister', track: 'dead' });
 var EXA_S = Object.assign({}, EXA_R, { admin: { kind: 'safe', m: 3, n: 5 }, timelockH: 24 });   // admin key changed after the report was written
 var EXA_N = Object.assign({}, EXA_S, { audit: 'deployed' });                                       // the refreshed report found a new audit
@@ -874,8 +911,8 @@ function chipOf(id, inp) {
   if (id === 'y2') return { none: 'none listed', sister: 'sister code only', deployed: 'audited' }[inp.audit];
   return CK[id].chip;
 }
-var BLUE = { admin: { kind: 'safe', m: 4, n: 7 }, timelockH: 24, powers: 0, hidden: 0.1, emitRate: 0.005, insiderOut: 0, unlock90: 0.5, realYield: 1.8, phase: 'steady', spike: 1.1, holderShare: 60, access: 'stake', slip: 0.3, mcapM: 2300, whale: 1, run30: 3, athDist: 45, strength: 0.8, team: 'doxxed', audit: 'deployed', track: 'clean' };
-var UNS = { admin: null, timelockH: null, powers: null, hidden: null, emitRate: 0.03, insiderOut: null, unlock90: 1, realYield: 0.8, phase: 'steady', spike: 1.2, holderShare: 40, access: null, slip: 2, mcapM: 8, whale: null, run30: 20, athDist: 40, strength: 0.9, team: null, audit: 'none', track: null };
+var BLUE = { admin: { kind: 'safe', m: 4, n: 7 }, timelockH: 24, powers: 0, hidden: 0.1, emitRate: 0.005, insiderOut: 0, unlock90: 0.5, realYield: 1.8, phase: 'steady', spike: 1.1, holderShare: 60, access: 'stake', slip: 0.3, mcapM: 2300, whale: 1, run30: 3, athDist: 45, strength: 0.8, team: 'doxxed', audit: 'deployed', track: 'clean', floatPct: 90 };
+var UNS = { admin: null, timelockH: null, powers: null, hidden: null, emitRate: 0.03, insiderOut: null, unlock90: 1, realYield: 0.8, phase: 'steady', spike: 1.2, holderShare: 40, access: null, slip: 2, mcapM: 8, whale: null, run30: 20, athDist: 40, strength: 0.9, team: null, audit: null, track: null, floatPct: 45 };
 
 /* ---- tooltip texts for the example project (all made up) ---- */
 var INST = {
@@ -885,7 +922,7 @@ var INST = {
   s1: { val: '11.8× the float can exit', ctx: '260M tokens sit in staking. Exit takes 12 h at −50%.', src: 'ON-CHAIN', at: 'Sep 28' },
   s2: { val: '12% of the float, every week', ctx: '2.6M tokens a week. The admin can move it ±25%.', src: 'ON-CHAIN', at: 'Sep 28' },
   s3: { val: 'No insider sells in 60 d', ctx: 'Admin-Safe signers only added liquidity or restaked.', src: 'INFERRED', at: 'Sep 28' },
-  s4: { val: '0% unlocks in 90 d', ctx: 'Per DeFiLlama. The real overhang is staking exits, see Hidden supply.', src: 'DATA', at: 'Sep 28' },
+  s4: { val: '8% of tokens out', ctx: 'Under 10% is red. No unlocks in 90 d (DeFiLlama). The real overhang is staking exits, see Hidden supply.', src: 'DATA', at: 'Sep 28' },
   e1: { val: '1.3× at today’s price', ctx: 'Revenue $1.9M vs next-30-day emissions ≈ $1.5M. The trailing-price figure says $1.1M.', src: 'DATA', at: 'Sep 28' },
   e2: { val: 'Ignition, 3.0× spike', ctx: 'Fees went from about $0.6M a month to $1.8M in September.', src: 'DATA', at: 'Sep 28' },
   e3: { val: 'Stake needed, −50% haircut', ctx: 'Revenue goes to stakers. A wrapper token avoids the haircut.', src: 'AI REPORT', at: 'Sep 28' },
@@ -895,7 +932,6 @@ var INST = {
   h1: { val: '+74% in 30 days', ctx: '12% below its all-time high.', src: 'DATA', at: 'Sep 28' },
   h2: { val: '0.44× strength', ctx: 'Revenue grew less than half as fast as the price over 3 months.', src: 'DATA', at: 'Sep 28' },
   y1: { val: 'Anonymous team', ctx: 'Four earlier forks of the same code are all down 99% or dead.', src: 'AI REPORT', at: 'Sep 28' },
-  y2: { val: 'None listed', ctx: 'DefiLlama shows no audit.', src: 'DATA', at: 'Sep 28' },
   y3: { val: 'All 4 earlier forks −99% or dead', ctx: 'One of them relaunched on a new chain with no migration for old holders.', src: 'AI REPORT', at: 'Sep 28' }
 };
 var INST_R = {
@@ -1026,7 +1062,7 @@ function fingerprint(coin, mode) {
   return PILLARS.map(function (p) {
     var pp = s.pillars.filter(function (x) { return x.id === p.id; })[0], v = verdict(pp.f);
     var icons = CHECKS.filter(function (c) { return c.p === p.id; }).map(function (c) { return flBtn(coin, c.id, mode); }).join('');
-    return '<div class="fp-p"><div class="fp-h ' + v + '"><b style="color:var(--c)">' + p.name + '</b><span>' + pp.pts.toFixed(1) + '<small> / ' + p.w + '</small></span></div><div class="fp-i">' + icons + '</div></div>';
+    return '<div class="fp-p"><div class="fp-h ' + v + '"><b style="color:var(--c)">' + p.name + '</b><span>' + pp.pts.toFixed(1) + '<small> / ' + fw(pp.w) + '</small></span></div><div class="fp-i">' + icons + '</div></div>';
   }).join('');
 }
 
@@ -1061,7 +1097,7 @@ function panelHTML(s, opt) {
   var rows = PILLARS.map(function (p) {
     var pp = s.pillars.filter(function (x) { return x.id === p.id; })[0], v = verdict(pp.f);
     var unk = Object.keys(PILLAR_OF).filter(function (k) { return PILLAR_OF[k] === p.id && s.r[k] === null; }).length;
-    return '<div class="prow ' + v + '" data-p="' + p.id + '"><span class="pn">' + p.name + '<i>' + p.ask + '</i></span><span class="pbar"><i style="width:' + Math.round(pp.f * 100) + '%"></i></span><span class="pp" style="color:var(--c)">' + pp.pts.toFixed(1) + '<small> / ' + p.w + '</small>' + (unk ? '<em>' + unk + ' not scanned</em>' : '') + '</span></div>';
+    return '<div class="prow ' + v + '" data-p="' + p.id + '"><span class="pn">' + p.name + '<i>' + p.ask + '</i></span><span class="pbar"><i style="width:' + Math.round(pp.f * 100) + '%"></i></span><span class="pp" style="color:var(--c)">' + pp.pts.toFixed(1) + '<small> / ' + fw(pp.w) + '</small>' + (unk ? '<em>' + unk + ' not scanned</em>' : '') + '</span></div>';
   }).join('');
   return '<div class="dp ' + b + '"><div class="dp-top"><div class="dp-num">' + s.level + '<small>/10</small></div><div class="dp-lab"><b>Degen level: ' + bl[0] + '</b><span>' + bl[1] + '</span><em>' + rng + '</em></div></div>' +
     '<div><div class="m10">' + meter + '</div><div class="m10-s"><span>Blue chip</span><span>Casino</span></div></div><div class="prows">' + rows + '</div></div>';
@@ -1144,7 +1180,7 @@ function reportHTML(mode) {
 }
 function evHead(s, id) {
   var p = s.pillars.filter(function (x) { return x.id === id; })[0], v = verdict(p.f);
-  return '<div class="ev-h ' + v + '"><b>' + PW[id].name + '</b><span class="pill">' + VLAB[v] + '</span><span class="pts">' + p.pts.toFixed(1) + '<small> / ' + PW[id].w + '</small></span></div>';
+  return '<div class="ev-h ' + v + '"><b>' + PW[id].name + '</b><span class="pill">' + VLAB[v] + '</span><span class="pts">' + p.pts.toFixed(1) + '<small> / ' + fw(p.w) + '</small></span></div>';
 }
 function earningsHTML(s) {
   return '<div class="ev">' + evHead(s, 'earnings') +
@@ -1179,7 +1215,7 @@ function stripHTML(s, note, prev) {
 }
 function tilesHTML() {
   var T = [['Market cap', '$2.8M', 'only the 8% float', 'c-red'], ['Revenue 30d', '$1.9M', 'net +$800K', 'c-green'], ['Emissions 30d', '$1.1M', '≈ $1.5M at today’s price', 'c-blue'],
-    ['FDV', '$36M', '8% of tokens out', 'c-blue'], ['Upside', '50x', '11x if all tokens were out', 'c-green', 'cap-blue'], ['Strength 3M', '0.44x', 'price ran ahead of revenue', 'c-red']];
+    ['FDV', '$36M', '8% of tokens out', 'c-blue'], ['Upside', '50x', '11x if all tokens were out · priced at 0.1× yearly revenue', 'c-green', 'cap-blue'], ['Strength 3M', '0.44x', 'price ran ahead of revenue', 'c-red']];
   return '<div class="tiles6">' + T.map(function (x) { return '<div class="tl"><span class="k">' + x[0] + '</span><span class="v ' + x[3] + '">' + x[1] + '</span><span class="s ' + (x[4] || '') + '">' + x[2] + '</span></div>'; }).join('') + '</div>';
 }
 function monthlyHTML() {
