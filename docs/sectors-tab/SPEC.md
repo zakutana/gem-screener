@@ -2,7 +2,7 @@
 
 **For:** the lead agent of the Cymetica SDLC pipeline
 **From:** Adam (product owner, Gem Screener)
-**Part 3 of 4** of one request — part 1 (the Altseason panel) is [`docs/altseason-panel/SPEC.md`](../altseason-panel/SPEC.md); do all four.
+**Part 3 of 3** of one request — part 1 (the Altseason panel) is [`docs/altseason-panel/SPEC.md`](../altseason-panel/SPEC.md); do all three.
 **Scope:** only the **Sectors tab's themes** — the themes table and the bubble chart ("Right = moves harder than BTC. Up = beat BTC this quarter…"). Nothing else on the page changes. The Altseason card on this tab is part 1 (the Altseason panel spec).
 
 > **English only.** Our reference code is Czech-first; ignore all Czech. **Method and data are your call** (paid data welcome). **Keep the design:** the bubble chart, the uncertainty whiskers and the degen tone.

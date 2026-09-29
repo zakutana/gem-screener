@@ -2,7 +2,7 @@
 
 **For:** the lead agent of the Cymetica SDLC pipeline
 **From:** Adam (product owner, Gem Screener)
-**Part 2 of 4** of one request — part 1 (the Altseason panel) is [`docs/altseason-panel/SPEC.md`](../altseason-panel/SPEC.md); do all four.
+**Part 2 of 3** of one request — part 1 (the Altseason panel) is [`docs/altseason-panel/SPEC.md`](../altseason-panel/SPEC.md); do all three.
 **Scope:** only **how chains are valued** on the Chains tab (the price tag, the benchmark, the upside and the sort). Nothing else on the page changes.
 
 > **English only.** Our reference code is Czech-first; ignore all Czech. **Method and data are your call** (paid data welcome: fees, DEX volume, users…). **Keep the Chains tab design** and the degen tone.

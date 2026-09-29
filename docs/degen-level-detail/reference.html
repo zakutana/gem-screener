@@ -60,6 +60,7 @@ button { font: inherit; color: inherit; }
 .blue { --c: var(--blue); --cb: var(--blue-bg); --cg: var(--blue-glow); }
 .green { --c: var(--green); --cb: var(--green-bg); --cg: var(--green-glow); }
 .unknown { --c: var(--muted); --cb: transparent; --cg: rgba(111, 129, 153, .25); }
+.na { --c: var(--muted); --cb: rgba(111, 129, 153, .08); --cg: rgba(111, 129, 153, .25); }
 
 /* ---------- header ---------- */
 .head { display: grid; gap: 22px; }
@@ -187,7 +188,7 @@ tr.clk:hover > td { background: rgba(0, 255, 136, .09); }
 .m10 { display: grid; grid-template-columns: repeat(10, 1fr); gap: 5px; }
 .m10 i { height: 18px; border-radius: 4px; background: var(--inset); border: 1px solid var(--line); display: block; }
 .m10 i.f { background: var(--c); border-color: var(--c); }
-.m10 i.h { background: repeating-linear-gradient(135deg, rgba(169, 184, 204, .45) 0 3px, transparent 3px 7px); border-color: var(--muted); }
+.m10 i.h { background: transparent; border: 1px dashed var(--fg-2); }
 .m10-s { display: flex; justify-content: space-between; font: 500 11.5px var(--font-mono); letter-spacing: .12em; text-transform: uppercase; color: var(--muted); margin-top: 6px; }
 .prows { display: grid; }
 .prow { display: grid; grid-template-columns: minmax(120px, 170px) minmax(0, 1fr) auto; gap: 16px; align-items: center; padding: 10px 4px; border-top: 1px solid var(--line); cursor: pointer; border-radius: 6px; }
@@ -327,7 +328,7 @@ details.acc .body { padding: 0 20px 18px; font-size: 16px; color: var(--fg-2); }
 .sg10 { display: grid; grid-template-columns: repeat(10, 8px); gap: 2px; flex: none; width: 98px; }
 .sg10 i { height: 18px; border-radius: 2px; background: var(--inset); border: 1px solid var(--line); display: block; }
 .sg10 i.f { background: var(--c); border-color: var(--c); }
-.sg10 i.h { background: repeating-linear-gradient(135deg, rgba(169, 184, 204, .5) 0 2px, transparent 2px 5px); border-color: var(--muted); }
+.sg10 i.h { background: transparent; border: 1px dashed var(--fg-2); }
 .legend2 .mini-dg { padding: 0; border: 0; }
 .dstrip { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 20px 24px; display: grid; gap: 16px; }
 .ds-top { display: flex; align-items: center; gap: 20px; }
@@ -409,6 +410,7 @@ details.dev > .devbody { padding: 6px 26px 34px; display: grid; gap: 64px; }
 @media (max-width: 520px) { .ct-r { grid-template-columns: 1fr; } }
 
 .c-green { color: var(--green); }
+.tl .s.cap-blue { color: var(--blue); }
 .mr { display: grid; gap: 12px; min-width: 0; }
 .mr-t { font: 700 14px var(--font-mono); letter-spacing: .14em; text-transform: uppercase; color: var(--muted); }
 .mr-card { background: #0f1926; border: 1px solid var(--line); border-radius: 12px; padding: 18px 20px 16px; display: grid; gap: 14px; min-width: 0; }
@@ -433,6 +435,10 @@ details.dev > .devbody { padding: 6px 26px 34px; display: grid; gap: 64px; }
 .rr-l { display: grid; gap: 10px; }
 .rr-l .i { display: grid; grid-template-columns: 22px minmax(0, 1fr); gap: 10px; align-items: center; font-size: 17px; color: var(--fg); }
 .rr-l .i .ic { width: 22px; height: 22px; color: var(--c); }
+
+.ph span.on { background: var(--c); border-color: var(--c); color: #04121a; }
+.qb .col i, .qb .lastq .col i { background: var(--c); box-shadow: none; }
+.qb .n, .qb .lastq .n { color: var(--c); }
 /* ---------- build ---------- */
 .build { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(300px, 100%), 1fr)); gap: 12px; }
 .bs { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 22px; display: grid; gap: 12px; align-content: start; }
@@ -560,7 +566,8 @@ footer { font: 500 13px var(--font-mono); color: var(--muted); border-top: 1px s
           <div class="wts" aria-label="Pillar weights"><div style="flex:2.5">Control 2.5</div><div style="flex:2">Supply 2</div><div style="flex:2">Earnings 2</div><div style="flex:1.5">Liq. 1.5</div><div style="flex:1">Heat</div><div style="flex:1">Hist.</div></div>
           <div class="wts-l"><span>weights, out of 10 points</span><span>Heat 1 · History 1</span></div>
         </div>
-        <details class="code"><summary>Show the function (for devs)</summary><pre id="code">// Degen level: 18 checks -&gt; risk r in [0,1] (null = unknown) -&gt; 6 pillars -&gt; 10 points -&gt; level 1..10
+        <details class="code"><summary>Show the function (for devs)</summary><pre id="code">// Degen level: 18 checks -&gt; a verdict per check (green / blue / red / unknown) and a risk 0..1 -&gt; 6 areas -&gt; 10 points -&gt; level 1..10.
+// The colour of a check comes from BAND (exact thresholds on the raw value). The risk number RISK only feeds the score.
 function knots(pts) {
   return function (x) {
     if (x &lt;= pts[0][0]) return pts[0][1];
@@ -579,9 +586,39 @@ var PILLARS = [
   { id: &#x27;history&#x27;,   name: &#x27;History&#x27;,   ask: &#x27;Who is behind it?&#x27;,       w: 1.0 }
 ];
 var has = function (v) { return v !== null &amp;&amp; v !== undefined; };
+
+// Verdict per check, read literally from the spec table: &quot;under X&quot; excludes X, &quot;over X&quot; excludes X,
+// &quot;X or more&quot; includes X, &quot;A-B&quot; includes both ends. null = cannot be judged.
+var BAND = {
+  c1: function (i) { if (!has(i.admin)) return null; var a = i.admin; if (a.kind === &#x27;eoa&#x27;) return &#x27;red&#x27;; if (a.kind === &#x27;none&#x27;) return &#x27;green&#x27;; if (a.m &lt;= 1) return &#x27;red&#x27;; return (a.m &lt; 3 || a.m / a.n &lt; 0.5) ? &#x27;blue&#x27; : &#x27;green&#x27;; },
+  c2: function (i) { if (!has(i.timelockH)) return null; return i.timelockH &lt; 24 ? &#x27;red&#x27; : i.timelockH &lt; 48 ? &#x27;blue&#x27; : &#x27;green&#x27;; },
+  c3: function (i) { if (!has(i.powers)) return null; return i.powers &lt;= 0 ? &#x27;green&#x27; : i.powers === 1 ? &#x27;blue&#x27; : &#x27;red&#x27;; },
+  s1: function (i) { if (!has(i.hidden)) return null; return i.hidden &lt; 0.25 ? &#x27;green&#x27; : i.hidden &lt;= 1 ? &#x27;blue&#x27; : &#x27;red&#x27;; },
+  s2: function (i) { if (!has(i.emitRate)) return null; return i.emitRate &lt; 0.04 ? &#x27;green&#x27; : i.emitRate &lt;= 0.10 ? &#x27;blue&#x27; : &#x27;red&#x27;; },
+  s3: function (i) { if (!has(i.insiderOut)) return null; return i.insiderOut &lt; 0.5 ? &#x27;green&#x27; : i.insiderOut &lt;= 1.5 ? &#x27;blue&#x27; : &#x27;red&#x27;; },
+  s4: function (i) { if (!has(i.unlock90)) return null; if (i.cliff) return &#x27;red&#x27;; return i.unlock90 &lt; 3 ? &#x27;green&#x27; : i.unlock90 &lt;= 8 ? &#x27;blue&#x27; : &#x27;red&#x27;; },
+  e1: function (i) { if (!has(i.realYield)) return null; return i.realYield &gt;= 2 ? &#x27;green&#x27; : i.realYield &gt;= 1 ? &#x27;blue&#x27; : &#x27;red&#x27;; },
+  e2: function (i) {
+    if (!has(i.phase)) return null;
+    if (i.phase === &#x27;declining&#x27; || i.phase === &#x27;postcrash&#x27; || (has(i.spike) &amp;&amp; i.spike &gt; 4.5)) return &#x27;red&#x27;;
+    if (i.phase === &#x27;ignition&#x27; || i.phase === &#x27;slowing&#x27; || i.phase === &#x27;notrend&#x27; || (has(i.spike) &amp;&amp; i.spike &gt;= 2.5)) return &#x27;blue&#x27;;
+    return &#x27;green&#x27;;
+  },
+  e3: function (i) { if (has(i.holderShare) &amp;&amp; i.holderShare &lt; 5) return &#x27;red&#x27;; if (!has(i.access)) return null; return i.access === &#x27;direct&#x27; ? &#x27;green&#x27; : i.access === &#x27;stake&#x27; ? &#x27;blue&#x27; : &#x27;red&#x27;; },
+  l1: function (i) { if (!has(i.slip)) return null; return i.slip &lt; 1 ? &#x27;green&#x27; : i.slip &lt;= 2.5 ? &#x27;blue&#x27; : &#x27;red&#x27;; },
+  l2: function (i) { if (!has(i.mcapM)) return null; return i.mcapM &gt; 20 ? &#x27;green&#x27; : i.mcapM &gt;= 3 ? &#x27;blue&#x27; : &#x27;red&#x27;; },
+  l3: function (i) { if (!has(i.whale)) return null; return i.whale &lt; 2 ? &#x27;green&#x27; : i.whale &lt;= 5 ? &#x27;blue&#x27; : &#x27;red&#x27;; },
+  h1: function (i) { if (!has(i.run30)) return null; if (i.run30 &gt; 70 || (i.run30 &gt;= 53 &amp;&amp; has(i.athDist) &amp;&amp; i.athDist &lt;= 10)) return &#x27;red&#x27;; return i.run30 &gt;= 30 ? &#x27;blue&#x27; : &#x27;green&#x27;; },
+  h2: function (i) { if (!has(i.strength)) return null; return i.strength &gt;= 1 ? &#x27;green&#x27; : i.strength &gt;= 0.5 ? &#x27;blue&#x27; : &#x27;red&#x27;; },
+  y1: function (i) { if (!has(i.team)) return null; return { doxxed: &#x27;green&#x27;, anon: &#x27;blue&#x27;, anonfail: &#x27;red&#x27; }[i.team]; },
+  y2: function (i) { if (!has(i.audit)) return null; return { deployed: &#x27;green&#x27;, sister: &#x27;blue&#x27;, none: &#x27;red&#x27; }[i.audit]; },
+  y3: function (i) { if (!has(i.track)) return null; return { clean: &#x27;green&#x27;, repaid: &#x27;blue&#x27;, dead: &#x27;red&#x27; }[i.track]; }
+};
+
+// Risk 0..1 per check, only used inside the score. Its edges line up with the bands (0.25 and 0.6).
 var RISK = {
-  c1: function (i) { if (!has(i.admin)) return null; var a = i.admin; if (a.kind === &#x27;eoa&#x27;) return 1; if (a.kind === &#x27;none&#x27;) return 0; if (a.m === 1) return 1; return (a.m &lt; 3 || a.m / a.n &lt; 0.5) ? 0.6 : 0.15; },
-  c2: function (i) { if (!has(i.timelockH)) return null; var h = i.timelockH; return h &lt;= 0 ? 1 : h &lt; 24 ? 0.6 : h &lt; 48 ? 0.25 : 0.1; },
+  c1: function (i) { if (!has(i.admin)) return null; var a = i.admin; if (a.kind === &#x27;eoa&#x27;) return 1; if (a.kind === &#x27;none&#x27;) return 0; if (a.m &lt;= 1) return 1; return (a.m &lt; 3 || a.m / a.n &lt; 0.5) ? 0.4 : 0.15; },
+  c2: function (i) { if (!has(i.timelockH)) return null; var h = i.timelockH; return h &lt;= 0 ? 1 : h &lt; 24 ? 0.6 : h &lt; 48 ? 0.4 : 0.1; },
   c3: function (i) { return has(i.powers) ? Math.min(1, 0.35 * i.powers) : null; },
   s1: function (i) { return has(i.hidden) ? knots([[0, 0], [0.25, 0.25], [1, 0.6], [3, 1]])(i.hidden) : null; },
   s2: function (i) { return has(i.emitRate) ? knots([[0, 0], [0.04, 0.25], [0.10, 0.6], [0.20, 1]])(i.emitRate) : null; },
@@ -597,29 +634,43 @@ var RISK = {
   h2: function (i) { return has(i.strength) ? knots([[0.3, 1], [0.5, 0.6], [1, 0.25], [1.5, 0]])(i.strength) : null; },
   y1: function (i) { return has(i.team) ? { doxxed: 0.1, anon: 0.5, anonfail: 0.8 }[i.team] : null; },
   y2: function (i) { return has(i.audit) ? { deployed: 0.1, sister: 0.5, none: 0.8 }[i.audit] : null; },
-  y3: function (i) { return has(i.track) ? i.track : null; }
+  y3: function (i) { return has(i.track) ? { clean: 0.1, repaid: 0.4, dead: 0.7 }[i.track] : null; }
 };
 var PILLAR_OF = { c1: &#x27;control&#x27;, c2: &#x27;control&#x27;, c3: &#x27;control&#x27;, s1: &#x27;supply&#x27;, s2: &#x27;supply&#x27;, s3: &#x27;supply&#x27;, s4: &#x27;supply&#x27;, e1: &#x27;earnings&#x27;, e2: &#x27;earnings&#x27;, e3: &#x27;earnings&#x27;, l1: &#x27;liquidity&#x27;, l2: &#x27;liquidity&#x27;, l3: &#x27;liquidity&#x27;, h1: &#x27;heat&#x27;, h2: &#x27;heat&#x27;, y1: &#x27;history&#x27;, y2: &#x27;history&#x27;, y3: &#x27;history&#x27; };
-function verdict(r) { return r === null ? &#x27;unknown&#x27; : r &gt;= 0.6 ? &#x27;red&#x27; : r &gt;= 0.25 ? &#x27;blue&#x27; : &#x27;green&#x27;; }
-function pillarF(rs, fill) { // 60% worst + 40% average; unknown counts as `fill`
+var REPORT_CHECKS = [&#x27;e3&#x27;, &#x27;y1&#x27;, &#x27;y2&#x27;, &#x27;y3&#x27;];
+// Data quality: too little history or stale data make the time-based checks &quot;not checked&quot; (and they widen the range).
+var NEEDS_HISTORY = [&#x27;e2&#x27;, &#x27;h1&#x27;, &#x27;h2&#x27;];                       // apps with under 180 days of data
+var GOES_STALE = [&#x27;e1&#x27;, &#x27;e2&#x27;, &#x27;l1&#x27;, &#x27;l2&#x27;, &#x27;h1&#x27;, &#x27;h2&#x27;];        // latest data point over 10 days old
+function verdict(r) { return r === null ? &#x27;unknown&#x27; : r &gt;= 0.6 ? &#x27;red&#x27; : r &gt;= 0.25 ? &#x27;blue&#x27; : &#x27;green&#x27;; }   // areas only
+function pillarF(rs, fill) { // 60% worst + 40% average; a check that is not checked counts as `fill`
+  if (!rs.length) return fill;
   var v = rs.map(function (r) { return r === null ? fill : r; });
   var max = Math.max.apply(null, v), mean = v.reduce(function (a, b) { return a + b; }, 0) / v.length;
   return 0.6 * max + 0.4 * mean;
 }
 function score(input) {
-  var r = {}; Object.keys(RISK).forEach(function (k) { r[k] = RISK[k](input); });
+  var why = {}, r = {}, bands = {};
+  Object.keys(RISK).forEach(function (k) { r[k] = RISK[k](input); bands[k] = BAND[k](input); });
+  if (has(input.historyDays) &amp;&amp; input.historyDays &lt; 180) NEEDS_HISTORY.forEach(function (k) { r[k] = null; bands[k] = null; why[k] = &#x27;history&#x27;; });
+  if (has(input.dataLagDays) &amp;&amp; input.dataLagDays &gt; 10) GOES_STALE.forEach(function (k) { r[k] = null; bands[k] = null; why[k] = &#x27;stale&#x27;; });
+  var na = input.na || [];   // checks that do not apply to this app (for example a timelock on a chain without one)
+  na.forEach(function (k) { r[k] = null; bands[k] = &#x27;na&#x27;; why[k] = &#x27;na&#x27;; });
+  Object.keys(r).forEach(function (k) { if (r[k] === null &amp;&amp; !why[k]) why[k] = REPORT_CHECKS.indexOf(k) &gt; -1 ? &#x27;report&#x27; : &#x27;scan&#x27;; });
   function total(fill) {
     return PILLARS.map(function (p) {
-      var rs = Object.keys(PILLAR_OF).filter(function (k) { return PILLAR_OF[k] === p.id; }).map(function (k) { return r[k]; });
+      var rs = Object.keys(PILLAR_OF).filter(function (k) { return PILLAR_OF[k] === p.id &amp;&amp; na.indexOf(k) &lt; 0; }).map(function (k) { return r[k]; });
       var f = pillarF(rs, fill);
       return { id: p.id, f: f, pts: f * p.w };
     });
   }
   var mid = total(0.5), lo = total(0), hi = total(1);
   var sum = function (a) { return a.reduce(function (s, p) { return s + p.pts; }, 0); };
-  var floor = input.critical ? 8 : 1;
+  // Floors: two facts from the contract scan (not checks of their own; they show in the Admin powers tooltip).
+  var floored = !!(input.unverifiedSource || input.eoaMint);
+  var floor = floored ? 8 : 1;
   var lvl = function (s) { return Math.min(10, Math.max(floor, Math.round(s))); };
-  return { r: r, pillars: mid, points: sum(mid), level: lvl(sum(mid)), low: lvl(sum(lo)), high: lvl(sum(hi)), unknown: Object.keys(r).filter(function (k) { return r[k] === null; }) };
+  var unknown = Object.keys(r).filter(function (k) { return r[k] === null &amp;&amp; na.indexOf(k) &lt; 0; });
+  return { r: r, bands: bands, why: why, pillars: mid, points: sum(mid), level: lvl(sum(mid)), low: lvl(sum(lo)), high: lvl(sum(hi)), unknown: unknown, floored: floored };
 }</pre><button class="copy" id="copy" type="button">Copy code</button></details>
       </div>
     </div>
@@ -648,7 +699,8 @@ function score(input) {
 
 <script>
 (function () {
-// Degen level: 18 checks -> risk r in [0,1] (null = unknown) -> 6 pillars -> 10 points -> level 1..10
+// Degen level: 18 checks -> a verdict per check (green / blue / red / unknown) and a risk 0..1 -> 6 areas -> 10 points -> level 1..10.
+// The colour of a check comes from BAND (exact thresholds on the raw value). The risk number RISK only feeds the score.
 function knots(pts) {
   return function (x) {
     if (x <= pts[0][0]) return pts[0][1];
@@ -667,9 +719,39 @@ var PILLARS = [
   { id: 'history',   name: 'History',   ask: 'Who is behind it?',       w: 1.0 }
 ];
 var has = function (v) { return v !== null && v !== undefined; };
+
+// Verdict per check, read literally from the spec table: "under X" excludes X, "over X" excludes X,
+// "X or more" includes X, "A-B" includes both ends. null = cannot be judged.
+var BAND = {
+  c1: function (i) { if (!has(i.admin)) return null; var a = i.admin; if (a.kind === 'eoa') return 'red'; if (a.kind === 'none') return 'green'; if (a.m <= 1) return 'red'; return (a.m < 3 || a.m / a.n < 0.5) ? 'blue' : 'green'; },
+  c2: function (i) { if (!has(i.timelockH)) return null; return i.timelockH < 24 ? 'red' : i.timelockH < 48 ? 'blue' : 'green'; },
+  c3: function (i) { if (!has(i.powers)) return null; return i.powers <= 0 ? 'green' : i.powers === 1 ? 'blue' : 'red'; },
+  s1: function (i) { if (!has(i.hidden)) return null; return i.hidden < 0.25 ? 'green' : i.hidden <= 1 ? 'blue' : 'red'; },
+  s2: function (i) { if (!has(i.emitRate)) return null; return i.emitRate < 0.04 ? 'green' : i.emitRate <= 0.10 ? 'blue' : 'red'; },
+  s3: function (i) { if (!has(i.insiderOut)) return null; return i.insiderOut < 0.5 ? 'green' : i.insiderOut <= 1.5 ? 'blue' : 'red'; },
+  s4: function (i) { if (!has(i.unlock90)) return null; if (i.cliff) return 'red'; return i.unlock90 < 3 ? 'green' : i.unlock90 <= 8 ? 'blue' : 'red'; },
+  e1: function (i) { if (!has(i.realYield)) return null; return i.realYield >= 2 ? 'green' : i.realYield >= 1 ? 'blue' : 'red'; },
+  e2: function (i) {
+    if (!has(i.phase)) return null;
+    if (i.phase === 'declining' || i.phase === 'postcrash' || (has(i.spike) && i.spike > 4.5)) return 'red';
+    if (i.phase === 'ignition' || i.phase === 'slowing' || i.phase === 'notrend' || (has(i.spike) && i.spike >= 2.5)) return 'blue';
+    return 'green';
+  },
+  e3: function (i) { if (has(i.holderShare) && i.holderShare < 5) return 'red'; if (!has(i.access)) return null; return i.access === 'direct' ? 'green' : i.access === 'stake' ? 'blue' : 'red'; },
+  l1: function (i) { if (!has(i.slip)) return null; return i.slip < 1 ? 'green' : i.slip <= 2.5 ? 'blue' : 'red'; },
+  l2: function (i) { if (!has(i.mcapM)) return null; return i.mcapM > 20 ? 'green' : i.mcapM >= 3 ? 'blue' : 'red'; },
+  l3: function (i) { if (!has(i.whale)) return null; return i.whale < 2 ? 'green' : i.whale <= 5 ? 'blue' : 'red'; },
+  h1: function (i) { if (!has(i.run30)) return null; if (i.run30 > 70 || (i.run30 >= 53 && has(i.athDist) && i.athDist <= 10)) return 'red'; return i.run30 >= 30 ? 'blue' : 'green'; },
+  h2: function (i) { if (!has(i.strength)) return null; return i.strength >= 1 ? 'green' : i.strength >= 0.5 ? 'blue' : 'red'; },
+  y1: function (i) { if (!has(i.team)) return null; return { doxxed: 'green', anon: 'blue', anonfail: 'red' }[i.team]; },
+  y2: function (i) { if (!has(i.audit)) return null; return { deployed: 'green', sister: 'blue', none: 'red' }[i.audit]; },
+  y3: function (i) { if (!has(i.track)) return null; return { clean: 'green', repaid: 'blue', dead: 'red' }[i.track]; }
+};
+
+// Risk 0..1 per check, only used inside the score. Its edges line up with the bands (0.25 and 0.6).
 var RISK = {
-  c1: function (i) { if (!has(i.admin)) return null; var a = i.admin; if (a.kind === 'eoa') return 1; if (a.kind === 'none') return 0; if (a.m === 1) return 1; return (a.m < 3 || a.m / a.n < 0.5) ? 0.6 : 0.15; },
-  c2: function (i) { if (!has(i.timelockH)) return null; var h = i.timelockH; return h <= 0 ? 1 : h < 24 ? 0.6 : h < 48 ? 0.25 : 0.1; },
+  c1: function (i) { if (!has(i.admin)) return null; var a = i.admin; if (a.kind === 'eoa') return 1; if (a.kind === 'none') return 0; if (a.m <= 1) return 1; return (a.m < 3 || a.m / a.n < 0.5) ? 0.4 : 0.15; },
+  c2: function (i) { if (!has(i.timelockH)) return null; var h = i.timelockH; return h <= 0 ? 1 : h < 24 ? 0.6 : h < 48 ? 0.4 : 0.1; },
   c3: function (i) { return has(i.powers) ? Math.min(1, 0.35 * i.powers) : null; },
   s1: function (i) { return has(i.hidden) ? knots([[0, 0], [0.25, 0.25], [1, 0.6], [3, 1]])(i.hidden) : null; },
   s2: function (i) { return has(i.emitRate) ? knots([[0, 0], [0.04, 0.25], [0.10, 0.6], [0.20, 1]])(i.emitRate) : null; },
@@ -685,29 +767,43 @@ var RISK = {
   h2: function (i) { return has(i.strength) ? knots([[0.3, 1], [0.5, 0.6], [1, 0.25], [1.5, 0]])(i.strength) : null; },
   y1: function (i) { return has(i.team) ? { doxxed: 0.1, anon: 0.5, anonfail: 0.8 }[i.team] : null; },
   y2: function (i) { return has(i.audit) ? { deployed: 0.1, sister: 0.5, none: 0.8 }[i.audit] : null; },
-  y3: function (i) { return has(i.track) ? i.track : null; }
+  y3: function (i) { return has(i.track) ? { clean: 0.1, repaid: 0.4, dead: 0.7 }[i.track] : null; }
 };
 var PILLAR_OF = { c1: 'control', c2: 'control', c3: 'control', s1: 'supply', s2: 'supply', s3: 'supply', s4: 'supply', e1: 'earnings', e2: 'earnings', e3: 'earnings', l1: 'liquidity', l2: 'liquidity', l3: 'liquidity', h1: 'heat', h2: 'heat', y1: 'history', y2: 'history', y3: 'history' };
-function verdict(r) { return r === null ? 'unknown' : r >= 0.6 ? 'red' : r >= 0.25 ? 'blue' : 'green'; }
-function pillarF(rs, fill) { // 60% worst + 40% average; unknown counts as `fill`
+var REPORT_CHECKS = ['e3', 'y1', 'y2', 'y3'];
+// Data quality: too little history or stale data make the time-based checks "not checked" (and they widen the range).
+var NEEDS_HISTORY = ['e2', 'h1', 'h2'];                       // apps with under 180 days of data
+var GOES_STALE = ['e1', 'e2', 'l1', 'l2', 'h1', 'h2'];        // latest data point over 10 days old
+function verdict(r) { return r === null ? 'unknown' : r >= 0.6 ? 'red' : r >= 0.25 ? 'blue' : 'green'; }   // areas only
+function pillarF(rs, fill) { // 60% worst + 40% average; a check that is not checked counts as `fill`
+  if (!rs.length) return fill;
   var v = rs.map(function (r) { return r === null ? fill : r; });
   var max = Math.max.apply(null, v), mean = v.reduce(function (a, b) { return a + b; }, 0) / v.length;
   return 0.6 * max + 0.4 * mean;
 }
 function score(input) {
-  var r = {}; Object.keys(RISK).forEach(function (k) { r[k] = RISK[k](input); });
+  var why = {}, r = {}, bands = {};
+  Object.keys(RISK).forEach(function (k) { r[k] = RISK[k](input); bands[k] = BAND[k](input); });
+  if (has(input.historyDays) && input.historyDays < 180) NEEDS_HISTORY.forEach(function (k) { r[k] = null; bands[k] = null; why[k] = 'history'; });
+  if (has(input.dataLagDays) && input.dataLagDays > 10) GOES_STALE.forEach(function (k) { r[k] = null; bands[k] = null; why[k] = 'stale'; });
+  var na = input.na || [];   // checks that do not apply to this app (for example a timelock on a chain without one)
+  na.forEach(function (k) { r[k] = null; bands[k] = 'na'; why[k] = 'na'; });
+  Object.keys(r).forEach(function (k) { if (r[k] === null && !why[k]) why[k] = REPORT_CHECKS.indexOf(k) > -1 ? 'report' : 'scan'; });
   function total(fill) {
     return PILLARS.map(function (p) {
-      var rs = Object.keys(PILLAR_OF).filter(function (k) { return PILLAR_OF[k] === p.id; }).map(function (k) { return r[k]; });
+      var rs = Object.keys(PILLAR_OF).filter(function (k) { return PILLAR_OF[k] === p.id && na.indexOf(k) < 0; }).map(function (k) { return r[k]; });
       var f = pillarF(rs, fill);
       return { id: p.id, f: f, pts: f * p.w };
     });
   }
   var mid = total(0.5), lo = total(0), hi = total(1);
   var sum = function (a) { return a.reduce(function (s, p) { return s + p.pts; }, 0); };
-  var floor = input.critical ? 8 : 1;
+  // Floors: two facts from the contract scan (not checks of their own; they show in the Admin powers tooltip).
+  var floored = !!(input.unverifiedSource || input.eoaMint);
+  var floor = floored ? 8 : 1;
   var lvl = function (s) { return Math.min(10, Math.max(floor, Math.round(s))); };
-  return { r: r, pillars: mid, points: sum(mid), level: lvl(sum(mid)), low: lvl(sum(lo)), high: lvl(sum(hi)), unknown: Object.keys(r).filter(function (k) { return r[k] === null; }) };
+  var unknown = Object.keys(r).filter(function (k) { return r[k] === null && na.indexOf(k) < 0; });
+  return { r: r, bands: bands, why: why, pillars: mid, points: sum(mid), level: lvl(sum(mid)), low: lvl(sum(lo)), high: lvl(sum(hi)), unknown: unknown, floored: floored };
 }
 
 function $(s, r) { return (r || document).querySelector(s); }
@@ -716,37 +812,40 @@ function ic(id) { return '<svg class="ic" viewBox="0 0 24 24" aria-hidden="true"
 function esc(s) { return String(s).replace(/[&<>"]/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]; }); }
 
 var CHECKS = [
-  { id: 'c1', p: 'control', icon: 'key', name: 'Admin key', q: 'Who can change the rules?', tier: 'auto', map: 1, g: 'Safe with 3+ signers', b: 'Safe under 3 signers', r: 'EOA, or a 1-signer Safe', need: 'a contract scan', chip: '1 of 3' },
-  { id: 'c2', p: 'control', icon: 'hourglass', name: 'Timelock', q: 'Delay before a change lands', tier: 'auto', map: 1, g: '48 h or more', b: 'under 48 h', r: 'none, or 0 s', need: 'a contract scan', chip: '0 s' },
+  { id: 'c1', p: 'control', icon: 'key', name: 'Admin key', q: 'Who can change the rules?', tier: 'auto', map: 1, g: 'Safe: 3+ signatures, half the owners', b: 'Safe: 2 signatures, or under half', r: 'EOA, or 1 signature', need: 'a contract scan', chip: '1 of 3' },
+  { id: 'c2', p: 'control', icon: 'hourglass', name: 'Timelock', q: 'Delay before a change lands', tier: 'auto', map: 1, g: '48 h or more', b: '24–48 h', r: 'under 24 h, or none', need: 'a contract scan', chip: '0 s' },
   { id: 'c3', p: 'control', icon: 'power', name: 'Admin powers', q: 'Mint, pause, upgrade', tier: 'auto', g: 'none, or gated', b: 'one power', r: 'two or more', need: 'a contract scan', chip: 'upgrade + pause' },
-  { id: 's1', p: 'supply', icon: 'iceberg', name: 'Hidden supply', q: 'Tokens outside the float ÷ float', tier: 'auto', map: 1, g: 'under 0.25×', b: '0.25–1×', r: 'over 1×', need: 'a holder scan', chip: '11.2× float' },
+  { id: 's1', p: 'supply', icon: 'iceberg', name: 'Hidden supply', q: 'Tokens outside the float ÷ float', tier: 'auto', map: 1, g: 'under 0.25×', b: '0.25–1×', r: 'over 1×', need: 'a holder scan', chip: '11.8× float' },
   { id: 's2', p: 'supply', icon: 'printer', name: 'Emission rate', q: 'Weekly emissions ÷ float', tier: 'auto', g: 'under 4%', b: '4–10%', r: 'over 10%', need: 'emission data', chip: '12% a week' },
   { id: 's3', p: 'supply', icon: 'exit', name: 'Insider flow', q: 'Insider wallets to DEX or CEX, 30 d', tier: 'auto', map: 1, g: 'under 0.5% of float', b: '0.5–1.5%', r: 'over 1.5%', need: 'a holder scan', chip: 'none' },
   { id: 's4', p: 'supply', icon: 'calendar', name: 'Unlocks', q: 'Scheduled unlocks, next 90 d', tier: 'live', g: 'under 3%', b: '3–8%', r: 'over 8%, or a cliff', need: 'unlock data', chip: '0%' },
   { id: 'e1', p: 'earnings', icon: 'coins', name: 'Real yield', q: 'Revenue ÷ emissions at today’s price', tier: 'live', g: '2× or more', b: '1–2×', r: 'under 1×', need: 'emission data', chip: '1.3×' },
-  { id: 'e2', p: 'earnings', icon: 'pulse', name: 'Trend', q: 'Shape of the last 12 months', tier: 'live', g: 'steady or accelerating', b: 'ignition, or a 2.5–4.5× spike', r: 'declining, post-crash, spike over 4.5×', need: 'revenue history', chip: 'ignition' },
+  { id: 'e2', p: 'earnings', icon: 'pulse', name: 'Trend', q: 'Shape of the last 12 months', tier: 'live', g: 'steady or accelerating', b: 'ignition, slowing, no trend, or a 2.5–4.5× spike', r: 'declining, post-crash, or a spike over 4.5×', need: 'revenue history', chip: 'ignition' },
   { id: 'e3', p: 'earnings', icon: 'funnel', name: 'Reaches you', q: 'Does a buyer of this token get the revenue?', tier: 'report', g: 'directly', b: 'after a stake or lock', r: 'haircut, wrapper, or under 5% share', need: 'the report', chip: '−50% haircut' },
   { id: 'l1', p: 'liquidity', icon: 'drop', name: 'Slippage', q: 'What a $10K buy costs', tier: 'live', g: 'under 1%', b: '1–2.5%', r: 'over 2.5%', need: 'pool data', chip: '2.9%' },
   { id: 'l2', p: 'liquidity', icon: 'bars', name: 'Market cap', q: 'Today’s “Micro” flag', tier: 'live', g: 'over $20M', b: '$3–20M', r: 'under $3M', need: 'market data', chip: '$2.8M' },
   { id: 'l3', p: 'liquidity', icon: 'pie', name: 'Whales', q: 'Fresh wallets or top holders, % of float', tier: 'auto', g: 'under 2%', b: '2–5%', r: 'over 5%', need: 'a holder scan', chip: '8.4% of float' },
-  { id: 'h1', p: 'heat', icon: 'flame', name: 'Price run', q: '30-day change, distance to ATH', tier: 'live', g: 'under +30%', b: '+30–70%', r: 'over +70%, or +55% near ATH', need: 'price data', chip: '+74%' },
+  { id: 'h1', p: 'heat', icon: 'flame', name: 'Price run', q: '30-day change, distance to ATH', tier: 'live', g: 'under +30%', b: '+30–70%', r: 'over +70%, or +53% within 10% of ATH', need: 'price data', chip: '+74%' },
   { id: 'h2', p: 'heat', icon: 'scale', name: 'Strength 3M', q: 'Revenue growth ÷ price growth', tier: 'live', g: '1× or more', b: '0.5–1×', r: 'under 0.5×', need: 'revenue history', chip: '0.44×' },
   { id: 'y1', p: 'history', icon: 'ghost', name: 'Team', q: 'Who ships it?', tier: 'report', g: 'public team or entity', b: 'anonymous', r: 'anonymous, with failed projects', need: 'the report', chip: 'anonymous' },
   { id: 'y2', p: 'history', icon: 'audit', name: 'Audit', q: 'Is the deployed code audited?', tier: 'report', g: 'yes, deployed code', b: 'sister code only', r: 'none listed', need: 'the report', chip: 'none listed' },
   { id: 'y3', p: 'history', icon: 'skull', name: 'Track record', q: 'Exploits, relaunches, sister forks', tier: 'report', g: 'clean', b: 'old exploit, repaid', r: 'open exploit, or dead siblings', need: 'the report', chip: 'siblings dead' }
 ];
 var CK = {}; CHECKS.forEach(function (c) { CK[c.id] = c; });
+var _sc = new Map();
+function SC(inp) { if (!_sc.has(inp)) _sc.set(inp, score(inp)); return _sc.get(inp); }
+function VER(id, inp) { return SC(inp).bands[id] || 'unknown'; }
 var PW = {}; PILLARS.forEach(function (p) { PW[p.id] = p; });
-var VLAB = { green: 'GOOD', blue: 'CAUTION', red: 'BAD', unknown: 'NEEDS REPORT' };
-var VCOL = { green: 'var(--green)', blue: 'var(--blue)', red: 'var(--red)', unknown: 'var(--muted)', info: 'var(--line-2)' };
-var VBG = { green: 'var(--green-bg)', blue: 'var(--blue-bg)', red: 'var(--red-bg)', unknown: 'transparent', info: 'transparent' };
+var VLAB = { green: 'GOOD', blue: 'CAUTION', red: 'BAD', unknown: 'NEEDS REPORT', na: 'N/A' };
+var VCOL = { green: 'var(--green)', blue: 'var(--blue)', red: 'var(--red)', unknown: 'var(--muted)', na: 'var(--muted)', info: 'var(--line-2)' };
+var VBG = { green: 'var(--green-bg)', blue: 'var(--blue-bg)', red: 'var(--red-bg)', unknown: 'transparent', na: 'transparent', info: 'transparent' };
 
 /* ---- inputs ---- */
-var EXA = { admin: { kind: 'safe', m: 1, n: 3 }, timelockH: 0, powers: 2, hidden: 11.2, emitRate: 0.118, insiderOut: 0, unlock90: 0, cliff: false,
+var EXA = { admin: { kind: 'safe', m: 1, n: 3 }, timelockH: 0, powers: 2, hidden: 11.8, emitRate: 0.118, insiderOut: 0, unlock90: 0, cliff: false,
   realYield: 1.27, phase: 'ignition', spike: 3.0, holderShare: 100, access: null, slip: 2.9, mcapM: 2.8, whale: 8.4, run30: 74, athDist: 12, strength: 0.44,
   team: null, audit: 'none', track: null };
-var EXA_R = Object.assign({}, EXA, { access: 'haircut', team: 'anonfail', audit: 'sister', track: 0.7 });
-var BLUE = { admin: { kind: 'safe', m: 4, n: 7 }, timelockH: 24, powers: 0, hidden: 0.1, emitRate: 0.005, insiderOut: 0, unlock90: 0.5, realYield: 1.8, phase: 'steady', spike: 1.1, holderShare: 60, access: 'stake', slip: 0.3, mcapM: 2300, whale: 1, run30: 3, athDist: 45, strength: 0.8, team: 'doxxed', audit: 'deployed', track: 0.1 };
+var EXA_R = Object.assign({}, EXA, { access: 'haircut', team: 'anonfail', audit: 'sister', track: 'dead' });
+var BLUE = { admin: { kind: 'safe', m: 4, n: 7 }, timelockH: 24, powers: 0, hidden: 0.1, emitRate: 0.005, insiderOut: 0, unlock90: 0.5, realYield: 1.8, phase: 'steady', spike: 1.1, holderShare: 60, access: 'stake', slip: 0.3, mcapM: 2300, whale: 1, run30: 3, athDist: 45, strength: 0.8, team: 'doxxed', audit: 'deployed', track: 'clean' };
 var UNS = { admin: null, timelockH: null, powers: null, hidden: null, emitRate: 0.03, insiderOut: null, unlock90: 1, realYield: 0.8, phase: 'steady', spike: 1.2, holderShare: 40, access: null, slip: 2, mcapM: 8, whale: null, run30: 20, athDist: 40, strength: 0.9, team: null, audit: 'none', track: null };
 
 /* ---- tooltip texts for the example project (all made up) ---- */
@@ -754,7 +853,7 @@ var INST = {
   c1: { val: '1 of 3 signers can act alone', ctx: 'Safe v1.4.1. The vault holding 68% of the staked tokens sits behind 1 EOA.', src: 'ON-CHAIN', at: 'Sep 28' },
   c2: { val: 'Delay 0 s', ctx: 'The multisig is proposer, executor and admin of the timelock.', src: 'ON-CHAIN', at: 'Sep 28' },
   c3: { val: 'Upgrade and pause by admin', ctx: 'The token itself has no owner and no proxy. The voter, access hub and staking contracts do.', src: 'ON-CHAIN', at: 'Sep 28' },
-  s1: { val: '11.2× the float can exit', ctx: '246M tokens sit in staking. Exit takes 12 h at −50%.', src: 'ON-CHAIN', at: 'Sep 28' },
+  s1: { val: '11.8× the float can exit', ctx: '260M tokens sit in staking. Exit takes 12 h at −50%.', src: 'ON-CHAIN', at: 'Sep 28' },
   s2: { val: '12% of the float, every week', ctx: '2.6M tokens a week. The admin can move it ±25%.', src: 'ON-CHAIN', at: 'Sep 28' },
   s3: { val: 'No insider sells in 60 d', ctx: 'Admin-Safe signers only added liquidity or restaked.', src: 'INFERRED', at: 'Sep 28' },
   s4: { val: '0% unlocks in 90 d', ctx: 'Per DeFiLlama. The real overhang is staking exits, see Hidden supply.', src: 'DATA', at: 'Sep 28' },
@@ -765,7 +864,7 @@ var INST = {
   l2: { val: 'Micro: $2.8M', ctx: 'One larger trade moves the price.', src: 'DATA', at: 'Sep 28' },
   l3: { val: 'Fresh wallet holds 8.4% of float', ctx: 'Funded a month ago and built up since.', src: 'ON-CHAIN', at: 'Sep 28' },
   h1: { val: '+74% in 30 days', ctx: '12% below its all-time high.', src: 'DATA', at: 'Sep 28' },
-  h2: { val: '0.44× strength', ctx: 'Revenue ×1.9 while price ×4.3 over 3 months.', src: 'DATA', at: 'Sep 28' },
+  h2: { val: '0.44× strength', ctx: 'Revenue grew less than half as fast as the price over 3 months.', src: 'DATA', at: 'Sep 28' },
   y1: { val: 'Anonymous team', ctx: 'Four earlier forks of the same code are all down 99% or dead.', src: 'AI REPORT', at: 'Sep 28' },
   y2: { val: 'None listed', ctx: 'DefiLlama shows no audit.', src: 'DATA', at: 'Sep 28' },
   y3: { val: 'All 4 earlier forks −99% or dead', ctx: 'One of them relaunched on a new chain with no migration for old holders.', src: 'AI REPORT', at: 'Sep 28' }
@@ -795,11 +894,16 @@ function tipHTML(s) {
 }
 function specForCheck(coin, id, mode) {
   var c = CK[id], inp = mode === 'ready' ? EXA_R : INPUT_OF[coin];
-  var r = RISK[id](inp), v = verdict(r);
-  var base = { icon: c.icon, name: c.name, v: v, pill: v === 'unknown' ? (c.tier === 'report' ? 'NEEDS REPORT' : 'NOT SCANNED') : VLAB[v] };
-  if (v === 'unknown') return c.tier === 'report'
-    ? Object.assign(base, { val: 'Needs the Degen report', ctx: 'Ask for the report at the bottom to fill this in.', src: 'ASK FOR REPORT', at: '' })
-    : Object.assign(base, { val: 'Not scanned yet', ctx: 'Needs ' + c.need + '.', src: 'NEEDS SCAN', at: '' });
+  var r = RISK[id](inp), v = VER(id, inp);
+  if (v === 'na') return { icon: c.icon, name: c.name, v: 'na', pill: 'N/A', val: 'Does not apply', ctx: 'This app has no such thing, so the check is left out.', src: 'N/A', at: '' };
+  var why = SC(inp).why[id], base = { icon: c.icon, name: c.name, v: v, pill: v === 'unknown' ? ({ report: 'NEEDS REPORT', history: 'NEEDS HISTORY', stale: 'STALE DATA' }[why] || 'NOT SCANNED') : VLAB[v] };
+  if (v === 'unknown') {
+    if (why === 'history') return Object.assign(base, { val: 'Under six months of data', ctx: 'Too little history to judge this yet.', src: 'DATA', at: '' });
+    if (why === 'stale') return Object.assign(base, { val: 'Data is over 10 days old', ctx: 'This check waits for fresh data.', src: 'DATA', at: '' });
+    return why === 'report'
+      ? Object.assign(base, { val: 'Needs the Degen report', ctx: 'Ask for the report at the bottom to fill this in.', src: 'ASK FOR REPORT', at: '' })
+      : Object.assign(base, { val: 'Not scanned yet', ctx: 'Needs ' + c.need + '.', src: 'NEEDS SCAN', at: '' });
+  }
   if (coin === 'exa') {
     var t = (mode === 'ready' && INST_R[id]) || INST[id];
     return Object.assign(base, t);
@@ -839,7 +943,7 @@ window.addEventListener('scroll', hideTip, true);
 
 /* ---- flag buttons ---- */
 function flBtn(coin, id, mode) {
-  var inp = mode === 'ready' ? EXA_R : INPUT_OF[coin], v = verdict(RISK[id](inp)), c = CK[id];
+  var inp = mode === 'ready' ? EXA_R : INPUT_OF[coin], v = VER(id, inp), c = CK[id];
   return '<button type="button" class="fl ' + v + '" data-coin="' + coin + '" data-check="' + id + '" data-mode="' + (mode || 'ask') + '" aria-label="' + esc(c.name + ', ' + VLAB[v]) + '">' + ic(c.icon) + '</button>';
 }
 /* ---- table ---- */
@@ -872,16 +976,16 @@ document.addEventListener('click', function (e) {
   var d = $('#drawer'); if (d && d.scrollIntoView) d.scrollIntoView({ behavior: 'smooth', block: 'start' });
 });
 $('#legend2').innerHTML =
-  '<span><span class="sg10"><i class="f green"></i><i class="f green"></i><i class="f green"></i><i class="f blue"></i><i class="f blue"></i><i class="f blue"></i><i class="f red"></i><i class="f red"></i><i class="h"></i><i></i></span>Degen level. 1–3 green, 4–6 blue, 7–10 red, hatched = not fully checked.</span>';
+  '<span><span class="sg10"><i class="f green"></i><i class="f green"></i><i class="f green"></i><i class="f blue"></i><i class="f blue"></i><i class="f blue"></i><i class="f red"></i><i class="f red"></i><i class="h"></i><i></i></span>Degen level. 1–3 green, 4–6 blue, 7–10 red, dashed = not fully checked.</span>';
 function topThree(coin) {
   var inp = INPUT_OF[coin];
-  return CHECKS.map(function (c) { return { c: c, r: RISK[c.id](inp) }; }).filter(function (x) { return x.r !== null; })
+  return CHECKS.map(function (c) { return { c: c, r: SC(inp).r[c.id] }; }).filter(function (x) { return x.r !== null; })
     .sort(function (a, b) { return (b.r - a.r) || (PW[b.c.p].w - PW[a.c.p].w); }).slice(0, 3);
 }
 function miniSpec(k) {
   var s = score(INPUT_OF[k]), b = band(s.level), names = topThree(k).map(function (x) { return x.c.name; });
-  var ctx = k === 'exa' ? '1 of 3 signers · 0 s timelock · 11.2× the float' : s.unknown.length ? s.unknown.length + ' checks not scanned yet. Range ' + s.low + '–' + s.high + '.' : 'All 18 checks are in.';
-  return { name: 'Degen level ' + s.level + '/10', v: b, pill: BAND[b][0].toUpperCase(), val: (b === 'green' ? 'Nothing red. Closest: ' : 'Worst: ') + names.join(' · '), ctx: ctx, src: 'CLICK THE ROW FOR ALL 18', at: '' };
+  var ctx = k === 'exa' ? '1 of 3 signers · 0 s timelock · 11.8× the float' : s.unknown.length ? s.unknown.length + ' checks not scanned yet. Range ' + s.low + '–' + s.high + '.' : 'All 18 checks are in.';
+  return { name: 'Degen level ' + s.level + '/10', v: b, pill: LEVEL_TXT[b][0].toUpperCase(), val: (b === 'green' ? 'Nothing red. Closest: ' : 'Worst: ') + names.join(' · '), ctx: ctx, src: 'CLICK THE ROW FOR ALL 18', at: '' };
 }
 function fingerprint(coin, mode) {
   var inp = mode === 'ready' ? EXA_R : INPUT_OF[coin], s = score(inp);
@@ -913,10 +1017,10 @@ $('#filters').addEventListener('click', function (e) { var b = e.target.closest(
 
 /* ---- degen panel ---- */
 function band(l) { return l <= 3 ? 'green' : l <= 6 ? 'blue' : 'red'; }
-var BAND = { green: ['Blue chip', 'Boring on purpose.'], blue: ['Spicy', 'Size it small.'], red: ['Casino', 'Only money you can lose.'] };
+var LEVEL_TXT = { green: ['Blue chip', 'Boring on purpose.'], blue: ['Spicy', 'Size it small.'], red: ['Casino', 'Only money you can lose.'] };
 function panelHTML(s, opt) {
   opt = opt || {};
-  var b = band(s.level), bl = BAND[b];
+  var b = band(s.level), bl = LEVEL_TXT[b];
   var meter = '';
   for (var i = 1; i <= 10; i++) meter += '<i class="' + (i <= s.level ? 'f ' + band(i) : i <= s.high ? 'h' : '') + '"></i>';
   var rng = s.low === s.high ? (opt.note || 'All 18 checks in.') : 'Range ' + s.low + '–' + s.high + ' · ' + unkText(s);
@@ -953,12 +1057,12 @@ function checksTableHTML(mode) {
   var rows = PILLARS.map(function (p) {
     var cs = CHECKS.filter(function (c) { return c.p === p.id; });
     var circles = cs.map(function (c) { return flBtn('exa', c.id, mode); }).join('');
-    var known = cs.map(function (c) { return { c: c, r: RISK[c.id](inp) }; }).filter(function (x) { return x.r !== null; }).sort(function (a, b) { return b.r - a.r; });
+    var known = cs.map(function (c) { return { c: c, r: SC(inp).r[c.id] }; }).filter(function (x) { return x.r !== null; }).sort(function (a, b) { return b.r - a.r; });
     var w = known[0], txt;
     if (!w) txt = '<span class="ct-t unknown"><i>Needs the report</i></span>';
     else {
       var chip = w.c.id === 'y2' ? (mode === 'ready' ? 'sister code only' : 'none listed') : w.c.chip;
-      txt = '<span class="ct-t ' + verdict(w.r) + '"><b>' + w.c.name + '</b> <i>' + esc(chip) + '</i></span>';
+      txt = '<span class="ct-t ' + VER(w.c.id, inp) + '"><b>' + w.c.name + '</b> <i>' + esc(chip) + '</i></span>';
     }
     return '<div class="ct-r"><span class="ct-p">' + p.name + '</span><span class="ct-i">' + circles + '</span>' + txt + '</div>';
   }).join('');
@@ -975,7 +1079,7 @@ function reportHTML(mode) {
   }
   var vb = band(score(EXA_R).level);
   var filled = [['e3', 'Reaches you: stake needed, −50% haircut'], ['y1', 'Team: anonymous'], ['y2', 'Audit: sister code only'], ['y3', 'Track record: all 4 earlier forks dead or −99%']].map(function (x) {
-    var c = CK[x[0]], v = verdict(RISK[x[0]](EXA_R));
+    var c = CK[x[0]], v = VER(x[0], EXA_R);
     return '<div class="i ' + v + '" data-coin="exa" data-check="' + x[0] + '" data-mode="ready" tabindex="0">' + ic(c.icon) + '<span>' + esc(x[1]) + '</span></div>';
   }).join('');
   return '<div class="rc ready"><h4>' + ic('doccheck') + 'Degen report<span class="dt">Sep 28</span></h4>' +
@@ -1006,9 +1110,12 @@ function supplyHTML(s) {
     '<div class="big-n">2.6M tokens<small>printed every week = 12% of the float</small></div></div>';
 }
 function unkText(s) {
-  var rep = s.unknown.filter(function (k) { return CK[k].tier === 'report'; }).length, scan = s.unknown.length - rep, parts = [];
-  if (rep) parts.push(rep + (rep === 1 ? ' check needs' : ' checks need') + ' the report');
-  if (scan) parts.push(scan + ' not scanned');
+  var n = { report: 0, scan: 0, history: 0, stale: 0 }, parts = [];
+  s.unknown.forEach(function (k) { n[s.why[k]]++; });
+  if (n.report) parts.push(n.report + (n.report === 1 ? ' check needs' : ' checks need') + ' the report');
+  if (n.history) parts.push(n.history + ' need more history');
+  if (n.stale) parts.push(n.stale + ' have stale data');
+  if (n.scan) parts.push(n.scan + ' not scanned');
   return parts.join(', ');
 }
 function meterSegs(s) {
@@ -1016,15 +1123,15 @@ function meterSegs(s) {
   return m;
 }
 function stripHTML(s, note) {
-  var b = band(s.level), bl = BAND[b];
+  var b = band(s.level), bl = LEVEL_TXT[b];
   var rng = s.low === s.high ? (note || 'All 18 checks in.') : 'Range ' + s.low + '–' + s.high + ' · ' + unkText(s);
   return '<div class="dstrip ' + b + '"><div class="ds-top"><div class="ds-num">' + s.level + '<small>/10</small></div><div class="ds-lab"><b>Degen level</b><span>' + bl[1] + '</span><em>' + rng + '</em></div></div>' +
     '<div><div class="m10">' + meterSegs(s) + '</div><div class="m10-s"><span>Blue chip</span><span>Casino</span></div></div></div>';
 }
 function tilesHTML() {
   var T = [['Market cap', '$2.8M', 'only the 8% float', 'c-red'], ['Revenue 30d', '$1.9M', 'net +$800K', 'c-green'], ['Emissions 30d', '$1.1M', '≈ $1.5M at today’s price', 'c-blue'],
-    ['FDV', '$36M', '8% of tokens out', 'c-blue'], ['Upside', '50x', '≈6× on effective cap', 'c-blue'], ['Strength 3M', '0.44x', 'price ran ahead of revenue', 'c-red']];
-  return '<div class="tiles6">' + T.map(function (x) { return '<div class="tl"><span class="k">' + x[0] + '</span><span class="v ' + x[3] + '">' + x[1] + '</span><span class="s">' + x[2] + '</span></div>'; }).join('') + '</div>';
+    ['FDV', '$36M', '8% of tokens out', 'c-blue'], ['Upside', '50x', '≈6× on effective cap', 'c-green', 'cap-blue'], ['Strength 3M', '0.44x', 'price ran ahead of revenue', 'c-red']];
+  return '<div class="tiles6">' + T.map(function (x) { return '<div class="tl"><span class="k">' + x[0] + '</span><span class="v ' + x[3] + '">' + x[1] + '</span><span class="s ' + (x[4] || '') + '">' + x[2] + '</span></div>'; }).join('') + '</div>';
 }
 function monthlyHTML() {
   var L = ['09', '10', '11', '12', '01', '02', '03', '04', '05', '06', '07', '08', '09'];
@@ -1040,9 +1147,10 @@ function trajHTML() {
     var h = Math.max(1.5, q[1] / 80 * 100), n = q[1] >= 10 ? Math.round(q[1]) : q[1].toFixed(1);
     return '<div class="' + (i === 3 ? 'lastq' : '') + '"><span class="n">+' + n + '%</span><div class="col"><i style="height:' + h + '%;' + (i < 3 ? 'opacity:.6' : '') + '"></i></div><span class="l">' + q[0] + '</span></div>';
   }).join('');
+  var tv = VER('e2', EXA);
   return '<div class="blk"><div class="blk-h"><b>Trajectory</b><span>at 100% of its 1-year high</span></div>' +
-    '<div class="ph"><span class="on">Ignition</span><span class="ar">→</span><span>Accelerating</span><span class="ar">→</span><span>Slowing</span></div>' +
-    '<div class="qb" role="img" aria-label="Revenue growth per month by quarter: 9 percent, 0.4, 2, then 61 percent in the last three months.">' + cols + '</div>' +
+    '<div class="ph ' + tv + '"><span class="on">Ignition</span><span class="ar">→</span><span>Accelerating</span><span class="ar">→</span><span>Slowing</span></div>' +
+    '<div class="qb ' + tv + '" role="img" aria-label="Revenue growth per month by quarter: 9 percent, 0.4, 2, then 61 percent in the last three months.">' + cols + '</div>' +
     '<p class="cap">Flat for nine months, then <b>+61% a month</b> over the last three. Bars show growth per month.</p></div>';
 }
 function renderDrawer() {
