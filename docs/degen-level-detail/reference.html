@@ -415,11 +415,18 @@ details.dev > .devbody { padding: 6px 26px 34px; display: grid; gap: 64px; }
 .mr-t { font: 700 14px var(--font-mono); letter-spacing: .14em; text-transform: uppercase; color: var(--muted); }
 .mr-card { background: #0f1926; border: 1px solid var(--line); border-radius: 12px; padding: 18px 20px 16px; display: grid; gap: 14px; min-width: 0; }
 .mr-cap { font: 400 14px var(--font-mono); color: #5f7391; }
-.mr-bars { display: flex; align-items: flex-end; gap: 6px; height: 150px; }
-.mr-bars i { flex: 1; min-width: 0; background: #03b4e0; border-radius: 3px; display: block; }
-.mr-bars i.part { background: repeating-linear-gradient(135deg, rgba(3, 180, 224, .6) 0 2px, transparent 2px 6px); box-shadow: inset 0 0 0 1px rgba(3, 180, 224, .18); }
+.mr-bars { display: flex; align-items: flex-end; gap: 6px; height: 168px; }
+.mc { flex: 1; min-width: 0; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; gap: 5px; }
+.mv { font: 600 12.5px var(--font-mono); letter-spacing: -.03em; color: var(--fg-2); }
+.mc.best .mv { color: var(--fg); }
+.mc.part .mv { color: var(--accent); }
+.mr-note { font-size: 16.5px; color: var(--fg-2); margin: 0; }
+.mr-note b { color: var(--accent); font-weight: 700; }
+.mr-bars i { width: 100%; min-width: 0; background: #03b4e0; border-radius: 3px; display: block; }
+.mc.part i { background: repeating-linear-gradient(135deg, rgba(3, 180, 224, .6) 0 2px, transparent 2px 6px); box-shadow: inset 0 0 0 1px rgba(3, 180, 224, .18); }
 .mr-x { display: flex; gap: 6px; }
 .mr-x span { flex: 1; min-width: 0; text-align: center; font: 400 13px var(--font-body); color: var(--muted); }
+.mr-x em { display: block; font-style: normal; font-size: 11px; color: var(--muted); opacity: .8; }
 
 .rc h4 .dt { margin-left: auto; font: 500 13px var(--font-mono); color: var(--muted); }
 .rr { display: grid; gap: 0; }
@@ -572,9 +579,9 @@ footer { font: 500 13px var(--font-mono); color: var(--muted); border-top: 1px s
       <div class="notes">
         <div class="nt"><span class="n">1</span><div><b>Degen level on top</b><span>One number, one meter.</span></div></div>
         <div class="nt"><span class="n">2</span><div><b>The chart, right under it</b><span>Same line as in the row, same colour, with a link to Chart Analyzer.</span></div></div>
-        <div class="nt"><span class="n">3</span><div><b>One table for all 18 checks</b><span>A row per area, colored circles, the worst reason next to it.</span></div></div>
-        <div class="nt"><span class="n">4</span><div><b>Then the business</b><span>Monthly revenue, Trajectory, Supply with the minting.</span></div></div>
-        <div class="nt"><span class="n">5</span><div><b>Report card sits at the bottom</b><span>Ready: a calm write-up, and the dashed circles fill in.</span></div></div>
+        <div class="nt"><span class="n">3</span><div><b>Monthly revenue, every month's number</b><span>Right under the chart: 13 bars, each with its $M above it.</span></div></div>
+        <div class="nt"><span class="n">4</span><div><b>One table for all 18 checks, then Supply</b><span>A row per area, colored circles. Supply carries the minting.</span></div></div>
+        <div class="nt"><span class="n">5</span><div><b>Numbers, Trajectory, then the report</b><span>Report card sits at the bottom: a calm write-up, and the dashed circles fill in.</span></div></div>
       </div>
       <div>
         <div class="seg-l">Chart Analyzer score of this coin</div>
@@ -1348,12 +1355,14 @@ function tilesHTML() {
   return '<div class="tiles6">' + T.map(function (x) { return '<div class="tl"><span class="k">' + x[0] + '</span><span class="v ' + x[3] + '">' + x[1] + '</span><span class="s ' + (x[4] || '') + '">' + x[2] + '</span></div>'; }).join('') + '</div>';
 }
 function monthlyHTML() {
-  var L = ['09', '10', '11', '12', '01', '02', '03', '04', '05', '06', '07', '08', '09'];
-  var V = [900, 550, 1300, 750, 620, 600, 660, 520, 420, 550, 560, 950, 1800], max = 1800;
-  var bars = V.map(function (v, i) { return '<i class="' + (i === 12 ? 'part' : '') + '" style="height:' + Math.round(v / max * 100) + '%" title="$' + (v / 1000).toFixed(2) + 'M"></i>'; }).join('');
-  return '<div class="mr"><div class="mr-t">Monthly revenue</div><div class="mr-card"><p class="mr-cap">Revenue (monthly sum) · the latest month is partial (hatched)</p>' +
-    '<div class="mr-bars" role="img" aria-label="Monthly revenue from September 2025 to September 2026. September 2026 is the highest and still partial.">' + bars + '</div>' +
-    '<div class="mr-x">' + L.map(function (m) { return '<span>' + m + '</span>'; }).join('') + '</div></div></div>';
+  var L = ['Sep', 'Oct', 'Nov', 'Dec', 'Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep'], YR = { 0: '’25', 4: '’26' };
+  var V = [900, 550, 1300, 750, 620, 600, 660, 520, 420, 550, 560, 950, 1800], max = 1800, best = 2;
+  var fmt = function (v) { return (v / 1000).toFixed(2); };
+  var cols = V.map(function (v, i) { return '<div class="mc' + (i === 12 ? ' part' : '') + (i === best ? ' best' : '') + '"><span class="mv">' + fmt(v) + '</span><i style="height:' + Math.max(4, Math.round(v / max * 140)) + 'px"></i></div>'; }).join('');
+  return '<div class="mr"><div class="mr-t">Monthly revenue</div><div class="mr-card"><p class="mr-cap">Revenue per month, $M · the latest month is partial (hatched)</p>' +
+    '<div class="mr-bars" role="img" aria-label="Monthly revenue in millions of dollars, September 2025 to September 2026: ' + V.map(fmt).join(', ') + '. September 2026 is the highest and still partial.">' + cols + '</div>' +
+    '<div class="mr-x">' + L.map(function (m, i) { return '<span>' + m + '<em>' + (YR[i] || '&nbsp;') + '</em></span>'; }).join('') + '</div>' +
+    '<p class="mr-note">This month: <b>$1.8M so far</b>, <b>3.0×</b> the usual month ($0.61M).</p></div></div>';
 }
 function trajHTML() {
   var Q = [['9–12 mo ago', 9.1], ['6–9 mo ago', 0.4], ['3–6 mo ago', 1.6], ['last 3 mo', 61.2]];
@@ -1378,7 +1387,7 @@ function renderDrawer() {
     '<div class="dh"><div class="dh-t"><span class="logo">EX</span><div><h3>Example DEX</h3><span class="s">EXDX · Dexs</span></div><span class="x">' + ic('x') + '</span></div>' +
     '<p>A DEX on a smaller chain with vote-lock rewards. Every name and number here is made up.</p>' +
     '<div class="dh-b"><span class="webb">web ↗</span><button type="button" class="rg ' + glyph + '" data-custom="' + glyph + '" aria-label="Degen report status">' + ic(gicon) + '</button></div></div>' +
-    stripHTML(s, NOTE[m], PREV[m]) + czCard() + checksTableHTML(dmode) + tilesHTML() + monthlyHTML() + trajHTML() + supplyHTML(s) + reportHTML(dmode);
+    stripHTML(s, NOTE[m], PREV[m]) + czCard() + monthlyHTML() + checksTableHTML(dmode) + supplyHTML(s) + tilesHTML() + trajHTML() + reportHTML(dmode);
   $$('#seg button').forEach(function (b) { b.setAttribute('aria-pressed', String(b.dataset.m === dmode)); });
   var cta = $('#cta'); if (cta) cta.addEventListener('click', function () { setMode('gen'); });
   $$('[data-refresh]', el).forEach(function (b) { b.addEventListener('click', function () { setMode('gen'); }); });
