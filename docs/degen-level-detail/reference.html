@@ -323,7 +323,6 @@ details.acc .body { padding: 0 20px 18px; font-size: 16px; color: var(--fg-2); }
 
 /* ---------- v2: mini meter, strip, revenue, trajectory ---------- */
 .mini-dg { display: inline-flex; align-items: center; gap: 10px; padding: 6px 8px; border-radius: 10px; cursor: default; border: 1px solid transparent; }
-.mini-dg:hover, .mini-dg:focus-visible { border-color: var(--line-2); background: rgba(0, 150, 255, .06); outline: none; }
 .mini-dg b { font: 700 28px/1 var(--font-mono); color: var(--c); min-width: 20px; text-align: right; }
 .sg10 { display: grid; grid-template-columns: repeat(10, 8px); gap: 2px; flex: none; width: 98px; }
 .sg10 i { height: 18px; border-radius: 2px; background: var(--inset); border: 1px solid var(--line); display: block; }
@@ -419,6 +418,21 @@ details.dev > .devbody { padding: 6px 26px 34px; display: grid; gap: 64px; }
 .mr-bars i.part { background: repeating-linear-gradient(135deg, rgba(3, 180, 224, .6) 0 2px, transparent 2px 6px); box-shadow: inset 0 0 0 1px rgba(3, 180, 224, .18); }
 .mr-x { display: flex; gap: 6px; }
 .mr-x span { flex: 1; min-width: 0; text-align: center; font: 400 13px var(--font-body); color: var(--muted); }
+
+.rc h4 .dt { margin-left: auto; font: 500 13px var(--font-mono); color: var(--muted); }
+.rr { display: grid; gap: 10px; }
+.rr-v, .rr-b { border: 1px solid var(--c); background: var(--cb); border-radius: 12px; padding: 14px 18px; display: grid; gap: 6px; }
+.rr .k { font: 700 12px var(--font-mono); letter-spacing: .14em; text-transform: uppercase; color: var(--c); }
+.rr-v b { font-family: var(--font-display); font-weight: 400; font-size: 25px; line-height: 1.2; color: var(--fg); }
+.rr ul { list-style: none; margin: 0; padding: 0; display: grid; gap: 6px; font-size: 17px; }
+.rr li { display: flex; gap: 10px; align-items: baseline; }
+.rr li::before { font: 700 15px var(--font-mono); color: var(--c); flex: none; }
+.rr li.ok::before { content: "✓"; } .rr li.no::before { content: "✕"; }
+.rr-b p { margin: 0; font-size: 17px; color: var(--fg); }
+.rr-b p b { color: var(--c); }
+.rr-f { display: grid; gap: 8px; margin-top: 4px; }
+.rr-f .k { color: var(--muted); }
+.rr-f .row { display: flex; flex-wrap: wrap; gap: 8px; }
 /* ---------- build ---------- */
 .build { display: grid; grid-template-columns: repeat(auto-fit, minmax(min(300px, 100%), 1fr)); gap: 12px; }
 .bs { background: var(--card); border: 1px solid var(--line); border-radius: 14px; padding: 22px; display: grid; gap: 12px; align-content: start; }
@@ -473,7 +487,7 @@ footer { font: 500 13px var(--font-mono); color: var(--muted); border-top: 1px s
     <div class="sec-h">
       <div class="eyebrow">The row</div>
       <h2>A mini Degen panel, nothing more</h2>
-      <p>Hover the meter for the three worst reasons. Click the PHAR row to open its drawer below.</p>
+      <p>The meter is a picture, with no tooltip. Click the PHAR row to open its drawer below.</p>
     </div>
     <div class="tw"><table id="tbl">
       <thead><tr><th class="l">Project</th><th>Market cap</th><th>Revenue 30d</th><th>12 months</th><th>Upside</th><th>Strength 3M</th><th>Growth 6M</th></tr></thead>
@@ -494,7 +508,7 @@ footer { font: 500 13px var(--font-mono); color: var(--muted); border-top: 1px s
         <div class="nt"><span class="n">1</span><div><b>Degen level on top</b><span>One number, one meter.</span></div></div>
         <div class="nt"><span class="n">2</span><div><b>One table for all 18 checks</b><span>A row per area, colored circles, the worst reason next to it.</span></div></div>
         <div class="nt"><span class="n">3</span><div><b>Then the business</b><span>Earnings, Monthly revenue, Trajectory, Supply.</span></div></div>
-        <div class="nt"><span class="n">4</span><div><b>Report card sits at the bottom</b><span>Three states. Ready fills the dashed circles.</span></div></div>
+        <div class="nt"><span class="n">4</span><div><b>Report card sits at the bottom</b><span>Ready: a short verdict, and the dashed circles fill in.</span></div></div>
       </div>
       <div>
         <div class="seg" id="seg" role="group" aria-label="Report state">
@@ -830,7 +844,7 @@ function flBtn(coin, id, mode) {
 function miniHTML(k) {
   var s = score(INPUT_OF[k]), b = band(s.level), seg = '';
   for (var i = 1; i <= 10; i++) seg += '<i class="' + (i <= s.level ? 'f ' + band(i) : i <= s.high ? 'h' : '') + '"></i>';
-  return '<span class="mini-dg ' + b + '" tabindex="0" data-custom="mini-' + k + '" aria-label="Degen level ' + s.level + ' of 10"><b>' + s.level + '</b><span class="sg10">' + seg + '</span></span>';
+  return '<span class="mini-dg ' + b + '" role="img" aria-label="Degen level ' + s.level + ' of 10"><b>' + s.level + '</b><span class="sg10">' + seg + '</span></span>';
 }
 function bars(a) { var m = Math.max.apply(null, a); return '<span class="mini">' + a.map(function (v) { return '<i style="height:' + Math.max(8, Math.round(v / m * 34)) + 'px"></i>'; }).join('') + '</span>'; }
 function renderTable() {
@@ -957,24 +971,20 @@ function reportHTML(mode) {
   if (mode === 'gen') {
     return '<div class="rc gen"><h4>' + ic('doc') + 'Writing the report…</h4><ol class="steps" id="steps">' + STEPS.map(function (s) { return '<li>' + s + '</li>'; }).join('') + '</ol></div>';
   }
-  var L = [
-    ['What it is', 'Ve(3,3)-style DEX on Avalanche, built on the Ramses and Shadow code family.'],
-    ['Money', 'Swap fees on four big pools. About 97% goes to xPHAR voters.'],
-    ['Real or printed', 'Earns $2.2M, prints about $1.8M at today’s price.'],
-    ['Numbers', 'MC $3.0M · FDV $44M · float 7% · effective cap ≈ $86M.'],
-    ['Good', 'Clean token contract. Fees match three sources. No insider sells in 60 days.'],
-    ['Shady', '1-of-3 admin key, 0 s timelock. 73% of staked xPHAR on one EOA. Fresh wallet holds 9.8% of float.'],
-    ['The bet', 'Fees stay above $2M a month. Watch xPHAR exits.'],
-    ['Verdict', 'Real business, shaky door. Lottery ticket.']
-  ];
-  return '<div class="rc ready"><h4>' + ic('doccheck') + 'Degen report</h4><div>' +
-    L.map(function (l, i) { return '<div class="rl' + (i === 7 ? ' verdict' : '') + '"><span class="k">' + l[0] + '</span><span>' + l[1] + '</span></div>'; }).join('') + '</div>' +
-    '<div class="found"><span class="lab">The report filled in</span>' +
-    '<div class="i red">' + ic('funnel') + '<span>Reaches you: stake needed, −50% haircut</span></div>' +
-    '<div class="i red">' + ic('ghost') + '<span>Team: anonymous</span></div>' +
-    '<div class="i blue">' + ic('audit') + '<span>Audit: sister code only</span></div>' +
-    '<div class="i red">' + ic('skull') + '<span>Track record: all 4 sister forks dead or −99%</span></div></div>' +
-    '<span class="foot">Researched Sep 28 · sources linked · redo on: admin change, upgrade, revenue ±2×, unlock under 14 d</span></div>';
+  var vb = band(score(PHAR_R).level);
+  var filled = ['e3', 'y1', 'y2', 'y3'].map(function (id) {
+    var c = CK[id], v = verdict(RISK[id](PHAR_R)), txt = id === 'y2' ? 'sister code only' : c.chip;
+    return '<span class="cf ' + v + '" data-coin="phar" data-check="' + id + '" data-mode="ready" tabindex="0">' + ic(c.icon) + c.name + ' <i>' + esc(txt) + '</i></span>';
+  }).join('');
+  return '<div class="rc ready"><h4>' + ic('doccheck') + 'Degen report<span class="dt">Sep 28</span></h4>' +
+    '<div class="rr">' +
+    '<div class="rr-v ' + vb + '"><span class="k">Verdict</span><b>Real business, shaky door. Lottery ticket.</b></div>' +
+    '<div class="rr-b green"><span class="k">Good</span><ul><li class="ok">Clean token contract</li><li class="ok">Fees match three sources</li><li class="ok">No insider sells in 60 days</li></ul></div>' +
+    '<div class="rr-b red"><span class="k">Shady</span><ul><li class="no">1-of-3 admin key, 0 s timelock</li><li class="no">73% of staked xPHAR on one EOA</li><li class="no">Fresh wallet holds 9.8% of float</li></ul></div>' +
+    '<div class="rr-b blue"><span class="k">The bet</span><p>Fees stay above $2M a month. <b>Watch:</b> xPHAR exits.</p></div>' +
+    '<div class="rr-f"><span class="k">Filled in above</span><div class="row">' + filled + '</div></div>' +
+    '</div>' +
+    '<span class="foot">Redone when the admin key changes, a contract is upgraded, revenue moves ±2× or an unlock is near</span></div>';
 }
 function evHead(s, id) {
   var p = s.pillars.filter(function (x) { return x.id === id; })[0], v = verdict(p.f);
@@ -1050,7 +1060,6 @@ $('#copy').addEventListener('click', function () {
   catch (err) { var r = document.createRange(); r.selectNodeContents($('#code')); var s = getSelection(); s.removeAllRanges(); s.addRange(r); }
 });
 
-['phar', 'blue', 'unsc'].forEach(function (k) { CUSTOM['mini-' + k] = miniSpec(k); });
 renderTable(); renderCat(); renderScore(); renderDrawer();
 })();
 </script>

@@ -13,7 +13,7 @@
 
 **The detail.** It is a long stack, and the most useful pieces (Monthly revenue, Trajectory, "is the revenue real") are hard to find. New order, few words, big type, and **one table that shows which checks light up and which do not.**
 
-**The report.** The existing Degen report button stays, but moves to the very bottom of the detail. It becomes the place that fills in what data alone cannot (team, audits, track record, token mechanics).
+**The report.** The existing Degen report button stays, but moves to the very bottom of the detail. It does two things: it fills in the four checks that data alone cannot answer (team, audits, track record, token mechanics), and it shows a short verdict that a degen can take in at a glance, with no table and nothing that repeats the tiles above.
 
 The Degen level is the one place where several checks become one number. In Part 3 "no composite score" is about the Sectors themes only. Here the level is **display only: it is never a sort key, a filter, a gate, or an input to Top Picks, Degen picks or any fund.**
 
@@ -22,8 +22,8 @@ The Degen level is the one place where several checks become one number. In Part
 ### A. The row (Apps tab)
 
 1. **Every risk flag icon in the Project column is replaced by one mini meter:** the level as a number plus ten small segments — filled up to the level, **green 1–3, light blue 4–6, red 7–10**, hatched where the level is not fully certain (see B, range). The small "tradeable here" icon stays (it is a fact, not a risk).
-2. **Hover or keyboard focus** on the meter shows a tooltip of at most 20 words: "Degen level 8/10 · Casino", the **three worst checks by name**, and one line with their numbers ("1 of 3 signers · 0 s timelock · 13.7× the float"). No formulas.
-3. **Clicking the meter opens the coin's detail** like a click on the row.
+2. **No tooltip on the meter.** It is a picture, not a control; the row's other tooltips stay as they are.
+3. **Clicking the row (or the meter) opens the coin's detail**, and Enter does the same from the keyboard.
 4. **Nothing else is added to the row:** no report icon, no extra column. The report status lives in the detail only.
 5. The Legend lists the meter, the 18 check icons of C.3 and the four colours, at most 8 words each.
 
@@ -76,8 +76,8 @@ Seven checks already exist on the live page in some form, seven are new and full
 9. **Degen report card, at the very bottom, three states:**
    - *Not researched:* a dashed card, the button "Ask for Degen report", and the four dashed circles it will fill in (Reaches you, Team, Audit, Track record).
    - *Generating:* a few plain steps ticking off.
-   - *Ready:* the report's eight lines as on the live site today (What it is / Money / Real or printed / Numbers / Good / Shady / The bet / Verdict), then "The report filled in" listing the checks it just resolved, the date, and when it will be redone (admin change, contract upgrade, revenue ±2×, unlock under 14 days).
-   When a report is ready its circles turn from dashed to coloured and the level's range disappears.
+   - *Ready:* **no table.** Four coloured blocks, top to bottom, with a date in the card's corner: **Verdict** (one line, big, in the level's band colour), **Good** (at most 3 short lines, green), **Shady** (at most 3 short lines, red), **The bet** (one line plus the one metric to watch, light blue). Under them "Filled in above": the four checks the report just resolved, as coloured chips (icon, name, value), each with the same tooltip as its circle. One small line says when it will be redone (admin change, contract upgrade, revenue ±2×, unlock nearby). What the tiles, Earnings and the header already show (what it is, where the money comes from, the numbers) is not repeated.
+   When the report is ready, the four circles in the checks table turn from dashed to coloured (their tooltips say "AI report" and the date) and the level's range disappears.
 
 Sections of today's detail that are not listed (Weekly history, Upside over time, the Growth windows table, "How it's calculated") are not part of this redesign. Keep any you find useful as **collapsed rows between Supply and the report**, and make sure nothing runs past the panel's edge (today the last columns of the quarter table and the Growth windows table are cut off).
 
@@ -87,11 +87,11 @@ Green = good for a buyer, **light blue = caution** (as in today's Legend: amber 
 
 ### E. Agents
 
-The coin endpoint returns the level (`level`, `low`, `high`, `band`) and all 18 checks (`id`, `area`, `verdict`, `value`, `unit`, `source`, `as_of`), with machine codes in English, units and as-of times on every number. The compact ranked list carries the level only. llms.txt and the MCP coin tool mention them.
+The coin endpoint returns the level (`level`, `low`, `high`, `band`) and all 18 checks (`id`, `area`, `verdict`, `value`, `unit`, `source`, `as_of`), with machine codes in English, units and as-of times on every number. The compact ranked list carries the level only. The report endpoint keeps the full eight lines (What it is / Money / Real or printed / Numbers / Good / Shady / The bet / Verdict) for agents; the detail shows only the four blocks above. llms.txt and the MCP coin tool mention them.
 
 ## Acceptance — check each point
 
-1. **Apps rows:** no risk flag icons; one mini meter (number + ten segments, band colours, hatched range) plus the "tradeable here" icon; tooltip names the three worst checks in at most 20 words; keyboard focus works; a click opens the detail; the Chains tab is unchanged.
+1. **Apps rows:** no risk flag icons; one mini meter (number + ten segments, band colours, hatched range) plus the "tradeable here" icon; **no tooltip on the meter**; a click or Enter on the row opens the detail; the Chains tab is unchanged.
 2. **The level is 1–10 from the 18 checks**, computed in the background on every refresh, deterministic, with the rules and thresholds written down. A check that cannot run is "not checked" and widens the range; it is never counted as good.
 3. **Display only:** the level is not in the sort, a filter, a gate, Top Picks, Degen picks or any fund.
 4. **The detail is in the order of C**, with no area breakdown under the level strip.
@@ -99,7 +99,7 @@ The coin endpoint returns the level (`level`, `low`, `high`, `band`) and all 18 
 6. **One colour rule** on every number in the row, the tiles, the table and the charts (D).
 7. **Emissions at today's price** is shown; **Upside on the effective cap** is shown where the revenue goes to a staked or locked form of the token, with the valuation method in the note.
 8. **Monthly revenue** looks as today; **Trajectory** is the stepper with four quarter bars; **Supply** appears where data exists.
-9. **The Degen report** sits at the bottom with the three states, fills the dashed circles when ready and firms up the level.
+9. **The Degen report** sits at the bottom with the three states; when ready it shows Verdict / Good / Shady / The bet as four coloured blocks (no table, nothing repeated from above), lists the four checks it filled in, turns their circles from dashed to coloured and firms up the level.
 10. **The Legend** lists the meter, the 18 icons and the four colours, at most 8 words each.
 11. **The API and agent files** carry the level and the checks as in E.
 12. **Look:** the reference's look on desktop, big readable type, few words; nothing overflows the panel.
@@ -107,4 +107,4 @@ The coin endpoint returns the level (`level`, `low`, `high`, `band`) and all 18 
 
 ## Reference
 
-In this folder: [`reference.html`](reference.html) (open it in a browser: hover the meter, click the PHAR row, switch the report state above the detail, open "Behind the scenes" for the 18-check catalogue and the level function) and the screenshots [`row.png`](row.png), [`detail-not-researched.png`](detail-not-researched.png), [`detail-report-ready.png`](detail-report-ready.png), [`checks-table-tooltip.png`](checks-table-tooltip.png). Public repo `zakutana/gem-screener`, branch `spec-degen-level-detail`. The reference is a design mock, not code to copy.
+In this folder: [`reference.html`](reference.html) (open it in a browser: click the PHAR row, switch the report state above the detail, hover the circles, open "Behind the scenes" for the 18-check catalogue and the level function) and the screenshots [`row.png`](row.png), [`detail-not-researched.png`](detail-not-researched.png), [`detail-report-ready.png`](detail-report-ready.png), [`checks-table-tooltip.png`](checks-table-tooltip.png). Public repo `zakutana/gem-screener`, branch `spec-degen-level-detail`. The reference is a design mock, not code to copy.
