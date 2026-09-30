@@ -1,0 +1,382 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sector Cycle</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600;700&display=swap">
+<style>
+/* Layout: the same pieces as the live Sectors tab. A small mono eyebrow and a plain bold headline, one bordered chart card (two reading lines on top, then the chart), then the table in its own bordered box. Chart: 3M strength across, 1M momentum up, both against the average alt; one outlined bubble per sector with a thin tail to where it stood 4 weeks ago; phase names in mono caps in the four corners. Table grouped by phase. Dark-only, flat, no glows, like the tab. */
+:root {
+  --bg: #0a0e17; --card: #0d1520; --head: #111a28;
+  --line: rgba(0, 150, 255, .15); --hair: rgba(0, 150, 255, .08);
+  --fg: #e6edf7; --fg-2: #a9b8cc; --muted: #6f8199;
+  --accent: #00cfff; --green: #00ff88; --red: #ff4444;
+  --font-body: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, Menlo, monospace;
+  color-scheme: dark;
+}
+.p-emerging { --c: #00cfff; --cbg: rgba(0, 207, 255, .12); }
+.p-hot { --c: #00ff88; --cbg: rgba(0, 255, 136, .12); }
+.p-fading { --c: #a9b8cc; --cbg: rgba(169, 184, 204, .12); }
+.p-falling { --c: #ff4444; --cbg: rgba(255, 68, 68, .12); }
+* { box-sizing: border-box; }
+html { background: var(--bg); }
+body { margin: 0; background: var(--bg); color: var(--fg); font-family: var(--font-body); font-size: 15px; line-height: 1.48; }
+button { font: inherit; color: inherit; }
+h2, p { margin: 0; }
+.wrap { max-width: 1376px; margin: 0 auto; padding: 28px 16px 64px; display: grid; gap: 16px; grid-template-columns: minmax(0, 1fr); }
+
+.hc-head { display: flex; justify-content: space-between; align-items: flex-start; gap: 16px; margin-top: 6px; }
+.eyebrow { display: block; font: 400 10.5px/1.5 var(--font-mono); letter-spacing: .18em; text-transform: uppercase; color: var(--muted); margin-bottom: 4px; }
+.eyebrow .ph { color: var(--c); font-weight: 600; }
+.eyebrow .ar { margin: 0 6px; }
+.lb-title { font-weight: 700; font-size: clamp(22px, 2.4vw, 29.6px); line-height: 1.1; letter-spacing: -.022em; text-wrap: balance; }
+.ib { flex: none; width: 20px; height: 20px; border-radius: 50%; border: 1px solid var(--line); background: #0d1a2a; color: var(--accent); font: 600 10px var(--font-mono); padding: 0; cursor: help; display: inline-grid; place-items: center; text-transform: none; letter-spacing: 0; }
+.ib:hover, .ib:focus-visible { border-color: var(--accent); outline: none; }
+
+.herochart { background: var(--card); border: 1px solid var(--line); border-radius: 12px; padding: 20px 22px 14px; min-width: 0; }
+.scatter-read { font-size: 13px; font-weight: 600; line-height: 1.5; }
+.hc-sub { font: 400 12px/1.5 var(--font-mono); letter-spacing: .02em; color: var(--muted); margin-top: 2px; }
+.chartwrap { position: relative; margin-top: 10px; }
+#svg { display: block; width: 100%; overflow: visible; }
+.pl { position: absolute; pointer-events: none; display: grid; gap: 1px; }
+.pl b { font: 400 10.5px/1.4 var(--font-mono); letter-spacing: .18em; text-transform: uppercase; color: var(--c); }
+.pl small { font: 400 10px/1.4 var(--font-mono); color: var(--muted); }
+.pl.r { text-align: right; }
+.sector { outline: none; transition: opacity .18s; cursor: default; }
+.sector .ring { transition: fill-opacity .15s; }
+.sector:hover .ring, .sector:focus-visible .ring, .sector.on .ring { fill-opacity: .42; }
+.sector:focus-visible .ring { stroke: #fff; }
+.lbl { font: 600 11.5px var(--font-body); fill: var(--fg); paint-order: stroke; stroke: #0d1520; stroke-width: 4px; stroke-linejoin: round; pointer-events: none; }
+.tk { font: 400 10px var(--font-body); fill: var(--muted); }
+.axt { font: 400 10.5px var(--font-body); fill: var(--muted); }
+.lgd { font: 400 10.5px var(--font-body); fill: var(--muted); }
+.tail { opacity: .7; transition: opacity .15s; }
+.sector:hover .tail, .sector:focus-visible .tail, .sector.on .tail { opacity: 1; }
+.hl .sector { opacity: .22; }
+.hl .sector.on { opacity: 1; }
+.sector { animation: fade .5s ease both; animation-delay: calc(var(--i, 0) * 40ms); }
+.ready .sector { animation: none; }
+@keyframes fade { from { opacity: 0; } }
+
+.tw { background: var(--card); border: 1px solid var(--line); border-radius: 12px; overflow-x: auto; }
+table { width: 100%; min-width: 900px; border-collapse: collapse; }
+thead th { text-align: left; padding: 10px 9px; font: 600 10.5px var(--font-mono); letter-spacing: .07em; text-transform: uppercase; color: var(--muted); white-space: nowrap; background: var(--head); border-bottom: 1px solid var(--line); }
+thead th:first-child { padding-left: 16px; }
+thead th .ib { width: 14px; height: 14px; font-size: 9px; margin-left: 5px; vertical-align: middle; }
+th.num, td.num { text-align: right; }
+tbody td { padding: 9px; border-bottom: 1px solid var(--hair); vertical-align: middle; height: 57px; }
+tbody td:first-child { padding-left: 16px; }
+tr.gh td { height: auto; padding: 12px 16px 8px; background: var(--head); border-bottom: 1px solid var(--hair); }
+.ghi { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap; }
+.ghi b { font: 600 10.5px var(--font-mono); letter-spacing: .18em; text-transform: uppercase; color: var(--c); }
+.ghs { font: 400 12px var(--font-mono); color: var(--muted); }
+tr.r { background: linear-gradient(90deg, var(--cbg), transparent 38%); transition: opacity .18s, background .15s; outline: none; }
+tr.r:hover, tr.r.on, tr.r:focus-visible { background: linear-gradient(90deg, var(--cbg), rgba(0, 207, 255, .05) 60%); }
+.hl tr.r { opacity: .4; }
+.hl tr.r.on { opacity: 1; }
+.nm { font-size: 14px; font-weight: 700; line-height: 1.25; }
+.sym { font: 400 11px var(--font-mono); color: var(--muted); }
+.tag { display: inline-block; font: 700 9px/13.3px var(--font-mono); letter-spacing: .06em; text-transform: uppercase; padding: 1px 5px; border-radius: 3px; border: 1px solid var(--c); color: var(--c); background: var(--cbg); }
+.was { display: block; font: 400 10px var(--font-mono); color: var(--muted); margin-top: 3px; text-transform: uppercase; letter-spacing: .05em; }
+.gval { font: 600 14px var(--font-mono); font-variant-numeric: tabular-nums; }
+.gval.pos { color: var(--green); }
+.gval.neg { color: var(--red); }
+.muted { font: 400 14px var(--font-mono); color: var(--muted); }
+.mono { font: 400 14px var(--font-mono); font-variant-numeric: tabular-nums; color: var(--fg); }
+.mono .d { font-size: 12px; color: var(--muted); margin-left: 6px; }
+.mono .d .u { color: var(--green); } .mono .d .w { color: var(--red); }
+.mono .per { font-size: 11px; color: var(--muted); margin-left: 4px; }
+.none td { height: 40px; color: var(--muted); font: 400 12px var(--font-mono); padding-left: 16px; }
+
+.foot { font: 400 12px/1.6 var(--font-mono); color: var(--muted); padding: 0 4px; }
+#tip { position: fixed; left: 0; top: 0; z-index: 50; max-width: 320px; padding: 9px 12px; border-radius: 8px; background: #0a1220; border: 1px solid var(--line); box-shadow: 0 10px 28px rgba(0, 0, 0, .5); color: var(--fg); font-size: 13px; line-height: 1.45; white-space: pre-line; pointer-events: none; opacity: 0; transition: opacity .12s; }
+
+@media (max-width: 700px) {
+  .herochart { padding: 16px 12px 10px; }
+  .pl small { display: none; }
+  tbody td:first-child, thead th:first-child { position: sticky; left: 0; z-index: 2; background: var(--card); }
+  thead th:first-child { background: var(--head); }
+  tr.gh td { padding: 0; }
+  .ghi { position: sticky; left: 0; width: min(100vw - 34px, 380px); padding: 12px 16px 8px; }
+}
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="hc-head">
+    <div>
+      <span class="eyebrow"><span class="ph p-emerging">Emerging</span><span class="ar">→</span><span class="ph p-hot">Hot</span><span class="ar">→</span><span class="ph p-fading">Fading</span><span class="ar">→</span><span class="ph p-falling">Falling</span></span>
+      <h2 class="lb-title">Where every sector is in its cycle</h2>
+    </div>
+    <button class="ib" type="button" id="info" aria-label="About this chart">i</button>
+  </div>
+
+  <section class="herochart" aria-label="Sector cycle chart">
+    <p class="scatter-read">Right = strong over 3 months. Up = strong over the last month. Both against the average alt.</p>
+    <p class="hc-sub">Tail = where it stood 4 weeks ago. Bubble size = market cap. Hover a bubble or a row to find it on the other side.</p>
+    <div class="chartwrap" id="cw"><svg id="svg" role="group" aria-label="Sector cycle chart"></svg></div>
+  </section>
+
+  <div class="tw">
+    <table id="tbl">
+      <thead><tr id="hr"></tr></thead>
+      <tbody id="tb"></tbody>
+    </table>
+  </div>
+  <p class="foot">Average alt = the median of the top 50 alts. 1M = last 4 weeks, 3M = last 13 weeks. Phases are rough: a sector close to a line can flip with one good week. <span id="asof"></span></p>
+</div>
+<div id="tip" role="tooltip"></div>
+<script>
+const DATA = {"as_of":"2026-09-30T05:59:16Z","themes":[{"key":"l2","name":"L2","n":15,"mcap":4670065087,"x":0.2659,"y":0.3395,"px":-0.0204,"py":0.0735,"talk":null,"talk_d":null,"people":2,"f30":20551365,"kind":"activity","g3":-0.2636},{"key":"ai","name":"AI","n":15,"mcap":3350748224,"x":-0.0793,"y":0.1105,"px":-0.1521,"py":0.0081,"talk":null,"talk_d":null,"people":3,"f30":920950,"kind":"revenue","g3":0.9552},{"key":"dex","name":"DEX & perps","n":15,"mcap":32601699208,"x":0.0683,"y":0.1714,"px":0.0246,"py":0.043,"talk":3.48,"talk_d":2.22,"people":16,"f30":161305581,"kind":"revenue","g3":0.1394},{"key":"depin","name":"DePIN","n":15,"mcap":8477139937,"x":0.1064,"y":0.2265,"px":-0.0879,"py":0.1123,"talk":1.3,"talk_d":null,"people":6,"f30":269950,"kind":"revenue","g3":0.3404},{"key":"memes","name":"Memecoins","n":15,"mcap":28663909977,"x":0.06,"y":-0.0428,"px":0.1084,"py":0.1027,"talk":1.09,"talk_d":null,"people":5,"f30":170693860,"kind":"revenue","g3":1.4265},{"key":"rwa","name":"RWA","n":12,"mcap":29106131416,"x":0.0528,"y":0.206,"px":-0.0605,"py":-0.0486,"talk":null,"talk_d":null,"people":2,"f30":23636211,"kind":"revenue","g3":-0.0877},{"key":"gaming","name":"Gaming","n":15,"mcap":1955184482,"x":-0.1782,"y":0.0514,"px":-0.1809,"py":-0.0728,"talk":2.39,"talk_d":null,"people":11,"f30":251917,"kind":"revenue","g3":0.0554},{"key":"infra","name":"Infrastructure","n":15,"mcap":1990023473,"x":-0.0234,"y":0.1018,"px":-0.1018,"py":0.0095,"talk":1.52,"talk_d":-0.58,"people":7,"f30":41353799,"kind":"revenue","g3":0.1067},{"key":"defi","name":"DeFi lending & staking","n":15,"mcap":6652370454,"x":0.0345,"y":0.0473,"px":0.2624,"py":0.0216,"talk":null,"talk_d":null,"people":3,"f30":45737629,"kind":"revenue","g3":-0.0775},{"key":"prediction","name":"Prediction markets","n":15,"mcap":8925333506,"x":-0.0827,"y":0.1908,"px":-0.0838,"py":-0.0438,"talk":null,"talk_d":null,"people":3,"f30":17086569,"kind":"revenue","g3":-0.1029},{"key":"l1","name":"L1","n":15,"mcap":577789035789,"x":0.0102,"y":0.0145,"px":0.0704,"py":0.0317,"talk":1.74,"talk_d":0.06,"people":8,"f30":734973168,"kind":"activity","g3":0.2792},{"key":"privacy","name":"Privacy","n":15,"mcap":34777041984,"x":0.3215,"y":0.224,"px":0.0994,"py":0.1202,"talk":null,"talk_d":null,"people":1,"f30":607952,"kind":"revenue","g3":0.1009}]};
+(function () {
+  'use strict';
+  const T = DATA.themes;
+  const NS = 'http://www.w3.org/2000/svg';
+  const MINUS = '−';
+  const clamp = (v, a, b) => Math.min(Math.max(v, a), b);
+  const el = (tag, cls, txt) => { const e = document.createElement(tag); if (cls) e.className = cls; if (txt != null) e.textContent = txt; return e; };
+  const sv = (tag, attrs) => { const e = document.createElementNS(NS, tag); for (const k in attrs) e.setAttribute(k, attrs[k]); return e; };
+  const pct = (v, d) => (v < 0 ? MINUS : '+') + Math.abs(v * 100).toFixed(d || 0) + '%';
+  const arrow = v => (v < 0 ? '↓ ' : '↑ ') + pct(v);
+  const money = v => v >= 1e9 ? '$' + (v / 1e9).toFixed(v >= 1e10 ? 0 : 1) + 'bn' : v >= 1e6 ? '$' + (v / 1e6).toFixed(1) + 'M' : '$' + Math.round(v / 1e3) + 'K';
+  const cap = v => v >= 1e9 ? '$' + (v / 1e9 >= 100 ? (v / 1e9).toFixed(0) : (v / 1e9).toFixed(1)) + 'bn' : '$' + Math.round(v / 1e6) + 'M';
+
+  const PH = {
+    emerging: { name: 'Emerging', col: '#00cfff', sub: '3M weak · 1M strong', long: '3M still weak, 1M strong: starting to rise' },
+    hot: { name: 'Hot', col: '#00ff88', sub: '3M strong · 1M strong', long: '3M and 1M both strong' },
+    fading: { name: 'Fading', col: '#a9b8cc', sub: '3M strong · 1M slipping', long: '3M strong, 1M slipping' },
+    falling: { name: 'Falling', col: '#ff4444', sub: '3M weak · 1M weak', long: '3M and 1M both weak' }
+  };
+  const ORDER = ['emerging', 'hot', 'fading', 'falling'];
+  const phase = (x, y) => x > 0 ? (y > 0 ? 'hot' : 'fading') : (y > 0 ? 'emerging' : 'falling');
+  T.forEach(t => { t.ph = phase(t.x, t.y); t.was = phase(t.px, t.py); });
+
+  const d0 = new Date(DATA.as_of);
+  const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  document.getElementById('asof').textContent = 'Mock with the real numbers from the live data, ' + d0.getUTCDate() + ' ' + months[d0.getUTCMonth()] + ' ' + d0.getUTCFullYear() + '.';
+
+  /* tooltip */
+  const tip = document.getElementById('tip');
+  function show(target, text) {
+    tip.textContent = text; tip.style.opacity = '1';
+    const r = target.getBoundingClientRect(), w = tip.offsetWidth, h = tip.offsetHeight;
+    tip.style.left = clamp(r.left + r.width / 2 - w / 2, 8, innerWidth - w - 8) + 'px';
+    let y = r.bottom + 10; if (y + h > innerHeight - 8) y = r.top - h - 10;
+    tip.style.top = Math.max(8, y) + 'px';
+  }
+  const hide = () => { tip.style.opacity = '0'; };
+  const tipText = t => [
+    t.name + ' · ' + t.n + ' coins · ' + cap(t.mcap),
+    PH[t.ph].name + ' now' + (t.was !== t.ph ? ' (4 weeks ago: ' + PH[t.was].name + ')' : ' (same 4 weeks ago)'),
+    '3M ' + pct(t.x) + ' · 1M ' + pct(t.y) + ' vs the average alt'
+  ].join('\n');
+  const infoBtn = document.getElementById('info');
+  infoBtn.dataset.tip = 'Each bubble is a sector. Across: its last 3 months against the average alt. Up: its last month against the average alt. Sectors move through the four boxes in order: Emerging, Hot, Fading, Falling. The tail shows where it stood 4 weeks ago.';
+
+  /* chart <-> table link */
+  const root = document.body;
+  function hl(key) {
+    root.classList.toggle('hl', !!key);
+    document.querySelectorAll('[data-key]').forEach(n => n.classList.toggle('on', !!key && n.dataset.key === key));
+  }
+
+  /* table */
+  const hr = document.getElementById('hr'), tb = document.getElementById('tb');
+  [['Theme', null, ''], ['Phase', 'Where the sector is in its cycle: Emerging, then Hot, then Fading, then Falling.', ''],
+   ['1M', 'Last 4 weeks against the average alt (median of the top 50 alts). Plus = beat the average alt.', 'num'],
+   ['3M', 'Last 13 weeks against the average alt (median of the top 50 alts). Plus = beat the average alt.', 'num'],
+   ['Talked about', 'Share of the people in crypto chats who talked about it this week, and the change vs last week (points). Needs at least 5 people. Source: EventTrader Belief Networks.', 'num'],
+   ['Fundamentals', 'Last 30 days. Apps: revenue. Chains: fees paid on the chains.', 'num'],
+   ['Growth 3M', 'The last 3 months of that revenue or fees against the 3 months before.', 'num']
+  ].forEach(([label, tp, cls]) => {
+    const th = el('th', cls);
+    th.appendChild(document.createTextNode(label));
+    if (tp) { const b = el('button', 'ib', 'i'); b.type = 'button'; b.dataset.tip = tp; b.setAttribute('aria-label', label + ': ' + tp); th.appendChild(b); }
+    hr.appendChild(th);
+  });
+  ORDER.forEach(p => {
+    const rows = T.filter(t => t.ph === p).sort((a, b) => b.y - a.y);
+    const gh = el('tr', 'gh p-' + p);
+    const td = el('td'); td.colSpan = 7;
+    const inner = el('div', 'ghi');
+    inner.appendChild(el('b', null, PH[p].name + ' · ' + rows.length));
+    inner.appendChild(el('span', 'ghs', PH[p].long));
+    td.appendChild(inner); gh.appendChild(td); tb.appendChild(gh);
+    if (!rows.length) { const nr = el('tr', 'none'); const nt = el('td', null, 'none right now'); nt.colSpan = 7; nr.appendChild(nt); tb.appendChild(nr); }
+    rows.forEach(t => {
+      const tr = el('tr', 'r p-' + p);
+      tr.dataset.key = t.key; tr.tabIndex = 0;
+      const c1 = el('td'); c1.appendChild(el('div', 'nm', t.name)); c1.appendChild(el('div', 'sym', t.n + ' coins · ' + cap(t.mcap))); tr.appendChild(c1);
+      const c2 = el('td'); c2.appendChild(el('span', 'tag', PH[p].name));
+      if (t.was !== p) c2.appendChild(el('span', 'was', 'was ' + PH[t.was].name));
+      tr.appendChild(c2);
+      [t.y, t.x].forEach(v => { const c = el('td', 'num'); c.appendChild(el('span', 'gval ' + (v >= 0 ? 'pos' : 'neg'), arrow(v))); tr.appendChild(c); });
+      const c5 = el('td', 'num');
+      if (t.talk == null) { c5.appendChild(el('span', 'muted', 'too few')); c5.dataset.tip = 'Only ' + t.people + ' ' + (t.people === 1 ? 'person' : 'people') + ' talking about it this week — needs 5.'; }
+      else {
+        const m = el('span', 'mono', t.talk.toFixed(1) + '%');
+        if (t.talk_d != null) { const d = el('span', 'd'); d.appendChild(el('span', t.talk_d >= 0 ? 'u' : 'w', t.talk_d >= 0 ? '↑' : '↓')); d.appendChild(document.createTextNode(' ' + (t.talk_d >= 0 ? '+' : MINUS) + Math.abs(t.talk_d).toFixed(1) + ' pts')); m.appendChild(d); }
+        c5.appendChild(m); c5.dataset.tip = t.people + ' people talked about ' + t.name + ' this week.';
+      }
+      tr.appendChild(c5);
+      const c6 = el('td', 'num');
+      if (t.f30 == null) c6.appendChild(el('span', 'muted', '—')); else { const m = el('span', 'mono', money(t.f30)); m.appendChild(el('span', 'per', '/30d')); c6.appendChild(m); }
+      tr.appendChild(c6);
+      const c7 = el('td', 'num');
+      if (t.g3 == null) c7.appendChild(el('span', 'muted', '—')); else c7.appendChild(el('span', 'gval ' + (t.g3 >= 0 ? 'pos' : 'neg'), pct(t.g3, 1)));
+      tr.appendChild(c7);
+      tr.addEventListener('mouseenter', () => hl(t.key)); tr.addEventListener('mouseleave', () => hl(null));
+      tr.addEventListener('focus', () => hl(t.key)); tr.addEventListener('blur', () => hl(null));
+      tb.appendChild(tr);
+    });
+  });
+
+  /* chart */
+  const cw = document.getElementById('cw'), svg = document.getElementById('svg');
+  const niceLo = (v, s) => Math.floor(v / s) * s, niceHi = (v, s) => Math.ceil(v / s) * s;
+  const xs = T.map(t => [t.x, t.px]).flat(), ys = T.map(t => [t.y, t.py]).flat();
+  const XLO = Math.min(-0.10, niceLo(Math.min.apply(null, xs) - 0.05, 0.05)), XHI = Math.max(0.10, niceHi(Math.max.apply(null, xs) + 0.07, 0.05));
+  const YLO = Math.min(-0.10, niceLo(Math.min.apply(null, ys) - 0.05, 0.05)), YHI = Math.max(0.10, niceHi(Math.max.apply(null, ys) + 0.13, 0.05));
+  const mcMin = Math.log(Math.min.apply(null, T.map(t => t.mcap))), mcMax = Math.log(Math.max.apply(null, T.map(t => t.mcap)));
+
+  function draw() {
+    const W = Math.max(300, Math.round(cw.clientWidth));
+    const small = W < 620;
+    const H = Math.round(small ? clamp(W * 1.25, 440, 520) : clamp(W * 0.44, 400, 560));
+    const M = { l: small ? 44 : 52, r: 10, t: 8, b: small ? 40 : 44 };
+    const PW = W - M.l - M.r, PH_ = H - M.t - M.b;
+    const sx = v => M.l + (v - XLO) / (XHI - XLO) * PW;
+    const sy = v => H - M.b - (v - YLO) / (YHI - YLO) * PH_;
+    const x0 = sx(0), y0 = sy(0);
+    while (svg.firstChild) svg.removeChild(svg.firstChild);
+    cw.querySelectorAll('.pl').forEach(n => n.remove());
+    svg.setAttribute('viewBox', '0 0 ' + W + ' ' + H); svg.setAttribute('height', H);
+    const defs = sv('defs', {}); svg.appendChild(defs);
+
+    // dashed lines through "average alt", like the tab's own divider
+    const dash = { stroke: 'rgba(230,237,247,.22)', 'stroke-dasharray': '3 4', 'stroke-width': 1 };
+    svg.appendChild(sv('line', Object.assign({ x1: x0, x2: x0, y1: M.t, y2: M.t + PH_ }, dash)));
+    svg.appendChild(sv('line', Object.assign({ x1: M.l, x2: M.l + PW, y1: y0, y2: y0 }, dash)));
+
+    const steps = [0.05, 0.1, 0.2, 0.25];
+    const stepFor = span => steps.find(s => span / s <= (small ? 5 : 8)) || 0.25;
+    const sX = stepFor(XHI - XLO), sY = stepFor(YHI - YLO);
+    for (let v = Math.ceil(XLO / sX) * sX; v <= XHI + 1e-9; v += sX) {
+      const vv = Math.round(v * 1000) / 1000;
+      const t = sv('text', { x: sx(vv), y: H - M.b + 16, 'text-anchor': 'middle', class: 'tk' }); t.textContent = Math.abs(vv) < 1e-9 ? 'avg alt' : pct(vv); svg.appendChild(t);
+    }
+    for (let v = Math.ceil(YLO / sY) * sY; v <= YHI + 1e-9; v += sY) {
+      const vv = Math.round(v * 1000) / 1000;
+      const t = sv('text', { x: M.l - 8, y: sy(vv) + 3.5, 'text-anchor': 'end', class: 'tk' }); t.textContent = Math.abs(vv) < 1e-9 ? 'avg' : pct(vv); svg.appendChild(t);
+    }
+    const ax = sv('text', { x: M.l + PW / 2, y: H - 6, 'text-anchor': 'middle', class: 'axt' });
+    ax.textContent = small ? '3M vs the average alt →' : 'strong over 3 months vs the average alt →'; svg.appendChild(ax);
+    const ay = sv('text', { transform: 'translate(10,' + (M.t + PH_ / 2) + ') rotate(-90)', 'text-anchor': 'middle', class: 'axt' });
+    ay.textContent = small ? '1M vs the average alt →' : 'strong over the last month vs the average alt →'; svg.appendChild(ay);
+    // legend, top right like the tab's "line = how sure we are"
+    if (!small) {
+      const lx = M.l + PW - 196, ly = M.t + 6;
+      svg.appendChild(sv('circle', { cx: lx, cy: ly, r: 3, fill: '#0d1520', stroke: '#6f8199', 'stroke-width': 1.4 }));
+      svg.appendChild(sv('line', { x1: lx + 3, y1: ly, x2: lx + 28, y2: ly, stroke: '#6f8199', 'stroke-width': 1.4 }));
+      svg.appendChild(sv('circle', { cx: lx + 32, cy: ly, r: 4.5, fill: '#6f8199', 'fill-opacity': .22, stroke: '#6f8199', 'stroke-width': 1.6 }));
+      const lt = sv('text', { x: lx + 44, y: ly + 3.5, class: 'lgd' }); lt.textContent = 'tail = where it was 4 weeks ago'; svg.appendChild(lt);
+    }
+
+    // phase names in the corners
+    const corners = {
+      emerging: { l: M.l + 12, t: M.t + 26 }, hot: { r: W - M.r - 12, t: M.t + 26 },
+      fading: { r: W - M.r - 12, b: H - M.b - 10 }, falling: { l: M.l + 12, b: H - M.b - 10 }
+    };
+    const obst = [];
+    ORDER.forEach(p => {
+      const c = corners[p];
+      const d = el('div', 'pl p-' + p + (c.r != null ? ' r' : ''));
+      d.appendChild(el('b', null, PH[p].name)); d.appendChild(el('small', null, PH[p].sub));
+      if (c.l != null) d.style.left = c.l + 'px'; else d.style.right = (W - c.r) + 'px';
+      if (c.t != null) d.style.top = c.t + 'px'; else d.style.bottom = (H - c.b) + 'px';
+      cw.appendChild(d);
+    });
+    const cwr = cw.getBoundingClientRect();
+    cw.querySelectorAll('.pl').forEach(d => { const r = d.getBoundingClientRect(); obst.push({ x0: r.left - cwr.left - 6, y0: r.top - cwr.top - 6, x1: r.right - cwr.left + 6, y1: r.bottom - cwr.top + 6 }); });
+    // the legend is an obstacle too
+    if (!small) obst.push({ x0: M.l + PW - 206, y0: M.t - 4, x1: M.l + PW, y1: M.t + 18 });
+
+    const nodes = T.map((t, i) => {
+      const rl = W < 620 ? [5, 11] : W < 900 ? [6, 14] : [8, 18];
+      const r = rl[0] + (rl[1] - rl[0]) * (Math.log(t.mcap) - mcMin) / (mcMax - mcMin || 1);
+      return { t, i, r, cx: sx(t.x), cy: sy(t.y), px: sx(t.px), py: sy(t.py) };
+    });
+    const layer = sv('g', {}); svg.appendChild(layer);
+    nodes.forEach(n => {
+      const t = n.t, col = PH[t.ph].col;
+      const g = sv('g', { class: 'sector p-' + t.ph, 'data-key': t.key, tabindex: 0, role: 'img', 'aria-label': tipText(t).replace(/\n/g, '. ') });
+      g.style.setProperty('--i', n.i);
+      const len = Math.hypot(n.cx - n.px, n.cy - n.py);
+      if (len > n.r * 0.8) {
+        const id = 'tg-' + t.key;
+        const lg = sv('linearGradient', { id, gradientUnits: 'userSpaceOnUse', x1: n.px, y1: n.py, x2: n.cx, y2: n.cy });
+        lg.appendChild(sv('stop', { offset: '0', 'stop-color': PH[t.was].col, 'stop-opacity': '.5' }));
+        lg.appendChild(sv('stop', { offset: '1', 'stop-color': col, 'stop-opacity': '.9' }));
+        defs.appendChild(lg);
+        g.appendChild(sv('line', { x1: n.px, y1: n.py, x2: n.cx, y2: n.cy, stroke: 'url(#' + id + ')', 'stroke-width': 1.4, class: 'tail' }));
+        g.appendChild(sv('circle', { cx: n.px, cy: n.py, r: 3, fill: '#0d1520', stroke: PH[t.was].col, 'stroke-width': 1.4, class: 'tail' }));
+      }
+      g.appendChild(sv('circle', { class: 'ring', cx: n.cx, cy: n.cy, r: n.r, fill: col, 'fill-opacity': .22, stroke: col, 'stroke-width': 1.6 }));
+      g.appendChild(sv('circle', { cx: n.cx, cy: n.cy, r: n.r + 6, fill: 'transparent' }));
+      n.g = g; layer.appendChild(g);
+      g.addEventListener('mouseenter', () => { hl(t.key); show(g.querySelector('.ring'), tipText(t)); });
+      g.addEventListener('mouseleave', () => { hl(null); hide(); });
+      g.addEventListener('focus', () => { hl(t.key); show(g.querySelector('.ring'), tipText(t)); });
+      g.addEventListener('blur', () => { hl(null); hide(); });
+    });
+
+    // labels: first free spot that touches no bubble, tail, label or corner name
+    const tails = [];
+    nodes.forEach(n => { const len = Math.hypot(n.cx - n.px, n.cy - n.py); const k = Math.max(2, Math.ceil(len / 12)); for (let s = 0; s <= k; s++) { const f = s / k; tails.push({ x: n.px + (n.cx - n.px) * f, y: n.py + (n.cy - n.py) * f, own: n.i }); } });
+    const placed = [];
+    const hitR = (a, b) => a.x0 < b.x1 && b.x0 < a.x1 && a.y0 < b.y1 && b.y0 < a.y1;
+    nodes.slice().sort((a, b) => b.r - a.r).forEach(n => {
+      const txt = sv('text', { class: 'lbl' }); txt.textContent = n.t.name; n.g.appendChild(txt);
+      const bb = txt.getBBox(); const w = bb.width + 4, h = 15;
+      const cands = [];
+      [5, 12, 24, 38, 54].forEach(off => {
+        const R = n.r + off;
+        cands.push({ x: n.cx - w / 2, y: n.cy - R - h }, { x: n.cx + R, y: n.cy - h / 2 }, { x: n.cx - R - w, y: n.cy - h / 2 }, { x: n.cx - w / 2, y: n.cy + R },
+          { x: n.cx + R * .7, y: n.cy - R * .7 - h }, { x: n.cx - R * .7 - w, y: n.cy - R * .7 - h }, { x: n.cx + R * .7, y: n.cy + R * .7 }, { x: n.cx - R * .7 - w, y: n.cy + R * .7 });
+      });
+      let best = null, bp = Infinity;
+      cands.forEach((c, ci) => {
+        const r = { x0: c.x, y0: c.y, x1: c.x + w, y1: c.y + h };
+        let pen = ci * 0.01;
+        if (r.x0 < M.l + 2 || r.x1 > M.l + PW - 2 || r.y0 < M.t + 2 || r.y1 > M.t + PH_ - 2) pen += 1000;
+        placed.forEach(p => { if (hitR(r, p)) pen += 500; });
+        obst.forEach(o => { if (hitR(r, o)) pen += 500; });
+        nodes.forEach(o => { if (o !== n && hitR(r, { x0: o.cx - o.r - 3, y0: o.cy - o.r - 3, x1: o.cx + o.r + 3, y1: o.cy + o.r + 3 })) pen += 500; });
+        tails.forEach(p => { if (hitR(r, { x0: p.x - 3, y0: p.y - 3, x1: p.x + 3, y1: p.y + 3 })) pen += (p.own !== n.i ? 120 : 60); });
+        if (hitR(r, { x0: n.cx - n.r, y0: n.cy - n.r, x1: n.cx + n.r, y1: n.cy + n.r })) pen += 500;
+        if (pen < bp) { bp = pen; best = { c, r }; }
+      });
+      txt.setAttribute('x', best.c.x + 2); txt.setAttribute('y', best.c.y + h / 2 + 4);
+      placed.push(best.r); n.label = best.r;
+    });
+    window.__chart = { nodes: nodes.map(n => ({ key: n.t.key, cx: n.cx, cy: n.cy, r: n.r, label: n.label })), obst, plot: { x0: M.l, y0: M.t, x1: M.l + PW, y1: M.t + PH_ } };
+  }
+
+  draw();
+  (document.fonts && document.fonts.ready ? document.fonts.ready : Promise.resolve()).then(draw);
+  if (window.ResizeObserver) { let last = cw.clientWidth; new ResizeObserver(() => { if (Math.abs(cw.clientWidth - last) > 1) { last = cw.clientWidth; draw(); } }).observe(cw); }
+  setTimeout(() => document.documentElement.classList.add('ready'), 1500);
+
+  document.addEventListener('mouseover', e => { const t = e.target.closest && e.target.closest('.ib, td[data-tip]'); if (t) show(t, t.dataset.tip); else if (!e.target.closest('.sector')) hide(); });
+  document.addEventListener('focusin', e => { const t = e.target.closest && e.target.closest('.ib'); if (t) show(t, t.dataset.tip); });
+  document.addEventListener('keydown', e => { if (e.key === 'Escape') hide(); });
+  addEventListener('scroll', hide, true);
+})();
+</script>
+</body>
+</html>
