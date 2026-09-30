@@ -107,11 +107,11 @@ The Degen meter colours and width (A.1), the check circles with the C.5 card (A.
 - **The run-rate multiplier.** The tooltip says "last 30 days × 12"; all 45 rows on that basis carry × 365/30 = 12.1667, 1.4 % higher (the 90-day basis does the same, × 365/90, in the two apps we recomputed). Say one or the other. Report #141.
 - **The method behind four figures is not written anywhere** (ticket ET-28597): Strength 3M's revenue factor, the trajectory's normalisation of each quarter, Growth 6M dropping weeks with missing days and numbering the rest as consecutive, and "share of revenue to holders" clipped to 100 % where holders revenue exceeds total (SPK 175 %, DUST 192 %, FWA 111 %).
 
-## 9. Added after the first send: how two things should look (references)
+## 9. Reference looks: Sectors and Top Picks
 
-Items 48 to 50 are new. Nothing above this section was changed. The reference files sit next to this spec in `reference/`; open the two `.html` files in a browser (hovering works). Both were built from the live numbers of 2026-09-30.
+The items in this section are 50 to 52. The reference files sit next to this spec in `reference/`; open the two `.html` files in a browser (hovering works). Both were built from the live numbers of 2026-09-30.
 
-**[48] Sectors: the look of the chart and the table (item 37). Inspiration, not literal.** `reference/sector-cycle.png`, `reference/sector-cycle.html`.
+**[50] Sectors: the look of the chart and the table (item 37). Inspiration, not literal.** `reference/sector-cycle.png`, `reference/sector-cycle.html`.
 
 ![Sector cycle reference](reference/sector-cycle.png)
 
@@ -132,7 +132,7 @@ Do not take literally:
 - **The colours.** The reference uses cyan, green, grey and red. With item 45 (caution is orange) Fading is the natural orange; keep the four clearly different, also for a colour-blind visitor.
 - **Fundamentals and Growth 3M** in the reference are the last 30 days and the last 90 days against the 90 before, read from the daily series. The definition is yours (item 37).
 
-**[49] Near misses become a queue (Top Picks).** `reference/near-misses-queue.png`, `reference/near-misses-queue.html`. The owner likes this as drawn: build it like this.
+**[51] Near misses become a queue (Top Picks).** `reference/near-misses-queue.png`, `reference/near-misses-queue.html`. The owner likes this as drawn: build it like this.
 
 ![Near misses as a queue](reference/near-misses-queue.png)
 
@@ -145,7 +145,7 @@ Do not take literally:
 - Live on 2026-09-30 the queue holds RamsesX 31x (thin liquidity), Collector Crypt 25x (business not growing), Pons 15x (too big), Rainbow 14x, Gains Network 11x and Saphyre 10x (thin liquidity each).
 - Two things in the reference change in the build: its reason chips are light blue, use the caution orange of item 45; and its cubes carry no coin logos, add them only if they fit without crowding the cube.
 
-**[50] Top Picks: remove "When to take profit".** The box at the bottom of Top Picks (`reference/when-to-take-profit.png`: the price passes the card's Hyperliquid ceiling; revenue stops growing; its theme lags BTC and the card says "Watch out") goes. Nothing replaces it, and the near-misses queue (item 49) takes the full width.
+**[52] Top Picks: remove "When to take profit".** The box at the bottom of Top Picks (`reference/when-to-take-profit.png`: the price passes the card's Hyperliquid ceiling; revenue stops growing; its theme lags BTC and the card says "Watch out") goes. Nothing replaces it, and the near-misses queue (item 51) takes the full width. The help text of the Start page also lists it ("near misses, when to take profit and the backtest in one line each"); drop the phrase there too.
 
 ![When to take profit, to be removed](reference/when-to-take-profit.png)
 
@@ -187,8 +187,8 @@ Do not take literally:
 - [ ] 45 Caution is orange everywhere (circles, Degen meter zone 4 to 6, tags, Legend); blue-grey is only neutral or does not apply.
 - [ ] 46 A cold visit shows the table within about 3 s; a revisit inside the snapshot's 6 hours downloads nothing new; no request stalls for seconds.
 - [ ] 43 to 45 The circles, the tooltip card and the row layout look as before: only the set of checks, the texts and the caution colour differ.
-- [ ] 48 Sectors: the chart and the table look like today's Sectors tab and the reference (inspiration, not literal); the Theme column keeps its coin icons; only the item 37 columns; no name touches another name, a bubble or a tail.
-- [ ] 49 Near misses are a queue of small cubes in front of a green "Picks" gate, as in the reference; the reason is a chip with an icon in the caution orange of item 45.
-- [ ] 50 The "When to take profit" box is gone from Top Picks; the queue takes the full width.
+- [ ] 50 Sectors: the chart and the table look like today's Sectors tab and the reference (inspiration, not literal); the Theme column keeps its coin icons; only the item 37 columns; no name touches another name, a bubble or a tail.
+- [ ] 51 Near misses are a queue of small cubes in front of a green "Picks" gate, as in the reference; the reason is a chip with an icon in the caution orange of item 45.
+- [ ] 52 The "When to take profit" box is gone from Top Picks, and the Start page's help text no longer lists it; the queue takes the full width.
 - [ ] 48 Retail has at least one more row for where degens trade now (offshore or perp DEX volume), includes YouTube views of crypto channels (as a scored row or a fact), and says which other social and AI rows it has and why the others are missing.
 - [ ] 49 The Retail score is not driven by price (participation or normalised), not defined by one episode, does not move when a row is added, has a written-down backtest at the tops of 2017/18, 2021 and 2024/25, and says how sure it is.
