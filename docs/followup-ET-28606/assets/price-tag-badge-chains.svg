@@ -1,0 +1,28 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="-2 -2 204 244" width="204" height="244" role="img" aria-label="Benchmark: Solana is worth 38 times its adoption">
+  <!-- Item 13, Chains badge: the same as price-tag-badge-apps.svg with Solana's logo, 38 and ADOPTION. -->
+  <defs>
+    <path id="shield" d="M24 3Q100 30 176 3Q188 26 199 42C192 60 188 90 189 120C190 160 192 175 186 190C170 215 130 230 100 238C70 230 30 215 14 190C8 175 10 160 11 120C12 90 8 60 1 42Q12 26 24 3Z"/>
+    <linearGradient id="rim" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#0a7d99"/><stop offset=".12" stop-color="#00cfff"/><stop offset=".27" stop-color="#d4fff6"/>
+      <stop offset=".42" stop-color="#00ff88"/><stop offset=".56" stop-color="#007f55"/><stop offset=".72" stop-color="#00ff88"/>
+      <stop offset=".86" stop-color="#b8ffe9"/><stop offset="1" stop-color="#0a8f9f"/>
+    </linearGradient>
+    <linearGradient id="face" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#c9ffee"/><stop offset=".35" stop-color="#4af5a8"/><stop offset=".62" stop-color="#00c878"/><stop offset="1" stop-color="#00dd86"/>
+    </linearGradient>
+    <clipPath id="faceClip"><use href="#shield" transform="translate(100 122) scale(.905) translate(-100 -122)"/></clipPath>
+    <clipPath id="logoClip"><circle cx="100" cy="100" r="24"/></clipPath>
+  </defs>
+  <use href="#shield" fill="url(#rim)"/>
+  <use href="#shield" transform="translate(100 122) scale(.935) translate(-100 -122)" fill="#04332f"/>
+  <use href="#shield" transform="translate(100 122) scale(.915) translate(-100 -122)" fill="url(#rim)" opacity=".55"/>
+  <use href="#shield" transform="translate(100 122) scale(.905) translate(-100 -122)" fill="url(#face)"/>
+  <g clip-path="url(#faceClip)"><path d="M0 0H120L40 240H0Z" fill="#fff" opacity=".12"/></g>
+  <path d="M0 26H200L190 39L200 52H0L10 39Z" fill="#04271f" stroke="#00ff88" stroke-width="1.6" stroke-linejoin="round"/>
+  <text x="100" y="46" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-weight="700" font-size="19" letter-spacing="2.4" fill="#00ff88">BENCHMARK</text>
+  <circle cx="100" cy="100" r="28" fill="#06382d" stroke="#04271f" stroke-width="3.5"/>
+  <circle cx="100" cy="100" r="24" fill="#fff"/>
+  <image href="https://cymetica.com/api/v1/gem-screener/logo/chains/0" x="76" y="76" width="48" height="48" clip-path="url(#logoClip)" preserveAspectRatio="xMidYMid slice"/>
+  <text x="100" y="170" text-anchor="middle" font-family="Archivo Black, Arial Black, sans-serif" font-size="54" fill="#04271f" letter-spacing="-1">38<tspan font-size="34" dy="-3">×</tspan></text>
+  <text x="100" y="196" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-weight="700" font-size="17" letter-spacing="3" fill="#04271f">ADOPTION</text>
+</svg>
