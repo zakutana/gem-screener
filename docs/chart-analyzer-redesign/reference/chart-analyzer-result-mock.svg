@@ -1,0 +1,214 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 900" width="1440" height="900" role="img" aria-label="Chart Analyzer, the result view, redesigned: the score, the chart, what the number is made of">
+<defs>
+  <radialGradient id="glowA" cx=".12" cy="0" r=".7"><stop offset="0" stop-color="#00cfff" stop-opacity=".16"/><stop offset="1" stop-color="#00cfff" stop-opacity="0"/></radialGradient>
+  <radialGradient id="glowB" cx=".95" cy=".05" r=".6"><stop offset="0" stop-color="#00ff88" stop-opacity=".09"/><stop offset="1" stop-color="#00ff88" stop-opacity="0"/></radialGradient>
+  <radialGradient id="glowScore" cx=".5" cy=".62" r=".5"><stop offset="0" stop-color="#3b82f6" stop-opacity=".32"/><stop offset="1" stop-color="#3b82f6" stop-opacity="0"/></radialGradient>
+  <linearGradient id="gline" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#00cfff"/><stop offset="1" stop-color="#00ff88"/></linearGradient>
+  <linearGradient id="cardbd" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#1d4a63"/><stop offset=".5" stop-color="#1b2d42"/><stop offset="1" stop-color="#14543f"/></linearGradient>
+  <linearGradient id="numfill" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#ffffff"/><stop offset="1" stop-color="#b9d3ff"/></linearGradient>
+  <linearGradient id="areafill" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#00cfff" stop-opacity=".14"/><stop offset="1" stop-color="#00cfff" stop-opacity="0"/></linearGradient>
+  <filter id="blur6" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="6"/></filter>
+  <clipPath id="medalclip"><circle cx="76" cy="108" r="22"/></clipPath>
+  <clipPath id="plotclip"><rect x="446" y="196" width="850" height="330"/></clipPath>
+  <style>
+    .pulse { animation: pulse 2.2s ease-in-out infinite; transform-box: fill-box; transform-origin: center; }
+    .glow { animation: glow 3s ease-in-out infinite; }
+    .sweep { stroke-dasharray: 720; stroke-dashoffset: 720; animation: sweep 1.6s .2s cubic-bezier(.2,.8,.2,1) forwards; }
+    @keyframes pulse { 0%, 100% { transform: scale(1); opacity: .9; } 50% { transform: scale(1.8); opacity: .15; } }
+    @keyframes glow { 0%, 100% { opacity: .5; } 50% { opacity: 1; } }
+    @keyframes sweep { to { stroke-dashoffset: 0; } }
+    @media (prefers-reduced-motion: reduce) { .pulse, .glow, .sweep { animation: none; } .sweep { stroke-dashoffset: 0; } }
+  </style>
+</defs>
+<rect width="1440" height="900" fill="#070b13"/><rect width="1440" height="900" fill="url(#glowA)"/><rect width="1440" height="900" fill="url(#glowB)"/>
+<rect x="0" y="0" width="1440" height="56" rx="0" fill="#0a101b" /><rect y="55" width="1440" height="1" fill="#1b2d42"/>
+<text x="40" y="31" font-family="Archivo Black, Arial Black, sans-serif" font-size="19" font-weight="400" fill="#fff" text-anchor="start" letter-spacing="0" >EventTrader</text><text x="40" y="46" font-family="JetBrains Mono, IBM Plex Mono, monospace" font-size="9.5" font-weight="600" fill="#6f8199" text-anchor="start" letter-spacing="0.8" >Financial AI Models</text>
+<text x="1400" y="33" font-family="JetBrains Mono, IBM Plex Mono, monospace" font-size="11" font-weight="400" fill="#6f8199" text-anchor="end" letter-spacing="0" >the site header stays as it is</text>
+<circle cx="76" cy="108" r="25" fill="#fff"/><image href="data:image/webp;base64,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" x="54" y="86" width="44" height="44" clip-path="url(#medalclip)" preserveAspectRatio="xMidYMid slice"/>
+<circle cx="76" cy="108" r="28" fill="none" stroke="url(#gline)" stroke-width="2.4"/>
+<text x="120" y="106" font-family="Archivo Black, Arial Black, sans-serif" font-size="30" font-weight="400" fill="#fff" text-anchor="start" letter-spacing="0" >Collector Crypt</text>
+<text x="122" y="128" font-family="JetBrains Mono, IBM Plex Mono, monospace" font-size="11" font-weight="600" fill="#6f8199" text-anchor="start" letter-spacing="1" >CARDS  ·  SOLANA  ·  FROM GEM SCREENER ›</text>
+<rect x="1000" y="88" width="52" height="36" rx="10" fill="#101b2b" stroke="#1b2d42" stroke-width="1" /><text x="1026" y="112" font-family="JetBrains Mono, IBM Plex Mono, monospace" font-size="14" font-weight="700" fill="#8fa6c2" text-anchor="middle" letter-spacing="0" >1H</text>
+<rect x="1058" y="88" width="52" height="36" rx="10" fill="#101b2b" stroke="#1b2d42" stroke-width="1" /><text x="1084" y="112" font-family="JetBrains Mono, IBM Plex Mono, monospace" font-size="14" font-weight="700" fill="#8fa6c2" text-anchor="middle" letter-spacing="0" >4H</text>
+<rect x="1116" y="88" width="52" height="36" rx="10" fill="url(#gline)" /><text x="1142" y="112" font-family="JetBrains Mono, IBM Plex Mono, monospace" font-size="14" font-weight="800" fill="#04271f" text-anchor="middle" letter-spacing="0" >1D</text>
+<rect x="1174" y="88" width="52" height="36" rx="10" fill="#101b2b" stroke="#1b2d42" stroke-width="1" /><text x="1200" y="112" font-family="JetBrains Mono, IBM Plex Mono, monospace" font-size="14" font-weight="700" fill="#8fa6c2" text-anchor="middle" letter-spacing="0" >1W</text>
+<rect x="1244" y="88" width="70" height="36" rx="10" fill="#101b2b" stroke="#1b2d42" stroke-width="1" /><text x="1285" y="111" font-family="JetBrains Mono, IBM Plex Mono, monospace" font-size="13" font-weight="700" fill="#e8eef6" text-anchor="middle" letter-spacing="0" >Share</text>
+<rect x="1324" y="88" width="76" height="36" rx="10" fill="none" stroke="#00cfff" stroke-width="1.5" /><text x="1362" y="111" font-family="JetBrains Mono, IBM Plex Mono, monospace" font-size="13" font-weight="700" fill="#00cfff" text-anchor="middle" letter-spacing="0" >+ New</text>
+<rect x="40" y="160" width="360" height="400" rx="24" fill="#0b1220" stroke="url(#cardbd)" stroke-width="1.6" /><rect x="40" y="160" width="360" height="400" rx="24" fill="url(#glowScore)" />
+<text x="66" y="194" font-family="JetBrains Mono, IBM Plex Mono, monospace" font-size="11" font-weight="700" fill="#8fa6c2" text-anchor="start" letter-spacing="1.8" >CHART SCORE · 1D</text>
+<path d="M94.1 391.6A126 126 0 0 1 115.5 325.5" stroke="#b83232" stroke-width="18" fill="none" stroke-linecap="round" opacity="0.24" class=""/>
+<path d="M120.7 318.4A126 126 0 0 1 176.9 277.6" stroke="#ff4444" stroke-width="18" fill="none" stroke-linecap="round" opacity="0.24" class=""/>
+<path d="M185.3 274.9A126 126 0 0 1 254.7 274.9" stroke="#3b82f6" stroke-width="30" fill="none" stroke-linecap="round" opacity=".4" filter="url(#blur6)" class="glow"/>
+<path d="M185.3 274.9A126 126 0 0 1 254.7 274.9" stroke="#3b82f6" stroke-width="18" fill="none" stroke-linecap="round" opacity="1" class="sweep"/>
+<path d="M263.1 277.6A126 126 0 0 1 319.3 318.4" stroke="#00c878" stroke-width="18" fill="none" stroke-linecap="round" opacity="0.24" class=""/>
+<path d="M324.5 325.5A126 126 0 0 1 345.9 391.6" stroke="#00ff88" stroke-width="18" fill="none" stroke-linecap="round" opacity="0.24" class=""/>
+<line x1="232.5" y1="283.7" x2="235.6" y2="255.9" stroke="#fff" stroke-width="4" stroke-linecap="round"/>
+<circle cx="235.6" cy="255.9" r="5" fill="#fff" class="pulse"/>
+<text x="220" y="388" font-family="Archivo Black, Arial Black, sans-serif" font-size="110" font-weight="400" fill="url(#numfill)" text-anchor="middle" letter-spacing="-3" >54</text>
+<rect x="158" y="414" width="124" height="30" rx="15" fill="#3b82f626" stroke="#3b82f6" stroke-width="1.4" /><text x="220" y="434" font-family="JetBrains Mono, IBM Plex Mono, monospace" font-size="13" font-weight="800" fill="#8db8ff" text-anchor="middle" letter-spacing="1.6" >NEUTRAL</text>
+<text x="220" y="492" font-family="IBM Plex Sans, Segoe UI, Arial, sans-serif" font-size="15.5" font-weight="600" fill="#e8eef6" text-anchor="middle" letter-spacing="0" >A little above an average chart.</text>
+<rect x="420" y="160" width="980" height="400" rx="24" fill="#0d1626" stroke="url(#cardbd)" stroke-width="1.6" />
+<text x="448" y="194" font-family="JetBrains Mono, IBM Plex Mono, monospace" font-size="11" font-weight="700" fill="#8fa6c2" text-anchor="start" letter-spacing="1.4" >CARDS / USDC · LAST 90 DAYS</text>
+<line x1="446" y1="520" x2="1296" y2="520" stroke="#13243a" stroke-width="1"/><text x="1310" y="524" font-family="JetBrains Mono, IBM Plex Mono, monospace" font-size="10.5" font-weight="500" fill="#6f8199" text-anchor="start" letter-spacing="0" >0.10</text>
+<line x1="446" y1="367" x2="1296" y2="367" stroke="#13243a" stroke-width="1"/><text x="1310" y="371" font-family="JetBrains Mono, IBM Plex Mono, monospace" font-size="10.5" font-weight="500" fill="#6f8199" text-anchor="start" letter-spacing="0" >0.20</text>
+<line x1="446" y1="214" x2="1296" y2="214" stroke="#13243a" stroke-width="1"/><text x="1310" y="218" font-family="JetBrains Mono, IBM Plex Mono, monospace" font-size="10.5" font-weight="500" fill="#6f8199" text-anchor="start" letter-spacing="0" >0.31</text>
+<text x="715.2" y="546" font-family="JetBrains Mono, IBM Plex Mono, monospace" font-size="10.5" font-weight="600" fill="#6f8199" text-anchor="middle" letter-spacing="0" >Aug</text>
+<text x="1007.9" y="546" font-family="JetBrains Mono, IBM Plex Mono, monospace" font-size="10.5" font-weight="600" fill="#6f8199" text-anchor="middle" letter-spacing="0" >Sep</text>
+<text x="1291.3" y="546" font-family="JetBrains Mono, IBM Plex Mono, monospace" font-size="10.5" font-weight="600" fill="#6f8199" text-anchor="middle" letter-spacing="0" >Oct</text>
+<rect x="1201.6" y="200" width="94.4" height="328" rx="8" fill="#00cfff12" stroke="#00cfff99" stroke-width="1" stroke-dasharray="4 4"/>
+<text x="1248.8" y="192" font-family="JetBrains Mono, IBM Plex Mono, monospace" font-size="9.5" font-weight="700" fill="#00cfff" text-anchor="middle" letter-spacing="1" >SCORED WINDOW</text>
+<g clip-path="url(#plotclip)"><polygon points="450.7,520 450.7,356.5 460.2,371.2 469.6,370.1 479.1,402.9 488.5,422.5 497.9,421.4 507.4,420 516.8,443 526.3,451.7 535.7,418.7 545.2,407.5 554.6,432.8 564.1,451.4 573.5,442.6 582.9,426.7 592.4,439.2 601.8,440.8 611.3,439.5 620.7,449.1 630.2,474.3 639.6,481.8 649.1,482.9 658.5,487.1 667.9,463.6 677.4,468.3 686.8,473 696.3,423.3 705.7,453.2 715.2,460.9 724.6,451.8 734.1,434.5 743.5,422.9 752.9,429.2 762.4,436.9 771.8,458.9 781.3,462 790.7,472.6 800.2,446.8 809.6,459.1 819.1,448.9 828.5,425.1 837.9,427.6 847.4,384.2 856.8,388.9 866.3,406.2 875.7,413.9 885.2,398.2 894.6,382.2 904.1,358.1 913.5,374.4 922.9,377.2 932.4,373.2 941.8,405.9 951.3,403.2 960.7,390.1 970.2,413.9 979.6,317.8 989.1,369.7 998.5,374.2 1007.9,392 1017.4,412 1026.8,415.3 1036.3,455.5 1045.7,459.1 1055.2,470.1 1064.6,461.4 1074.1,465.9 1083.5,485.8 1092.9,481.1 1102.4,478.5 1111.8,467.9 1121.3,474.8 1130.7,459.4 1140.2,478.1 1149.6,477.2 1159.1,466.4 1168.5,412.7 1177.9,412.6 1187.4,417.3 1196.8,381.6 1206.3,407 1215.7,412.5 1225.2,434.6 1234.6,391 1244.1,392.7 1253.5,379.4 1262.9,333.9 1272.4,379.5 1281.8,361.7 1291.3,369.5 1291.3,520" fill="url(#areafill)"/>
+<line x1="450.7" y1="341.6" x2="450.7" y2="362.7" stroke="#ff4444" stroke-width="1.4"/><rect x="447.7" y="352.3" width="6" height="4.1" rx="1" fill="#ff4444"/>
+<line x1="460.2" y1="355.7" x2="460.2" y2="402.8" stroke="#ff4444" stroke-width="1.4"/><rect x="457.2" y="356.5" width="6" height="14.8" rx="1" fill="#ff4444"/>
+<line x1="469.6" y1="364.8" x2="469.6" y2="391.9" stroke="#00ff88" stroke-width="1.4"/><rect x="466.6" y="370.1" width="6" height="1.6" rx="1" fill="#00ff88"/>
+<line x1="479.1" y1="363.8" x2="479.1" y2="405.8" stroke="#ff4444" stroke-width="1.4"/><rect x="476.1" y="370.1" width="6" height="32.8" rx="1" fill="#ff4444"/>
+<line x1="488.5" y1="397.3" x2="488.5" y2="448" stroke="#ff4444" stroke-width="1.4"/><rect x="485.5" y="402.9" width="6" height="19.6" rx="1" fill="#ff4444"/>
+<line x1="497.9" y1="417.5" x2="497.9" y2="461.3" stroke="#00ff88" stroke-width="1.4"/><rect x="494.9" y="421.4" width="6" height="1.6" rx="1" fill="#00ff88"/>
+<line x1="507.4" y1="416.5" x2="507.4" y2="442.6" stroke="#00ff88" stroke-width="1.4"/><rect x="504.4" y="420" width="6" height="1.6" rx="1" fill="#00ff88"/>
+<line x1="516.8" y1="419.6" x2="516.8" y2="450.7" stroke="#ff4444" stroke-width="1.4"/><rect x="513.8" y="420" width="6" height="23" rx="1" fill="#ff4444"/>
+<line x1="526.3" y1="443" x2="526.3" y2="476.3" stroke="#ff4444" stroke-width="1.4"/><rect x="523.3" y="443" width="6" height="8.7" rx="1" fill="#ff4444"/>
+<line x1="535.7" y1="397.3" x2="535.7" y2="460.2" stroke="#00ff88" stroke-width="1.4"/><rect x="532.7" y="418.7" width="6" height="33" rx="1" fill="#00ff88"/>
+<line x1="545.2" y1="393.5" x2="545.2" y2="430.4" stroke="#00ff88" stroke-width="1.4"/><rect x="542.2" y="407.5" width="6" height="11.2" rx="1" fill="#00ff88"/>
+<line x1="554.6" y1="407.1" x2="554.6" y2="438.2" stroke="#ff4444" stroke-width="1.4"/><rect x="551.6" y="407.5" width="6" height="25.4" rx="1" fill="#ff4444"/>
+<line x1="564.1" y1="431.8" x2="564.1" y2="459.9" stroke="#ff4444" stroke-width="1.4"/><rect x="561.1" y="432.8" width="6" height="18.5" rx="1" fill="#ff4444"/>
+<line x1="573.5" y1="437.2" x2="573.5" y2="467.6" stroke="#00ff88" stroke-width="1.4"/><rect x="570.5" y="442.6" width="6" height="8.8" rx="1" fill="#00ff88"/>
+<line x1="582.9" y1="418.4" x2="582.9" y2="452.2" stroke="#00ff88" stroke-width="1.4"/><rect x="579.9" y="426.7" width="6" height="15.9" rx="1" fill="#00ff88"/>
+<line x1="592.4" y1="421.9" x2="592.4" y2="442.1" stroke="#ff4444" stroke-width="1.4"/><rect x="589.4" y="426.7" width="6" height="12.5" rx="1" fill="#ff4444"/>
+<line x1="601.8" y1="431.3" x2="601.8" y2="449.8" stroke="#ff4444" stroke-width="1.4"/><rect x="598.8" y="439.2" width="6" height="1.6" rx="1" fill="#ff4444"/>
+<line x1="611.3" y1="422" x2="611.3" y2="451.8" stroke="#00ff88" stroke-width="1.4"/><rect x="608.3" y="439.5" width="6" height="1.6" rx="1" fill="#00ff88"/>
+<line x1="620.7" y1="438.8" x2="620.7" y2="460.6" stroke="#ff4444" stroke-width="1.4"/><rect x="617.7" y="439.5" width="6" height="9.5" rx="1" fill="#ff4444"/>
+<line x1="630.2" y1="445.6" x2="630.2" y2="492.6" stroke="#ff4444" stroke-width="1.4"/><rect x="627.2" y="449.1" width="6" height="25.2" rx="1" fill="#ff4444"/>
+<line x1="639.6" y1="463.4" x2="639.6" y2="487.6" stroke="#ff4444" stroke-width="1.4"/><rect x="636.6" y="474.3" width="6" height="7.6" rx="1" fill="#ff4444"/>
+<line x1="649.1" y1="478.3" x2="649.1" y2="490.7" stroke="#ff4444" stroke-width="1.4"/><rect x="646.1" y="481.8" width="6" height="1.6" rx="1" fill="#ff4444"/>
+<line x1="658.5" y1="481.8" x2="658.5" y2="490.3" stroke="#ff4444" stroke-width="1.4"/><rect x="655.5" y="482.9" width="6" height="4.1" rx="1" fill="#ff4444"/>
+<line x1="667.9" y1="456" x2="667.9" y2="500.3" stroke="#00ff88" stroke-width="1.4"/><rect x="664.9" y="463.6" width="6" height="23.5" rx="1" fill="#00ff88"/>
+<line x1="677.4" y1="462.9" x2="677.4" y2="484.7" stroke="#ff4444" stroke-width="1.4"/><rect x="674.4" y="463.6" width="6" height="4.7" rx="1" fill="#ff4444"/>
+<line x1="686.8" y1="460" x2="686.8" y2="474.2" stroke="#ff4444" stroke-width="1.4"/><rect x="683.8" y="468.3" width="6" height="4.8" rx="1" fill="#ff4444"/>
+<line x1="696.3" y1="422.1" x2="696.3" y2="473.7" stroke="#00ff88" stroke-width="1.4"/><rect x="693.3" y="423.3" width="6" height="49.7" rx="1" fill="#00ff88"/>
+<line x1="705.7" y1="421.9" x2="705.7" y2="455.9" stroke="#ff4444" stroke-width="1.4"/><rect x="702.7" y="423.3" width="6" height="29.9" rx="1" fill="#ff4444"/>
+<line x1="715.2" y1="446.7" x2="715.2" y2="463.6" stroke="#ff4444" stroke-width="1.4"/><rect x="712.2" y="453.2" width="6" height="7.7" rx="1" fill="#ff4444"/>
+<line x1="724.6" y1="446" x2="724.6" y2="467" stroke="#00ff88" stroke-width="1.4"/><rect x="721.6" y="451.8" width="6" height="9.1" rx="1" fill="#00ff88"/>
+<line x1="734.1" y1="427.2" x2="734.1" y2="471.1" stroke="#00ff88" stroke-width="1.4"/><rect x="731.1" y="434.5" width="6" height="17.3" rx="1" fill="#00ff88"/>
+<line x1="743.5" y1="409.8" x2="743.5" y2="436.2" stroke="#00ff88" stroke-width="1.4"/><rect x="740.5" y="422.9" width="6" height="11.5" rx="1" fill="#00ff88"/>
+<line x1="752.9" y1="421.4" x2="752.9" y2="430.2" stroke="#ff4444" stroke-width="1.4"/><rect x="749.9" y="422.9" width="6" height="6.3" rx="1" fill="#ff4444"/>
+<line x1="762.4" y1="412.9" x2="762.4" y2="438.8" stroke="#ff4444" stroke-width="1.4"/><rect x="759.4" y="429.2" width="6" height="7.6" rx="1" fill="#ff4444"/>
+<line x1="771.8" y1="436.3" x2="771.8" y2="460.9" stroke="#ff4444" stroke-width="1.4"/><rect x="768.8" y="436.9" width="6" height="22.1" rx="1" fill="#ff4444"/>
+<line x1="781.3" y1="448.2" x2="781.3" y2="463.5" stroke="#ff4444" stroke-width="1.4"/><rect x="778.3" y="458.9" width="6" height="3.1" rx="1" fill="#ff4444"/>
+<line x1="790.7" y1="457.2" x2="790.7" y2="475.3" stroke="#ff4444" stroke-width="1.4"/><rect x="787.7" y="462" width="6" height="10.6" rx="1" fill="#ff4444"/>
+<line x1="800.2" y1="439.2" x2="800.2" y2="472.6" stroke="#00ff88" stroke-width="1.4"/><rect x="797.2" y="446.8" width="6" height="25.8" rx="1" fill="#00ff88"/>
+<line x1="809.6" y1="444.1" x2="809.6" y2="461.4" stroke="#ff4444" stroke-width="1.4"/><rect x="806.6" y="446.8" width="6" height="12.3" rx="1" fill="#ff4444"/>
+<line x1="819.1" y1="447.1" x2="819.1" y2="463.3" stroke="#00ff88" stroke-width="1.4"/><rect x="816.1" y="448.9" width="6" height="10.2" rx="1" fill="#00ff88"/>
+<line x1="828.5" y1="420.5" x2="828.5" y2="449.4" stroke="#00ff88" stroke-width="1.4"/><rect x="825.5" y="425.1" width="6" height="23.8" rx="1" fill="#00ff88"/>
+<line x1="837.9" y1="421.8" x2="837.9" y2="436.2" stroke="#ff4444" stroke-width="1.4"/><rect x="834.9" y="425.1" width="6" height="2.5" rx="1" fill="#ff4444"/>
+<line x1="847.4" y1="377.8" x2="847.4" y2="428" stroke="#00ff88" stroke-width="1.4"/><rect x="844.4" y="384.2" width="6" height="43.5" rx="1" fill="#00ff88"/>
+<line x1="856.8" y1="373.6" x2="856.8" y2="405.2" stroke="#ff4444" stroke-width="1.4"/><rect x="853.8" y="384.2" width="6" height="4.8" rx="1" fill="#ff4444"/>
+<line x1="866.3" y1="388.9" x2="866.3" y2="412.5" stroke="#ff4444" stroke-width="1.4"/><rect x="863.3" y="388.9" width="6" height="17.2" rx="1" fill="#ff4444"/>
+<line x1="875.7" y1="401" x2="875.7" y2="415" stroke="#ff4444" stroke-width="1.4"/><rect x="872.7" y="406.2" width="6" height="7.8" rx="1" fill="#ff4444"/>
+<line x1="885.2" y1="377.4" x2="885.2" y2="426.1" stroke="#00ff88" stroke-width="1.4"/><rect x="882.2" y="398.2" width="6" height="15.7" rx="1" fill="#00ff88"/>
+<line x1="894.6" y1="368.4" x2="894.6" y2="405.1" stroke="#00ff88" stroke-width="1.4"/><rect x="891.6" y="382.2" width="6" height="16" rx="1" fill="#00ff88"/>
+<line x1="904.1" y1="347.7" x2="904.1" y2="385.9" stroke="#00ff88" stroke-width="1.4"/><rect x="901.1" y="358.1" width="6" height="24.1" rx="1" fill="#00ff88"/>
+<line x1="913.5" y1="323.9" x2="913.5" y2="377" stroke="#ff4444" stroke-width="1.4"/><rect x="910.5" y="358.1" width="6" height="16.3" rx="1" fill="#ff4444"/>
+<line x1="922.9" y1="366" x2="922.9" y2="400.8" stroke="#ff4444" stroke-width="1.4"/><rect x="919.9" y="374.4" width="6" height="2.9" rx="1" fill="#ff4444"/>
+<line x1="932.4" y1="349.9" x2="932.4" y2="384.6" stroke="#00ff88" stroke-width="1.4"/><rect x="929.4" y="373.2" width="6" height="4" rx="1" fill="#00ff88"/>
+<line x1="941.8" y1="361.1" x2="941.8" y2="406.1" stroke="#ff4444" stroke-width="1.4"/><rect x="938.8" y="373.2" width="6" height="32.7" rx="1" fill="#ff4444"/>
+<line x1="951.3" y1="399.3" x2="951.3" y2="423.7" stroke="#00ff88" stroke-width="1.4"/><rect x="948.3" y="403.2" width="6" height="2.7" rx="1" fill="#00ff88"/>
+<line x1="960.7" y1="386.1" x2="960.7" y2="416.8" stroke="#00ff88" stroke-width="1.4"/><rect x="957.7" y="390.1" width="6" height="13" rx="1" fill="#00ff88"/>
+<line x1="970.2" y1="390" x2="970.2" y2="417.8" stroke="#ff4444" stroke-width="1.4"/><rect x="967.2" y="390.1" width="6" height="23.8" rx="1" fill="#ff4444"/>
+<line x1="979.6" y1="304.5" x2="979.6" y2="423.1" stroke="#00ff88" stroke-width="1.4"/><rect x="976.6" y="317.8" width="6" height="96.2" rx="1" fill="#00ff88"/>
+<line x1="989.1" y1="295.2" x2="989.1" y2="373.8" stroke="#ff4444" stroke-width="1.4"/><rect x="986.1" y="317.8" width="6" height="52" rx="1" fill="#ff4444"/>
+<line x1="998.5" y1="361.4" x2="998.5" y2="391.3" stroke="#ff4444" stroke-width="1.4"/><rect x="995.5" y="369.7" width="6" height="4.5" rx="1" fill="#ff4444"/>
+<line x1="1007.9" y1="341.9" x2="1007.9" y2="401.2" stroke="#ff4444" stroke-width="1.4"/><rect x="1004.9" y="374.2" width="6" height="17.7" rx="1" fill="#ff4444"/>
+<line x1="1017.4" y1="389.9" x2="1017.4" y2="421.2" stroke="#ff4444" stroke-width="1.4"/><rect x="1014.4" y="392" width="6" height="20" rx="1" fill="#ff4444"/>
+<line x1="1026.8" y1="394.3" x2="1026.8" y2="438.3" stroke="#ff4444" stroke-width="1.4"/><rect x="1023.8" y="412" width="6" height="3.3" rx="1" fill="#ff4444"/>
+<line x1="1036.3" y1="414.1" x2="1036.3" y2="466.8" stroke="#ff4444" stroke-width="1.4"/><rect x="1033.3" y="415.3" width="6" height="40.2" rx="1" fill="#ff4444"/>
+<line x1="1045.7" y1="446.4" x2="1045.7" y2="463.1" stroke="#ff4444" stroke-width="1.4"/><rect x="1042.7" y="455.5" width="6" height="3.6" rx="1" fill="#ff4444"/>
+<line x1="1055.2" y1="443.4" x2="1055.2" y2="488.6" stroke="#ff4444" stroke-width="1.4"/><rect x="1052.2" y="459.1" width="6" height="11" rx="1" fill="#ff4444"/>
+<line x1="1064.6" y1="423.7" x2="1064.6" y2="472" stroke="#00ff88" stroke-width="1.4"/><rect x="1061.6" y="461.4" width="6" height="8.7" rx="1" fill="#00ff88"/>
+<line x1="1074.1" y1="447.9" x2="1074.1" y2="476" stroke="#ff4444" stroke-width="1.4"/><rect x="1071.1" y="461.4" width="6" height="4.4" rx="1" fill="#ff4444"/>
+<line x1="1083.5" y1="464" x2="1083.5" y2="486.2" stroke="#ff4444" stroke-width="1.4"/><rect x="1080.5" y="465.9" width="6" height="20" rx="1" fill="#ff4444"/>
+<line x1="1092.9" y1="477.3" x2="1092.9" y2="509.9" stroke="#00ff88" stroke-width="1.4"/><rect x="1089.9" y="481.1" width="6" height="4.8" rx="1" fill="#00ff88"/>
+<line x1="1102.4" y1="461.9" x2="1102.4" y2="487.8" stroke="#00ff88" stroke-width="1.4"/><rect x="1099.4" y="478.5" width="6" height="2.6" rx="1" fill="#00ff88"/>
+<line x1="1111.8" y1="437.6" x2="1111.8" y2="481.5" stroke="#00ff88" stroke-width="1.4"/><rect x="1108.8" y="467.9" width="6" height="10.5" rx="1" fill="#00ff88"/>
+<line x1="1121.3" y1="460.6" x2="1121.3" y2="478.3" stroke="#ff4444" stroke-width="1.4"/><rect x="1118.3" y="467.9" width="6" height="6.8" rx="1" fill="#ff4444"/>
+<line x1="1130.7" y1="431.3" x2="1130.7" y2="487.9" stroke="#00ff88" stroke-width="1.4"/><rect x="1127.7" y="459.4" width="6" height="15.3" rx="1" fill="#00ff88"/>
+<line x1="1140.2" y1="455.2" x2="1140.2" y2="483" stroke="#ff4444" stroke-width="1.4"/><rect x="1137.2" y="459.4" width="6" height="18.7" rx="1" fill="#ff4444"/>
+<line x1="1149.6" y1="474.2" x2="1149.6" y2="486.8" stroke="#00ff88" stroke-width="1.4"/><rect x="1146.6" y="477.2" width="6" height="1.6" rx="1" fill="#00ff88"/>
+<line x1="1159.1" y1="459.3" x2="1159.1" y2="478.7" stroke="#00ff88" stroke-width="1.4"/><rect x="1156.1" y="466.4" width="6" height="10.8" rx="1" fill="#00ff88"/>
+<line x1="1168.5" y1="384.2" x2="1168.5" y2="466.9" stroke="#00ff88" stroke-width="1.4"/><rect x="1165.5" y="412.7" width="6" height="53.7" rx="1" fill="#00ff88"/>
+<line x1="1177.9" y1="370.3" x2="1177.9" y2="414.5" stroke="#00ff88" stroke-width="1.4"/><rect x="1174.9" y="412.6" width="6" height="1.6" rx="1" fill="#00ff88"/>
+<line x1="1187.4" y1="411.4" x2="1187.4" y2="431.3" stroke="#ff4444" stroke-width="1.4"/><rect x="1184.4" y="412.6" width="6" height="4.7" rx="1" fill="#ff4444"/>
+<line x1="1196.8" y1="373.6" x2="1196.8" y2="417.9" stroke="#00ff88" stroke-width="1.4"/><rect x="1193.8" y="381.6" width="6" height="35.7" rx="1" fill="#00ff88"/>
+<line x1="1206.3" y1="377.2" x2="1206.3" y2="411.1" stroke="#ff4444" stroke-width="1.4"/><rect x="1203.3" y="381.6" width="6" height="25.3" rx="1" fill="#ff4444"/>
+<line x1="1215.7" y1="394.8" x2="1215.7" y2="415.7" stroke="#ff4444" stroke-width="1.4"/><rect x="1212.7" y="407" width="6" height="5.6" rx="1" fill="#ff4444"/>
+<line x1="1225.2" y1="408.9" x2="1225.2" y2="441.8" stroke="#ff4444" stroke-width="1.4"/><rect x="1222.2" y="412.5" width="6" height="22.1" rx="1" fill="#ff4444"/>
+<line x1="1234.6" y1="384.5" x2="1234.6" y2="438.7" stroke="#00ff88" stroke-width="1.4"/><rect x="1231.6" y="391" width="6" height="43.6" rx="1" fill="#00ff88"/>
+<line x1="1244.1" y1="385.5" x2="1244.1" y2="408.6" stroke="#ff4444" stroke-width="1.4"/><rect x="1241.1" y="391" width="6" height="1.6" rx="1" fill="#ff4444"/>
+<line x1="1253.5" y1="359.3" x2="1253.5" y2="404.8" stroke="#00ff88" stroke-width="1.4"/><rect x="1250.5" y="379.4" width="6" height="13.2" rx="1" fill="#00ff88"/>
+<line x1="1262.9" y1="277.9" x2="1262.9" y2="405.3" stroke="#00ff88" stroke-width="1.4"/><rect x="1259.9" y="333.9" width="6" height="45.5" rx="1" fill="#00ff88"/>
+<line x1="1272.4" y1="325.8" x2="1272.4" y2="383" stroke="#ff4444" stroke-width="1.4"/><rect x="1269.4" y="333.9" width="6" height="45.5" rx="1" fill="#ff4444"/>
+<line x1="1281.8" y1="359.4" x2="1281.8" y2="406.5" stroke="#00ff88" stroke-width="1.4"/><rect x="1278.8" y="361.7" width="6" height="17.7" rx="1" fill="#00ff88"/>
+<line x1="1291.3" y1="358.4" x2="1291.3" y2="377" stroke="#ff4444" stroke-width="1.4"/><rect x="1288.3" y="361.7" width="6" height="7.8" rx="1" fill="#ff4444"/>
+</g>
+<line x1="446" y1="369.5" x2="1296" y2="369.5" stroke="#00cfff" stroke-width="1" stroke-dasharray="2 5" opacity=".7"/>
+<rect x="1302" y="358.5" width="78" height="22" rx="6" fill="#00cfff" /><text x="1341" y="373.5" font-family="JetBrains Mono, IBM Plex Mono, monospace" font-size="11.5" font-weight="800" fill="#04202a" text-anchor="middle" letter-spacing="0" >0.203</text>
+<circle cx="1291.3" cy="369.5" r="4.5" fill="#00cfff" class="pulse"/><circle cx="1291.3" cy="369.5" r="3.2" fill="#fff"/>
+<text x="1341" y="395.5" font-family="JetBrains Mono, IBM Plex Mono, monospace" font-size="9" font-weight="700" fill="#00cfff" text-anchor="middle" letter-spacing="1.2" >FORMING</text>
+<line x1="1272.4" y1="296.8" x2="1272.4" y2="322.8" stroke="#fff" stroke-width="1" opacity=".55"/>
+<circle cx="1272.4" cy="286.8" r="10" fill="#070b13" stroke="#fff" stroke-width="1.6"/><text x="1272.4" y="290.8" font-family="JetBrains Mono, IBM Plex Mono, monospace" font-size="11" font-weight="800" fill="#fff" text-anchor="middle" letter-spacing="0" >1</text>
+<line x1="1262.9" y1="231.9" x2="1262.9" y2="274.9" stroke="#fff" stroke-width="1" opacity=".55"/>
+<circle cx="1262.9" cy="221.9" r="10" fill="#070b13" stroke="#fff" stroke-width="1.6"/><text x="1262.9" y="225.9" font-family="JetBrains Mono, IBM Plex Mono, monospace" font-size="11" font-weight="800" fill="#fff" text-anchor="middle" letter-spacing="0" >2</text>
+<line x1="1262.9" y1="265.9" x2="1262.9" y2="274.9" stroke="#fff" stroke-width="1" opacity=".55"/>
+<circle cx="1262.9" cy="255.9" r="10" fill="#070b13" stroke="#fff" stroke-width="1.6"/><text x="1262.9" y="259.9" font-family="JetBrains Mono, IBM Plex Mono, monospace" font-size="11" font-weight="800" fill="#fff" text-anchor="middle" letter-spacing="0" >3</text>
+<line x1="1253.5" y1="330.3" x2="1253.5" y2="356.3" stroke="#fff" stroke-width="1" opacity=".55"/>
+<circle cx="1253.5" cy="320.3" r="10" fill="#070b13" stroke="#fff" stroke-width="1.6"/><text x="1253.5" y="324.3" font-family="JetBrains Mono, IBM Plex Mono, monospace" font-size="11" font-weight="800" fill="#fff" text-anchor="middle" letter-spacing="0" >4</text>
+<line x1="1234.6" y1="338.5" x2="1234.6" y2="381.5" stroke="#fff" stroke-width="1" opacity=".55"/>
+<circle cx="1234.6" cy="328.5" r="10" fill="#070b13" stroke="#fff" stroke-width="1.6"/><text x="1234.6" y="332.5" font-family="JetBrains Mono, IBM Plex Mono, monospace" font-size="11" font-weight="800" fill="#fff" text-anchor="middle" letter-spacing="0" >5</text>
+<line x1="1215.7" y1="382.8" x2="1215.7" y2="391.8" stroke="#fff" stroke-width="1" opacity=".55"/>
+<circle cx="1215.7" cy="372.8" r="10" fill="#070b13" stroke="#fff" stroke-width="1.6"/><text x="1215.7" y="376.8" font-family="JetBrains Mono, IBM Plex Mono, monospace" font-size="11" font-weight="800" fill="#fff" text-anchor="middle" letter-spacing="0" >6</text>
+<text x="40" y="618" font-family="Archivo Black, Arial Black, sans-serif" font-size="22" font-weight="400" fill="#fff" text-anchor="start" letter-spacing="0" >What the number is made of</text>
+<text x="40" y="642" font-family="IBM Plex Sans, Segoe UI, Arial, sans-serif" font-size="13" font-weight="400" fill="#8fa6c2" text-anchor="start" letter-spacing="0" >Patterns confirmed in the last 10 candles, and how often each one rose in the study.</text>
+<line x1="1236" y1="633" x2="1236" y2="645" stroke="#fff" stroke-width="1.6"/><text x="1246" y="643" font-family="JetBrains Mono, IBM Plex Mono, monospace" font-size="11" font-weight="600" fill="#8fa6c2" text-anchor="start" letter-spacing="0" >average candle 46.4%</text>
+<rect x="40" y="668" width="259" height="148" rx="18" fill="#0b1220" stroke="url(#cardbd)" stroke-width="1.3" />
+<circle cx="64" cy="694" r="10" fill="#070b13" stroke="#fff" stroke-width="1.6"/><text x="64" y="698" font-family="JetBrains Mono, IBM Plex Mono, monospace" font-size="11" font-weight="800" fill="#fff" text-anchor="middle" letter-spacing="0" >1</text>
+<text x="58" y="724" font-family="IBM Plex Sans, Segoe UI, Arial, sans-serif" font-size="14.5" font-weight="700" fill="#fff" text-anchor="start" letter-spacing="0" >Bearish engulfing a</text>
+<text x="58" y="742" font-family="IBM Plex Sans, Segoe UI, Arial, sans-serif" font-size="14.5" font-weight="700" fill="#fff" text-anchor="start" letter-spacing="0" >after rise</text>
+<text x="58" y="780" font-family="JetBrains Mono, IBM Plex Mono, monospace" font-size="28" font-weight="800" fill="#00ff88" text-anchor="start" letter-spacing="0" >46.9%</text>
+<rect x="168" y="766" width="113" height="8" rx="4" fill="#101b2b" /><rect x="168" y="766" width="88.4" height="8" rx="4" fill="#00ff88" />
+<line x1="255.3" y1="761" x2="255.3" y2="779" stroke="#fff" stroke-width="1.6"/>
+<text x="58" y="804" font-family="IBM Plex Sans, Segoe UI, Arial, sans-serif" font-size="11" font-weight="400" fill="#6f8199" text-anchor="start" letter-spacing="0" >rose after 10 candles</text>
+<rect x="315" y="668" width="259" height="148" rx="18" fill="#0b1220" stroke="url(#cardbd)" stroke-width="1.3" />
+<circle cx="339" cy="694" r="10" fill="#070b13" stroke="#fff" stroke-width="1.6"/><text x="339" y="698" font-family="JetBrains Mono, IBM Plex Mono, monospace" font-size="11" font-weight="800" fill="#fff" text-anchor="middle" letter-spacing="0" >2</text>
+<text x="333" y="724" font-family="IBM Plex Sans, Segoe UI, Arial, sans-serif" font-size="14.5" font-weight="700" fill="#fff" text-anchor="start" letter-spacing="0" >Break of structure up</text>
+
+<text x="333" y="780" font-family="JetBrains Mono, IBM Plex Mono, monospace" font-size="28" font-weight="800" fill="#00ff88" text-anchor="start" letter-spacing="0" >50.8%</text>
+<rect x="443" y="766" width="113" height="8" rx="4" fill="#101b2b" /><rect x="443" y="766" width="95.7" height="8" rx="4" fill="#00ff88" />
+<line x1="530.3" y1="761" x2="530.3" y2="779" stroke="#fff" stroke-width="1.6"/>
+<text x="333" y="804" font-family="IBM Plex Sans, Segoe UI, Arial, sans-serif" font-size="11" font-weight="400" fill="#6f8199" text-anchor="start" letter-spacing="0" >rose after 10 candles</text>
+<rect x="590" y="668" width="259" height="148" rx="18" fill="#0b1220" stroke="url(#cardbd)" stroke-width="1.3" />
+<circle cx="614" cy="694" r="10" fill="#070b13" stroke="#fff" stroke-width="1.6"/><text x="614" y="698" font-family="JetBrains Mono, IBM Plex Mono, monospace" font-size="11" font-weight="800" fill="#fff" text-anchor="middle" letter-spacing="0" >3</text>
+<text x="608" y="724" font-family="IBM Plex Sans, Segoe UI, Arial, sans-serif" font-size="14.5" font-weight="700" fill="#fff" text-anchor="start" letter-spacing="0" >20-bar breakout on</text>
+<text x="608" y="742" font-family="IBM Plex Sans, Segoe UI, Arial, sans-serif" font-size="14.5" font-weight="700" fill="#fff" text-anchor="start" letter-spacing="0" >volume</text>
+<text x="608" y="780" font-family="JetBrains Mono, IBM Plex Mono, monospace" font-size="28" font-weight="800" fill="#00ff88" text-anchor="start" letter-spacing="0" >48.4%</text>
+<rect x="718" y="766" width="113" height="8" rx="4" fill="#101b2b" /><rect x="718" y="766" width="91.1" height="8" rx="4" fill="#00ff88" />
+<line x1="805.3" y1="761" x2="805.3" y2="779" stroke="#fff" stroke-width="1.6"/>
+<text x="608" y="804" font-family="IBM Plex Sans, Segoe UI, Arial, sans-serif" font-size="11" font-weight="400" fill="#6f8199" text-anchor="start" letter-spacing="0" >rose after 10 candles</text>
+<rect x="865" y="668" width="259" height="148" rx="18" fill="#0b1220" stroke="url(#cardbd)" stroke-width="1.3" />
+<circle cx="889" cy="694" r="10" fill="#070b13" stroke="#fff" stroke-width="1.6"/><text x="889" y="698" font-family="JetBrains Mono, IBM Plex Mono, monospace" font-size="11" font-weight="800" fill="#fff" text-anchor="middle" letter-spacing="0" >4</text>
+<circle cx="917" cy="694" r="10" fill="#070b13" stroke="#fff" stroke-width="1.6"/><text x="917" y="698" font-family="JetBrains Mono, IBM Plex Mono, monospace" font-size="11" font-weight="800" fill="#fff" text-anchor="middle" letter-spacing="0" >5</text>
+<text x="883" y="724" font-family="IBM Plex Sans, Segoe UI, Arial, sans-serif" font-size="14.5" font-weight="700" fill="#fff" text-anchor="start" letter-spacing="0" >Bullish engulfing a</text>
+<text x="883" y="742" font-family="IBM Plex Sans, Segoe UI, Arial, sans-serif" font-size="14.5" font-weight="700" fill="#fff" text-anchor="start" letter-spacing="0" >after drop</text>
+<text x="883" y="780" font-family="JetBrains Mono, IBM Plex Mono, monospace" font-size="28" font-weight="800" fill="#ff4444" text-anchor="start" letter-spacing="0" >45.3%</text>
+<rect x="993" y="766" width="113" height="8" rx="4" fill="#101b2b" /><rect x="993" y="766" width="85.4" height="8" rx="4" fill="#ff4444" />
+<line x1="1080.3" y1="761" x2="1080.3" y2="779" stroke="#fff" stroke-width="1.6"/>
+<text x="883" y="804" font-family="IBM Plex Sans, Segoe UI, Arial, sans-serif" font-size="11" font-weight="400" fill="#6f8199" text-anchor="start" letter-spacing="0" >rose after 10 candles</text>
+<rect x="1140" y="668" width="259" height="148" rx="18" fill="#0b1220" stroke="url(#cardbd)" stroke-width="1.3" />
+<circle cx="1164" cy="694" r="10" fill="#070b13" stroke="#fff" stroke-width="1.6"/><text x="1164" y="698" font-family="JetBrains Mono, IBM Plex Mono, monospace" font-size="11" font-weight="800" fill="#fff" text-anchor="middle" letter-spacing="0" >6</text>
+<text x="1158" y="724" font-family="IBM Plex Sans, Segoe UI, Arial, sans-serif" font-size="14.5" font-weight="700" fill="#fff" text-anchor="start" letter-spacing="0" >Lower highs and lower</text>
+<text x="1158" y="742" font-family="IBM Plex Sans, Segoe UI, Arial, sans-serif" font-size="14.5" font-weight="700" fill="#fff" text-anchor="start" letter-spacing="0" >lows</text>
+<text x="1158" y="780" font-family="JetBrains Mono, IBM Plex Mono, monospace" font-size="28" font-weight="800" fill="#ff4444" text-anchor="start" letter-spacing="0" >44.0%</text>
+<rect x="1268" y="766" width="113" height="8" rx="4" fill="#101b2b" /><rect x="1268" y="766" width="82.9" height="8" rx="4" fill="#ff4444" />
+<line x1="1355.3" y1="761" x2="1355.3" y2="779" stroke="#fff" stroke-width="1.6"/>
+<text x="1158" y="804" font-family="IBM Plex Sans, Segoe UI, Arial, sans-serif" font-size="11" font-weight="400" fill="#6f8199" text-anchor="start" letter-spacing="0" >rose after 10 candles</text>
+<text x="40" y="868" font-family="IBM Plex Sans, Segoe UI, Arial, sans-serif" font-size="12" font-weight="400" fill="#6f8199" text-anchor="start" letter-spacing="0" >A measured pattern statistic, not advice and not a forecast. It places no orders.</text>
+<text x="1400" y="868" font-family="JetBrains Mono, IBM Plex Mono, monospace" font-size="12.5" font-weight="700" fill="#00cfff" text-anchor="end" letter-spacing="0" >How the number is made  ›</text>
+</svg>

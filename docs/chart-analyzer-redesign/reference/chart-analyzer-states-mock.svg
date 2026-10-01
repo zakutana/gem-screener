@@ -1,0 +1,171 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1440 830" width="1440" height="830" role="img" aria-label="Chart Analyzer, the other states: mobile, start, collecting, too little history, loading">
+<defs>
+  <radialGradient id="glowA" cx=".12" cy="0" r=".7"><stop offset="0" stop-color="#00cfff" stop-opacity=".14"/><stop offset="1" stop-color="#00cfff" stop-opacity="0"/></radialGradient>
+  <linearGradient id="gline" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#00cfff"/><stop offset="1" stop-color="#00ff88"/></linearGradient>
+  <linearGradient id="cardbd" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#1d4a63"/><stop offset=".5" stop-color="#1b2d42"/><stop offset="1" stop-color="#14543f"/></linearGradient>
+  <linearGradient id="numfill" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#fff"/><stop offset="1" stop-color="#b9d3ff"/></linearGradient>
+  <linearGradient id="shimmer" x1="0" y1="0" x2="1" y2="0"><stop offset="0" stop-color="#13243a"/><stop offset=".5" stop-color="#1d3550"/><stop offset="1" stop-color="#13243a"/></linearGradient>
+  <filter id="blur6" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="6"/></filter>
+  <clipPath id="mclip"><circle cx="86" cy="108" r="17"/></clipPath>
+  <clipPath id="mchart"><rect x="62" y="446" width="366" height="140"/></clipPath>
+  <clipPath id="mcards"><rect x="60" y="636" width="370" height="140"/></clipPath>
+  <style>
+    .dots circle { animation: dot 1.2s infinite; } .dots circle:nth-child(2) { animation-delay: .2s; } .dots circle:nth-child(3) { animation-delay: .4s; }
+    .sh { animation: shim 1.6s ease-in-out infinite; }
+    .sweep { stroke-dasharray: 300; animation: sweep 1.8s ease-in-out infinite; }
+    @keyframes dot { 0%, 100% { opacity: .25; } 50% { opacity: 1; } }
+    @keyframes shim { 0%, 100% { opacity: .55; } 50% { opacity: 1; } }
+    @keyframes sweep { 0% { stroke-dashoffset: 300; } 60%, 100% { stroke-dashoffset: 0; } }
+    @media (prefers-reduced-motion: reduce) { .dots circle, .sh, .sweep { animation: none; } }
+  </style>
+</defs>
+<rect width="1440" height="830" fill="#070b13"/><rect width="1440" height="830" fill="url(#glowA)"/>
+<text x="40" y="24" font-family="JetBrains Mono, IBM Plex Mono, monospace" font-size="10.5" font-weight="700" fill="#6f8199" text-anchor="start" letter-spacing="1.6" >MOBILE · 390 PX · THE RESULT</text>
+<rect x="40" y="36" width="410" height="770" rx="38" fill="#0b1220" stroke="url(#cardbd)" stroke-width="2" />
+<text x="62" y="70" font-family="Archivo Black, Arial Black, sans-serif" font-size="14" font-weight="400" fill="#fff" text-anchor="start" letter-spacing="0" >EventTrader</text><text x="428" y="70" font-family="IBM Plex Sans, Segoe UI, Arial, sans-serif" font-size="16" font-weight="400" fill="#8fa6c2" text-anchor="end" letter-spacing="0" >☰</text>
+<circle cx="86" cy="108" r="19" fill="#fff"/><image href="data:image/webp;base64,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" x="69" y="91" width="34" height="34" clip-path="url(#mclip)" preserveAspectRatio="xMidYMid slice"/><circle cx="86" cy="108" r="21.5" fill="none" stroke="url(#gline)" stroke-width="2"/>
+<text x="118" y="106" font-family="Archivo Black, Arial Black, sans-serif" font-size="19" font-weight="400" fill="#fff" text-anchor="start" letter-spacing="0" >Collector Crypt</text><text x="119" y="124" font-family="JetBrains Mono, IBM Plex Mono, monospace" font-size="10" font-weight="600" fill="#6f8199" text-anchor="start" letter-spacing="1" >CARDS · SOLANA</text>
+<rect x="380" y="92" width="48" height="32" rx="10" fill="#101b2b" stroke="#1b2d42" stroke-width="1" /><text x="404" y="113" font-family="JetBrains Mono, IBM Plex Mono, monospace" font-size="11" font-weight="700" fill="#e8eef6" text-anchor="middle" letter-spacing="0" >Share</text>
+<rect x="62" y="142" width="84" height="34" rx="10" fill="#101b2b" stroke="#1b2d42" stroke-width="1" /><text x="104" y="164" font-family="JetBrains Mono, IBM Plex Mono, monospace" font-size="13" font-weight="700" fill="#8fa6c2" text-anchor="middle" letter-spacing="0" >1H</text>
+<rect x="157" y="142" width="84" height="34" rx="10" fill="#101b2b" stroke="#1b2d42" stroke-width="1" /><text x="199" y="164" font-family="JetBrains Mono, IBM Plex Mono, monospace" font-size="13" font-weight="700" fill="#8fa6c2" text-anchor="middle" letter-spacing="0" >4H</text>
+<rect x="252" y="142" width="84" height="34" rx="10" fill="url(#gline)" /><text x="294" y="164" font-family="JetBrains Mono, IBM Plex Mono, monospace" font-size="13" font-weight="800" fill="#04271f" text-anchor="middle" letter-spacing="0" >1D</text>
+<rect x="347" y="142" width="84" height="34" rx="10" fill="#101b2b" stroke="#1b2d42" stroke-width="1" /><text x="389" y="164" font-family="JetBrains Mono, IBM Plex Mono, monospace" font-size="13" font-weight="700" fill="#8fa6c2" text-anchor="middle" letter-spacing="0" >1W</text>
+<rect x="60" y="194" width="370" height="232" rx="24" fill="#0d1626" stroke="url(#cardbd)" stroke-width="1.4" />
+<path d="M159.1 336.4A86 86 0 0 1 173.4 292.4" stroke="#b83232" stroke-width="14" fill="none" stroke-linecap="round" opacity="0.24"/>
+<path d="M177.6 286.6A86 86 0 0 1 215 259.4" stroke="#ff4444" stroke-width="14" fill="none" stroke-linecap="round" opacity="0.24"/>
+<path d="M221.9 257.2A86 86 0 0 1 268.1 257.2" stroke="#3b82f6" stroke-width="24" fill="none" stroke-linecap="round" opacity=".4" filter="url(#blur6)"/>
+<path d="M221.9 257.2A86 86 0 0 1 268.1 257.2" stroke="#3b82f6" stroke-width="14" fill="none" stroke-linecap="round" opacity="1"/>
+<path d="M275 259.4A86 86 0 0 1 312.4 286.6" stroke="#00c878" stroke-width="14" fill="none" stroke-linecap="round" opacity="0.24"/>
+<path d="M316.6 292.4A86 86 0 0 1 330.9 336.4" stroke="#00ff88" stroke-width="14" fill="none" stroke-linecap="round" opacity="0.24"/>
+<line x1="253.2" y1="266.5" x2="255.9" y2="242.6" stroke="#fff" stroke-width="3.4" stroke-linecap="round"/>
+<text x="245" y="336" font-family="Archivo Black, Arial Black, sans-serif" font-size="76" font-weight="400" fill="url(#numfill)" text-anchor="middle" letter-spacing="-2" >54</text>
+<rect x="197" y="354" width="96" height="26" rx="13" fill="#3b82f626" stroke="#3b82f6" stroke-width="1.3" /><text x="245" y="372" font-family="JetBrains Mono, IBM Plex Mono, monospace" font-size="11.5" font-weight="800" fill="#8db8ff" text-anchor="middle" letter-spacing="1.4" >NEUTRAL</text>
+<text x="245" y="410" font-family="IBM Plex Sans, Segoe UI, Arial, sans-serif" font-size="13" font-weight="600" fill="#e8eef6" text-anchor="middle" letter-spacing="0" >A little above an average chart.</text>
+<rect x="60" y="440" width="370" height="160" rx="22" fill="#0d1626" stroke="url(#cardbd)" stroke-width="1.4" />
+<rect x="344.3" y="456" width="55.7" height="116" rx="6" fill="#00cfff12" stroke="#00cfff88" stroke-width="1" stroke-dasharray="3 4"/>
+<g clip-path="url(#mchart)">
+<line x1="68.8" y1="534.3" x2="68.8" y2="549.3" stroke="#00ff88" stroke-width="1.2"/><rect x="66.8" y="536.8" width="4" height="5.9" fill="#00ff88"/>
+<line x1="74.3" y1="528.4" x2="74.3" y2="537.3" stroke="#00ff88" stroke-width="1.2"/><rect x="72.3" y="532.8" width="4" height="3.9" fill="#00ff88"/>
+<line x1="79.9" y1="532.3" x2="79.9" y2="535.3" stroke="#ff4444" stroke-width="1.2"/><rect x="77.9" y="532.8" width="4" height="2.2" fill="#ff4444"/>
+<line x1="85.5" y1="529.4" x2="85.5" y2="538.2" stroke="#ff4444" stroke-width="1.2"/><rect x="83.5" y="535" width="4" height="2.6" fill="#ff4444"/>
+<line x1="91" y1="537.4" x2="91" y2="545.8" stroke="#ff4444" stroke-width="1.2"/><rect x="89" y="537.6" width="4" height="7.5" fill="#ff4444"/>
+<line x1="96.6" y1="541.5" x2="96.6" y2="546.7" stroke="#ff4444" stroke-width="1.2"/><rect x="94.6" y="545.1" width="4" height="1.4" fill="#ff4444"/>
+<line x1="102.2" y1="544.5" x2="102.2" y2="550.7" stroke="#ff4444" stroke-width="1.2"/><rect x="100.2" y="546.2" width="4" height="3.6" fill="#ff4444"/>
+<line x1="107.8" y1="538.4" x2="107.8" y2="549.8" stroke="#00ff88" stroke-width="1.2"/><rect x="105.8" y="541" width="4" height="8.8" fill="#00ff88"/>
+<line x1="113.3" y1="540" x2="113.3" y2="546" stroke="#ff4444" stroke-width="1.2"/><rect x="111.3" y="541" width="4" height="4.2" fill="#ff4444"/>
+<line x1="118.9" y1="541.1" x2="118.9" y2="546.6" stroke="#00ff88" stroke-width="1.2"/><rect x="116.9" y="541.7" width="4" height="3.5" fill="#00ff88"/>
+<line x1="124.4" y1="532" x2="124.4" y2="541.9" stroke="#00ff88" stroke-width="1.2"/><rect x="122.4" y="533.6" width="4" height="8.1" fill="#00ff88"/>
+<line x1="130" y1="532.4" x2="130" y2="537.4" stroke="#ff4444" stroke-width="1.2"/><rect x="128" y="533.6" width="4" height="1.4" fill="#ff4444"/>
+<line x1="135.6" y1="517.4" x2="135.6" y2="534.6" stroke="#00ff88" stroke-width="1.2"/><rect x="133.6" y="519.6" width="4" height="14.9" fill="#00ff88"/>
+<line x1="141.1" y1="516" x2="141.1" y2="526.8" stroke="#ff4444" stroke-width="1.2"/><rect x="139.1" y="519.6" width="4" height="1.6" fill="#ff4444"/>
+<line x1="146.7" y1="521.2" x2="146.7" y2="529.3" stroke="#ff4444" stroke-width="1.2"/><rect x="144.7" y="521.2" width="4" height="5.9" fill="#ff4444"/>
+<line x1="152.3" y1="525.3" x2="152.3" y2="530.1" stroke="#ff4444" stroke-width="1.2"/><rect x="150.3" y="527.1" width="4" height="2.7" fill="#ff4444"/>
+<line x1="157.8" y1="517.3" x2="157.8" y2="533.9" stroke="#00ff88" stroke-width="1.2"/><rect x="155.8" y="524.4" width="4" height="5.4" fill="#00ff88"/>
+<line x1="163.4" y1="514.2" x2="163.4" y2="526.7" stroke="#00ff88" stroke-width="1.2"/><rect x="161.4" y="518.9" width="4" height="5.5" fill="#00ff88"/>
+<line x1="169" y1="507.1" x2="169" y2="520.2" stroke="#00ff88" stroke-width="1.2"/><rect x="167" y="510.7" width="4" height="8.2" fill="#00ff88"/>
+<line x1="174.6" y1="499" x2="174.6" y2="517.1" stroke="#ff4444" stroke-width="1.2"/><rect x="172.6" y="510.7" width="4" height="5.6" fill="#ff4444"/>
+<line x1="180.1" y1="513.4" x2="180.1" y2="525.3" stroke="#ff4444" stroke-width="1.2"/><rect x="178.1" y="516.2" width="4" height="1.4" fill="#ff4444"/>
+<line x1="185.7" y1="507.9" x2="185.7" y2="519.7" stroke="#00ff88" stroke-width="1.2"/><rect x="183.7" y="515.8" width="4" height="1.4" fill="#00ff88"/>
+<line x1="191.2" y1="511.7" x2="191.2" y2="527.1" stroke="#ff4444" stroke-width="1.2"/><rect x="189.2" y="515.8" width="4" height="11.2" fill="#ff4444"/>
+<line x1="196.8" y1="524.7" x2="196.8" y2="533.1" stroke="#00ff88" stroke-width="1.2"/><rect x="194.8" y="526.1" width="4" height="1.4" fill="#00ff88"/>
+<line x1="202.4" y1="520.2" x2="202.4" y2="530.7" stroke="#00ff88" stroke-width="1.2"/><rect x="200.4" y="521.6" width="4" height="4.5" fill="#00ff88"/>
+<line x1="207.9" y1="521.6" x2="207.9" y2="531.1" stroke="#ff4444" stroke-width="1.2"/><rect x="205.9" y="521.6" width="4" height="8.1" fill="#ff4444"/>
+<line x1="213.5" y1="492.4" x2="213.5" y2="532.9" stroke="#00ff88" stroke-width="1.2"/><rect x="211.5" y="496.9" width="4" height="32.9" fill="#00ff88"/>
+<line x1="219.1" y1="489.2" x2="219.1" y2="516" stroke="#ff4444" stroke-width="1.2"/><rect x="217.1" y="496.9" width="4" height="17.8" fill="#ff4444"/>
+<line x1="224.7" y1="511.8" x2="224.7" y2="522" stroke="#ff4444" stroke-width="1.2"/><rect x="222.7" y="514.6" width="4" height="1.5" fill="#ff4444"/>
+<line x1="230.2" y1="505.1" x2="230.2" y2="525.4" stroke="#ff4444" stroke-width="1.2"/><rect x="228.2" y="516.2" width="4" height="6.1" fill="#ff4444"/>
+<line x1="235.8" y1="521.6" x2="235.8" y2="532.3" stroke="#ff4444" stroke-width="1.2"/><rect x="233.8" y="522.2" width="4" height="6.8" fill="#ff4444"/>
+<line x1="241.3" y1="523" x2="241.3" y2="538.1" stroke="#ff4444" stroke-width="1.2"/><rect x="239.3" y="529.1" width="4" height="1.4" fill="#ff4444"/>
+<line x1="246.9" y1="529.8" x2="246.9" y2="547.8" stroke="#ff4444" stroke-width="1.2"/><rect x="244.9" y="530.2" width="4" height="13.7" fill="#ff4444"/>
+<line x1="252.5" y1="540.8" x2="252.5" y2="546.6" stroke="#ff4444" stroke-width="1.2"/><rect x="250.5" y="544" width="4" height="1.4" fill="#ff4444"/>
+<line x1="258" y1="539.8" x2="258" y2="555.3" stroke="#ff4444" stroke-width="1.2"/><rect x="256" y="545.2" width="4" height="3.8" fill="#ff4444"/>
+<line x1="263.6" y1="533.1" x2="263.6" y2="549.6" stroke="#00ff88" stroke-width="1.2"/><rect x="261.6" y="546" width="4" height="3" fill="#00ff88"/>
+<line x1="269.2" y1="541.4" x2="269.2" y2="550.9" stroke="#ff4444" stroke-width="1.2"/><rect x="267.2" y="546" width="4" height="1.5" fill="#ff4444"/>
+<line x1="274.8" y1="546.8" x2="274.8" y2="554.4" stroke="#ff4444" stroke-width="1.2"/><rect x="272.8" y="547.5" width="4" height="6.8" fill="#ff4444"/>
+<line x1="280.3" y1="551.4" x2="280.3" y2="562.6" stroke="#00ff88" stroke-width="1.2"/><rect x="278.3" y="552.7" width="4" height="1.6" fill="#00ff88"/>
+<line x1="285.9" y1="546.1" x2="285.9" y2="555" stroke="#00ff88" stroke-width="1.2"/><rect x="283.9" y="551.8" width="4" height="1.4" fill="#00ff88"/>
+<line x1="291.4" y1="537.8" x2="291.4" y2="552.8" stroke="#00ff88" stroke-width="1.2"/><rect x="289.4" y="548.2" width="4" height="3.6" fill="#00ff88"/>
+<line x1="297" y1="545.7" x2="297" y2="551.7" stroke="#ff4444" stroke-width="1.2"/><rect x="295" y="548.2" width="4" height="2.3" fill="#ff4444"/>
+<line x1="302.6" y1="535.7" x2="302.6" y2="555" stroke="#00ff88" stroke-width="1.2"/><rect x="300.6" y="545.3" width="4" height="5.2" fill="#00ff88"/>
+<line x1="308.1" y1="543.9" x2="308.1" y2="553.4" stroke="#ff4444" stroke-width="1.2"/><rect x="306.1" y="545.3" width="4" height="6.4" fill="#ff4444"/>
+<line x1="313.7" y1="550.4" x2="313.7" y2="554.7" stroke="#00ff88" stroke-width="1.2"/><rect x="311.7" y="551.4" width="4" height="1.4" fill="#00ff88"/>
+<line x1="319.3" y1="545.2" x2="319.3" y2="551.9" stroke="#00ff88" stroke-width="1.2"/><rect x="317.3" y="547.7" width="4" height="3.7" fill="#00ff88"/>
+<line x1="324.8" y1="519.6" x2="324.8" y2="547.9" stroke="#00ff88" stroke-width="1.2"/><rect x="322.8" y="529.3" width="4" height="18.4" fill="#00ff88"/>
+<line x1="330.4" y1="514.8" x2="330.4" y2="529.9" stroke="#00ff88" stroke-width="1.2"/><rect x="328.4" y="529.3" width="4" height="1.4" fill="#00ff88"/>
+<line x1="336" y1="528.9" x2="336" y2="535.7" stroke="#ff4444" stroke-width="1.2"/><rect x="334" y="529.3" width="4" height="1.6" fill="#ff4444"/>
+<line x1="341.6" y1="516" x2="341.6" y2="531.1" stroke="#00ff88" stroke-width="1.2"/><rect x="339.6" y="518.7" width="4" height="12.2" fill="#00ff88"/>
+<line x1="347.1" y1="517.2" x2="347.1" y2="528.8" stroke="#ff4444" stroke-width="1.2"/><rect x="345.1" y="518.7" width="4" height="8.7" fill="#ff4444"/>
+<line x1="352.7" y1="523.2" x2="352.7" y2="530.4" stroke="#ff4444" stroke-width="1.2"/><rect x="350.7" y="527.4" width="4" height="1.9" fill="#ff4444"/>
+<line x1="358.2" y1="528" x2="358.2" y2="539.3" stroke="#ff4444" stroke-width="1.2"/><rect x="356.2" y="529.3" width="4" height="7.6" fill="#ff4444"/>
+<line x1="363.8" y1="519.7" x2="363.8" y2="538.2" stroke="#00ff88" stroke-width="1.2"/><rect x="361.8" y="521.9" width="4" height="14.9" fill="#00ff88"/>
+<line x1="369.4" y1="520" x2="369.4" y2="527.9" stroke="#ff4444" stroke-width="1.2"/><rect x="367.4" y="521.9" width="4" height="1.4" fill="#ff4444"/>
+<line x1="374.9" y1="511.1" x2="374.9" y2="526.6" stroke="#00ff88" stroke-width="1.2"/><rect x="372.9" y="518" width="4" height="4.5" fill="#00ff88"/>
+<line x1="380.5" y1="483.3" x2="380.5" y2="526.8" stroke="#00ff88" stroke-width="1.2"/><rect x="378.5" y="502.4" width="4" height="15.5" fill="#00ff88"/>
+<line x1="386.1" y1="499.6" x2="386.1" y2="519.2" stroke="#ff4444" stroke-width="1.2"/><rect x="384.1" y="502.4" width="4" height="15.6" fill="#ff4444"/>
+<line x1="391.6" y1="511.1" x2="391.6" y2="527.2" stroke="#00ff88" stroke-width="1.2"/><rect x="389.6" y="511.9" width="4" height="6.1" fill="#00ff88"/>
+<line x1="397.2" y1="510.8" x2="397.2" y2="517.1" stroke="#ff4444" stroke-width="1.2"/><rect x="395.2" y="511.9" width="4" height="2.7" fill="#ff4444"/>
+</g>
+<rect x="372" y="505.6" width="56" height="18" rx="5" fill="#00cfff" /><text x="400" y="518.6" font-family="JetBrains Mono, IBM Plex Mono, monospace" font-size="10" font-weight="800" fill="#04202a" text-anchor="middle" letter-spacing="0" >0.203</text>
+<text x="62" y="626" font-family="Archivo Black, Arial Black, sans-serif" font-size="15" font-weight="400" fill="#fff" text-anchor="start" letter-spacing="0" >What the number is made of</text>
+<g clip-path="url(#mcards)">
+<rect x="60" y="640" width="150" height="130" rx="18" fill="#0b1220" stroke="url(#cardbd)" stroke-width="1.2" />
+<circle cx="82" cy="664" r="9.5" fill="#070b13" stroke="#fff" stroke-width="1.5"/><text x="82" y="668" font-family="JetBrains Mono, IBM Plex Mono, monospace" font-size="10.5" font-weight="800" fill="#fff" text-anchor="middle" letter-spacing="0" >1</text>
+<text x="74" y="696" font-family="IBM Plex Sans, Segoe UI, Arial, sans-serif" font-size="11.5" font-weight="700" fill="#fff" text-anchor="start" letter-spacing="0" >Bearish engulfing a</text><text x="74" y="711" font-family="IBM Plex Sans, Segoe UI, Arial, sans-serif" font-size="11.5" font-weight="700" fill="#fff" text-anchor="start" letter-spacing="0" >fter a rise</text>
+<text x="74" y="744" font-family="JetBrains Mono, IBM Plex Mono, monospace" font-size="23" font-weight="800" fill="#00ff88" text-anchor="start" letter-spacing="0" >46.9%</text>
+<rect x="74" y="754" width="122" height="6" rx="3" fill="#101b2b" /><rect x="74" y="754" width="95.4" height="6" rx="3" fill="#00ff88" />
+<rect x="218" y="640" width="150" height="130" rx="18" fill="#0b1220" stroke="url(#cardbd)" stroke-width="1.2" />
+<circle cx="240" cy="664" r="9.5" fill="#070b13" stroke="#fff" stroke-width="1.5"/><text x="240" y="668" font-family="JetBrains Mono, IBM Plex Mono, monospace" font-size="10.5" font-weight="800" fill="#fff" text-anchor="middle" letter-spacing="0" >2</text>
+<text x="232" y="696" font-family="IBM Plex Sans, Segoe UI, Arial, sans-serif" font-size="11.5" font-weight="700" fill="#fff" text-anchor="start" letter-spacing="0" >Break of structure </text><text x="232" y="711" font-family="IBM Plex Sans, Segoe UI, Arial, sans-serif" font-size="11.5" font-weight="700" fill="#fff" text-anchor="start" letter-spacing="0" >up</text>
+<text x="232" y="744" font-family="JetBrains Mono, IBM Plex Mono, monospace" font-size="23" font-weight="800" fill="#00ff88" text-anchor="start" letter-spacing="0" >50.8%</text>
+<rect x="232" y="754" width="122" height="6" rx="3" fill="#101b2b" /><rect x="232" y="754" width="103.3" height="6" rx="3" fill="#00ff88" />
+<rect x="376" y="640" width="150" height="130" rx="18" fill="#0b1220" stroke="url(#cardbd)" stroke-width="1.2" />
+<circle cx="398" cy="664" r="9.5" fill="#070b13" stroke="#fff" stroke-width="1.5"/><text x="398" y="668" font-family="JetBrains Mono, IBM Plex Mono, monospace" font-size="10.5" font-weight="800" fill="#fff" text-anchor="middle" letter-spacing="0" >3</text>
+<text x="390" y="696" font-family="IBM Plex Sans, Segoe UI, Arial, sans-serif" font-size="11.5" font-weight="700" fill="#fff" text-anchor="start" letter-spacing="0" >20-bar breakout on </text><text x="390" y="711" font-family="IBM Plex Sans, Segoe UI, Arial, sans-serif" font-size="11.5" font-weight="700" fill="#fff" text-anchor="start" letter-spacing="0" >volume</text>
+<text x="390" y="744" font-family="JetBrains Mono, IBM Plex Mono, monospace" font-size="23" font-weight="800" fill="#00ff88" text-anchor="start" letter-spacing="0" >48.4%</text>
+<rect x="390" y="754" width="122" height="6" rx="3" fill="#101b2b" /><rect x="390" y="754" width="98.4" height="6" rx="3" fill="#00ff88" />
+</g>
+<text x="245" y="797" font-family="JetBrains Mono, IBM Plex Mono, monospace" font-size="10" font-weight="600" fill="#6f8199" text-anchor="middle" letter-spacing="0" >swipe for the rest  ›</text>
+<text x="500" y="24" font-family="JetBrains Mono, IBM Plex Mono, monospace" font-size="10.5" font-weight="700" fill="#6f8199" text-anchor="start" letter-spacing="1.6" >THE START SCREEN (NO COIN YET)</text>
+<rect x="500" y="36" width="900" height="262" rx="26" fill="#0b1220" stroke="url(#cardbd)" stroke-width="1.6" />
+<text x="540" y="92" font-family="Archivo Black, Arial Black, sans-serif" font-size="30" font-weight="400" fill="#fff" text-anchor="start" letter-spacing="0" >Analyze a chart</text>
+<text x="540" y="116" font-family="IBM Plex Sans, Segoe UI, Arial, sans-serif" font-size="13.5" font-weight="400" fill="#8fa6c2" text-anchor="start" letter-spacing="0" >A score from 1 to 100 for any coin, and the patterns it is made of.</text>
+<rect x="540" y="136" width="470" height="52" rx="14" fill="#0a1220" stroke="#1b2d42" stroke-width="1.4" /><text x="562" y="168" font-family="IBM Plex Sans, Segoe UI, Arial, sans-serif" font-size="14" font-weight="400" fill="#6f8199" text-anchor="start" letter-spacing="0" >Ticker or contract address</text>
+<rect x="1020" y="136" width="120" height="52" rx="14" fill="#0a1220" stroke="#1b2d42" stroke-width="1.4" /><text x="1040" y="168" font-family="JetBrains Mono, IBM Plex Mono, monospace" font-size="12" font-weight="600" fill="#8fa6c2" text-anchor="start" letter-spacing="0" >Chain: auto  ▾</text>
+<rect x="1150" y="136" width="120" height="52" rx="14" fill="url(#gline)" /><text x="1210" y="168" font-family="JetBrains Mono, IBM Plex Mono, monospace" font-size="15" font-weight="800" fill="#04271f" text-anchor="middle" letter-spacing="0" >Analyze</text>
+<rect x="1280" y="136" width="80" height="52" rx="14" fill="none" stroke="#00cfff" stroke-width="1.5" /><text x="1320" y="168" font-family="JetBrains Mono, IBM Plex Mono, monospace" font-size="12.5" font-weight="700" fill="#00cfff" text-anchor="middle" letter-spacing="0" >Upload</text>
+<text x="540" y="226" font-family="JetBrains Mono, IBM Plex Mono, monospace" font-size="10.5" font-weight="700" fill="#6f8199" text-anchor="start" letter-spacing="1.6" >FROM GEM SCREENER</text>
+<rect x="540" y="238" width="168.4" height="34" rx="17" fill="#101b2b" stroke="#1b2d42" stroke-width="1" /><text x="624.2" y="260" font-family="IBM Plex Sans, Segoe UI, Arial, sans-serif" font-size="13" font-weight="600" fill="#e8eef6" text-anchor="middle" letter-spacing="0" >Pharaoh Exchange</text>
+<rect x="720.4" y="238" width="50.8" height="34" rx="17" fill="#101b2b" stroke="#1b2d42" stroke-width="1" /><text x="745.8" y="260" font-family="IBM Plex Sans, Segoe UI, Arial, sans-serif" font-size="13" font-weight="600" fill="#e8eef6" text-anchor="middle" letter-spacing="0" >up</text>
+<rect x="783.2" y="238" width="67.6" height="34" rx="17" fill="#101b2b" stroke="#1b2d42" stroke-width="1" /><text x="817" y="260" font-family="IBM Plex Sans, Segoe UI, Arial, sans-serif" font-size="13" font-weight="600" fill="#e8eef6" text-anchor="middle" letter-spacing="0" >nest</text>
+<rect x="862.8" y="238" width="143.2" height="34" rx="17" fill="#101b2b" stroke="#1b2d42" stroke-width="1" /><text x="934.4" y="260" font-family="IBM Plex Sans, Segoe UI, Arial, sans-serif" font-size="13" font-weight="600" fill="#e8eef6" text-anchor="middle" letter-spacing="0" >Solv Protocol</text>
+<rect x="1018" y="238" width="101.2" height="34" rx="17" fill="#101b2b" stroke="#1b2d42" stroke-width="1" /><text x="1068.6" y="260" font-family="IBM Plex Sans, Segoe UI, Arial, sans-serif" font-size="13" font-weight="600" fill="#e8eef6" text-anchor="middle" letter-spacing="0" >Marinade</text>
+<text x="500" y="330" font-family="JetBrains Mono, IBM Plex Mono, monospace" font-size="10.5" font-weight="700" fill="#6f8199" text-anchor="start" letter-spacing="1.6" >4H · COLLECTING (TODAY A 503)</text>
+<rect x="500" y="342" width="440" height="214" rx="24" fill="#0b1220" stroke="url(#cardbd)" stroke-width="1.6" />
+<rect x="528" y="366" width="52" height="34" rx="10" fill="url(#gline)" /><text x="554" y="388" font-family="JetBrains Mono, IBM Plex Mono, monospace" font-size="13" font-weight="800" fill="#04271f" text-anchor="middle" letter-spacing="0" >4H</text>
+<g class="dots" fill="#00cfff"><circle cx="562" cy="448" r="8"/><circle cx="590" cy="448" r="8"/><circle cx="618" cy="448" r="8"/></g>
+<text x="528" y="490" font-family="Archivo Black, Arial Black, sans-serif" font-size="19" font-weight="400" fill="#fff" text-anchor="start" letter-spacing="0" >Collecting the candles</text><text x="528" y="512" font-family="IBM Plex Sans, Segoe UI, Arial, sans-serif" font-size="12.5" font-weight="400" fill="#8fa6c2" text-anchor="start" letter-spacing="0" >This coin is new here. The page tries again by itself.</text>
+<rect x="528" y="524" width="150" height="22" rx="11" fill="#3b82f622" stroke="#3b82f6" stroke-width="1.2" /><text x="603" y="539" font-family="JetBrains Mono, IBM Plex Mono, monospace" font-size="10" font-weight="700" fill="#8db8ff" text-anchor="middle" letter-spacing="0.6" >NEXT TRY IN 0:42</text>
+<text x="960" y="330" font-family="JetBrains Mono, IBM Plex Mono, monospace" font-size="10.5" font-weight="700" fill="#6f8199" text-anchor="start" letter-spacing="1.6" >1W · TOO LITTLE HISTORY (TODAY A 404)</text>
+<rect x="960" y="342" width="440" height="214" rx="24" fill="#0b1220" stroke="url(#cardbd)" stroke-width="1.6" />
+<rect x="988" y="366" width="52" height="34" rx="10" fill="url(#gline)" /><text x="1014" y="388" font-family="JetBrains Mono, IBM Plex Mono, monospace" font-size="13" font-weight="800" fill="#04271f" text-anchor="middle" letter-spacing="0" >1W</text>
+<text x="988" y="446" font-family="Archivo Black, Arial Black, sans-serif" font-size="22" font-weight="400" fill="#fff" text-anchor="start" letter-spacing="0" >27 of 60 weekly candles</text>
+<rect x="988" y="462" width="384" height="12" rx="6" fill="#101b2b" /><rect x="988" y="462" width="172.8" height="12" rx="6" fill="url(#gline)" />
+<text x="988" y="498" font-family="IBM Plex Sans, Segoe UI, Arial, sans-serif" font-size="12.5" font-weight="400" fill="#8fa6c2" text-anchor="start" letter-spacing="0" >A weekly score needs 60. No score is guessed.</text>
+<rect x="988" y="516" width="130" height="28" rx="14" fill="none" stroke="#00cfff" stroke-width="1.4" /><text x="1053" y="535" font-family="JetBrains Mono, IBM Plex Mono, monospace" font-size="11.5" font-weight="700" fill="#00cfff" text-anchor="middle" letter-spacing="0" >Open 1D instead</text>
+<text x="500" y="588" font-family="JetBrains Mono, IBM Plex Mono, monospace" font-size="10.5" font-weight="700" fill="#6f8199" text-anchor="start" letter-spacing="1.6" >LOADING</text>
+<rect x="500" y="600" width="900" height="206" rx="26" fill="#0b1220" stroke="url(#cardbd)" stroke-width="1.6" />
+<path d="M560 740A90 90 0 0 1 740 740" stroke="#13243a" stroke-width="16" fill="none" stroke-linecap="round"/>
+<path d="M560 740A90 90 0 0 1 680.8 655.4" stroke="#00cfff" stroke-width="16" fill="none" stroke-linecap="round" class="sweep"/>
+<rect x="612" y="706" width="76" height="46" rx="10" fill="url(#shimmer)" class="sh"/>
+<rect x="830" y="750" width="30" height="30" rx="6" fill="url(#shimmer)" class="sh"/>
+<rect x="882" y="713" width="30" height="67" rx="6" fill="url(#shimmer)" class="sh"/>
+<rect x="934" y="746" width="30" height="34" rx="6" fill="url(#shimmer)" class="sh"/>
+<rect x="986" y="709" width="30" height="71" rx="6" fill="url(#shimmer)" class="sh"/>
+<rect x="1038" y="742" width="30" height="38" rx="6" fill="url(#shimmer)" class="sh"/>
+<rect x="1090" y="705" width="30" height="75" rx="6" fill="url(#shimmer)" class="sh"/>
+<rect x="1142" y="738" width="30" height="42" rx="6" fill="url(#shimmer)" class="sh"/>
+<rect x="1194" y="701" width="30" height="79" rx="6" fill="url(#shimmer)" class="sh"/>
+<rect x="1246" y="734" width="30" height="46" rx="6" fill="url(#shimmer)" class="sh"/>
+<rect x="1298" y="697" width="30" height="83" rx="6" fill="url(#shimmer)" class="sh"/>
+<text x="540" y="636" font-family="IBM Plex Sans, Segoe UI, Arial, sans-serif" font-size="12" font-weight="400" fill="#6f8199" text-anchor="start" letter-spacing="0" >The gauge draws itself while the chart loads. Never a raw error, never an empty box.</text>
+</svg>
