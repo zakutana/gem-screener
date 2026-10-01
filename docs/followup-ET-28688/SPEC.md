@@ -2,7 +2,7 @@
 
 **For:** the lead agent of the Cymetica SDLC pipeline
 **From:** Adam (product owner, Gem Screener)
-**Scope:** the Chains tab (which chains it lists, what a chain's adoption is, the benchmark and its badge, the chart column and card) and a clean-up of what the owner reads: the coin's and the chain's detail, the Top Picks page, the Sectors table and the size of the badges. Build or change only what is named; leave the rest of the app as it is.
+**Scope:** the Chains tab (which chains it lists, what a chain's adoption is, the benchmark and its badge, the chart column and card) and a clean-up of what the owner reads: the coin's and the chain's detail, the Top Picks page, the Sectors table, the Top Picks page and the size of the badges. Build or change only what is named; leave the rest of the app as it is.
 
 > **HOW TO READ THIS SPEC**
 > 1. **Goals, not methods.** How you build it is your call. Where an item gives a rule or a number, it is a good default, and you may improve it; say what you changed and why in your spec.
@@ -10,7 +10,7 @@
 > 3. **English only**, degen-friendly: the number first, plain short words.
 > 4. **Keep the look.** Change only what an item names.
 > 5. **This spec starts from ET-28688 as built.** Two things are not here because they are already in hand: the orange for every warning (item 7 of ET-28688) and the altseason universe without assets priced at a currency unit (item 35 of ET-28606, which you said you are fixing under ET-28688). ET-28688 is still being built: where this spec says "live", it means the page on the evening of 2026-10-01; if ET-28688 changes any of those parts when it ships, what it ships is the starting point.
-> 6. **The files are in this folder.** `assets/` holds what is ready to use; `reference/` holds the mocks of what is wanted (the badge, and the whole detail of an app); they are inspiration, not literal.
+> 6. **The files are in this folder.** `assets/` holds what is ready to use; `reference/` holds the mocks of what is wanted (the badge, the whole detail of an app and the Top Picks page); they are inspiration, not literal.
 
 ## What is ready to use (`assets/`)
 
@@ -228,6 +228,23 @@ A chain's detail then runs: header (name, Upside, chips; the pills and the Vette
 
 ---
 
+## 18. The Top Picks page: the altseason title, the headline, the seven gates
+
+**[24] The altseason panel gets a title, the headline moves down, and the seven gates are drawn as gates.** Live, the altseason panel on Top Picks has no title; under its slider stands the line "This week: 28 · Quiet for alts · read Mon 28 Sep, a new reading every Monday"; the page opens with the headline "11 of 215 apps pass all 7 gates", and the seven gates themselves show only as reason chips on the near misses. The owner wants a page a degen reads at a glance:
+
+- **The panel is titled "Altseason index"**, in its top left, with an (i). The line "This week: … a new reading every Monday" is deleted; its words (the week of the reading and that a new one comes every Monday) go into the (i) tooltip.
+- **The headline moves down** to the Degen picks section, under its label: "11 of 215 apps pass all 7 gates". The page then opens with the altseason panel.
+- **Under the headline the seven gates stand in a row**, drawn as gates, in the family of the PICKS gate of the near-misses lane (an arch with a keystone gem): a start block with all the apps on the left, the seven gates in the order of the picture, and on the right the PICKS gate with its number. Each gate shows an icon, its name, its rule in a few words, the apps left after it and, in red, how many it removed.
+- **Hover, focus and tap on a gate open the dark tooltip** (item 17 of ET-28688) with the rule in plain words and two numbers: how many of the apps fail it, and how many fail nothing else.
+- **The seven gates and their rules**, as the page's own reasons word them today: Real revenue (revenue of the last 30 days at least $100,000; smaller income can be inflated by one transaction; 103 fail), Vetted (market cap at least $3M, not far below its best quarter, enough history, a measurable trend that is not declining, fresh data; 116), Growing (revenue still grows over six months; a business over $10M may slip up to 5% a month, over $1M up to 2%; 117), Cheap (priced at least 2.5× cheaper than Hyperliquid against yearly revenue; 109), Room to 30× (a 30× move fits under the largest comparable project in its category or theme; 67), Liquid (a $10K buy does not move the price much; a thin or missing DEX pool fails; 95) and Theme wind (the theme runs harder than the average alt when alts beat BTC, or leads, or its fundamentals rise; 11). Names are a good default; the numbers come from the snapshot at each refresh, never typed.
+- **The count after each gate depends on the order drawn**, which is only for the picture: an app has to pass all seven in any order. Today the order drawn gives 215, 112, 76, 56, 30, 20, 11 and 11 (the seventh gate removes nobody more, because the 11 that pass the other six pass it too).
+
+![The redesigned Top Picks page](reference/top-picks-mock.svg)
+
+The picture is a mock, inspiration and not literal, with the real figures of 2026-10-01 (the altseason panel, the hot sectors, the first four picks and their Degen levels, the gate counts). The pick cards in it are those of item 20, ending with the Degen meter, and the hot sectors cards those of item 9.
+
+---
+
 ## Checklist (one line each; done when all are true)
 
 - [ ] 1 The Chains tab lists every chain whose token is in CoinGecko's Layer 1 or Layer 2 category with a market cap of $200M or more (or the cut you chose, named in your spec), joined to DefiLlama by `gecko_id`.
@@ -294,3 +311,7 @@ A chain's detail then runs: header (name, Upside, chips; the pills and the Vette
 - [ ] 22 No other sector has the icon; it is drawn in the page's colours and does not change the sector's numbers, stage or order.
 - [ ] 23 Every link that leaves the page, anywhere in the app, opens in a new tab with `rel="noopener"`; none uses `target="_top"` or replaces the window (the header logo, "Fund →" and "See the plans ↗" included).
 - [ ] 23 Links inside the page (a jump to a card, switching a tab, opening a coin) behave as before.
+- [ ] 24 The altseason panel has the title "Altseason index" with an (i); the line "This week: … a new reading every Monday" is gone and its words are in the (i) tooltip.
+- [ ] 24 "N of M apps pass all 7 gates" stands in the Degen picks section, under its label, and no longer above the altseason panel.
+- [ ] 24 Under it the seven gates stand in a row between a start block (all apps) and the PICKS gate; each shows an icon, its name, its rule in a few words, the apps left after it and, in red, how many it removed.
+- [ ] 24 Hover, focus and tap on a gate open the dark tooltip with the rule in plain words and how many apps fail it and how many fail nothing else; the numbers come from the snapshot at each refresh.
