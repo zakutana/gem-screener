@@ -1,0 +1,501 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Supply Analyzer · HYPE</title>
+<link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=IBM+Plex+Sans:wght@400;600;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#0a0e17;--card:#0c1421;--edge:#1a2a3d;--txt:#e6edf7;--mut:#6f8199;--soft:#a9b8cc;--green:#00ff88;--cyan:#00cfff;--red:#ff4444;--blue:#3b82f6}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;color:var(--txt);font-family:"IBM Plex Sans",system-ui,sans-serif;background:
+  radial-gradient(1100px 520px at 50% -140px,#0e4a5c66,transparent 70%),
+  linear-gradient(rgba(0,207,255,.035) 1px,transparent 1px) 0 0/56px 56px,
+  linear-gradient(90deg,rgba(0,207,255,.035) 1px,transparent 1px) 0 0/56px 56px,var(--bg)}
+.mono{font-family:"JetBrains Mono",ui-monospace,monospace}
+.hero-font{font-family:"Archivo Black",sans-serif}
+.wrap{max-width:1320px;margin:0 auto;padding:18px 20px 48px}
+.top{display:flex;align-items:center;gap:14px;padding-bottom:14px;border-bottom:1px solid var(--edge)}
+.logo{width:30px;height:30px;border-radius:50%;border:2px solid var(--cyan);display:grid;place-items:center;box-shadow:0 0 14px #00cfff55}
+.logo i{width:9px;height:9px;border-radius:50%;background:var(--cyan);opacity:.8}
+.brand b{font-family:"Archivo Black",sans-serif;font-size:19px;display:block;letter-spacing:.2px}
+.brand span{font-size:11px;color:var(--soft);font-weight:700}
+.nav{margin-left:28px;display:flex;gap:6px}
+.nav a{font-size:12px;font-weight:700;color:var(--mut);padding:7px 12px;border-radius:8px;text-decoration:none}
+.nav a.on{color:var(--green);background:#0b2a1c;border:1px solid #0f5a3a}
+.head{display:flex;align-items:center;gap:16px;margin:22px 0 16px;flex-wrap:wrap}
+.coin{width:52px;height:52px;border-radius:50%;background:radial-gradient(circle at 30% 30%,#0e4a5c,#06202b);border:1.5px solid var(--cyan);display:grid;place-items:center;color:var(--cyan);font-weight:700;box-shadow:0 0 20px #00cfff44}
+.head h1{margin:0;font-family:"Archivo Black",sans-serif;font-size:30px;line-height:1}
+.head small{display:block;margin-top:5px;font-size:11px;color:var(--soft);letter-spacing:1px;font-weight:700}
+.chips{display:flex;gap:10px;margin-left:10px;flex-wrap:wrap}
+.chipx{background:#0a111c;border:1px solid var(--edge);border-radius:10px;padding:6px 12px}
+.chipx i{display:block;font-style:normal;font-size:10px;color:var(--mut);letter-spacing:1px;font-weight:700}
+.chipx b{font-size:14px}
+.spacer{flex:1}
+.btn{border:1px solid var(--edge);background:#0a111c;color:var(--txt);border-radius:9px;padding:10px 16px;font-size:12px;font-weight:700;cursor:pointer}
+.btn.c{border-color:var(--cyan);color:var(--cyan)}
+.card{background:linear-gradient(180deg,#0e1a2b 0,#0b1220 100%);border:1px solid var(--edge);border-radius:16px;box-shadow:0 14px 40px #00000066,inset 0 1px 0 #ffffff0d}
+.lab{font-size:11px;color:var(--mut);letter-spacing:1.2px;font-weight:700}
+/* time */
+.time{padding:16px 22px 12px;margin-bottom:16px}
+.trow{display:flex;align-items:center;gap:18px}
+.play{width:42px;height:42px;border-radius:50%;border:1.5px solid var(--cyan);background:#0b2733;color:var(--cyan);font-size:14px;cursor:pointer;flex:none;box-shadow:0 0 16px #00cfff44;transition:transform .15s}
+.play:hover{transform:scale(1.06)}
+.month{min-width:200px;font-size:22px;font-weight:700}
+.month em{font-style:normal;font-size:11px;color:var(--bg);background:var(--green);border-radius:9px;padding:2px 8px;margin-left:8px;vertical-align:3px}
+.sl{flex:1;position:relative;padding:26px 0 24px}
+input[type=range]{width:100%;-webkit-appearance:none;appearance:none;background:transparent;margin:0}
+input[type=range]::-webkit-slider-runnable-track{height:8px;border-radius:4px;background:linear-gradient(90deg,#5a1a24 0,#5a1a24 var(--vest),#13263a var(--vest))}
+input[type=range]::-moz-range-track{height:8px;border-radius:4px;background:linear-gradient(90deg,#5a1a24 0,#5a1a24 var(--vest),#13263a var(--vest))}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:24px;height:24px;border-radius:50%;background:var(--cyan);margin-top:-8px;box-shadow:0 0 16px #00cfffaa;border:3px solid #062431;cursor:grab}
+input[type=range]::-moz-range-thumb{width:18px;height:18px;border-radius:50%;background:var(--cyan);border:3px solid #062431}
+.ticks{position:absolute;left:0;right:0;bottom:0;font-size:11px;color:var(--mut)}
+.ticks span{position:absolute;transform:translateX(-50%);white-space:nowrap}
+.ticks span.k{color:var(--red)}
+/* main */
+.main{display:grid;grid-template-columns:480px 1fr;gap:16px}
+@media (max-width:1060px){.main{grid-template-columns:1fr}}
+.flowcard{padding:18px 20px 16px;display:flex;flex-direction:column}
+.fhead{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.pill{padding:5px 12px;border-radius:14px;font-size:12px;font-weight:700;border:1px solid}
+.hero{display:flex;align-items:baseline;gap:12px;margin-top:12px;flex-wrap:wrap}
+.hero .big{font-family:"Archivo Black",sans-serif;font-size:56px;line-height:1;letter-spacing:-1px}
+.hero .unit{font-size:14px;color:var(--soft);font-weight:600}
+.hsub{font-size:13px;color:var(--soft);margin-top:6px;line-height:1.45}
+.hsub b{color:var(--txt)}
+canvas#flow{width:100%;max-width:420px;aspect-ratio:420/540;display:block;margin:10px auto 0;cursor:default}
+.flegend{display:flex;gap:18px;justify-content:center;font-size:11px;color:var(--mut);margin-top:6px;flex-wrap:wrap}
+.flegend i{display:inline-block;width:9px;height:9px;border-radius:50%;margin-right:6px;vertical-align:-1px}
+.pie{padding:18px 22px;display:flex;flex-direction:column}
+.prow{display:flex;gap:26px;align-items:center;flex-wrap:wrap;margin-top:8px}
+#pie{filter:drop-shadow(0 12px 24px #00000088)}
+#pie path{transition:opacity .15s}
+.legend{flex:1;min-width:320px;display:flex;flex-direction:column;gap:4px}
+.li{display:grid;grid-template-columns:18px 1fr auto;gap:12px;align-items:center;padding:7px 10px;border-radius:10px;border:1px solid transparent;cursor:default;transition:background .15s,border-color .15s}
+.li.on{background:#0f1c2e;border-color:#2a4a5e}
+.chip{width:15px;height:15px;border-radius:4px}
+.li b{font-size:14px}
+.li small{display:block;font-size:11px;color:var(--mut)}
+.val{text-align:right;font-size:14px;font-weight:700}
+.val small{font-weight:400}
+.d.up{color:var(--red)}.d.down{color:var(--green)}.d.flat{color:var(--mut)}
+/* chart */
+.chartc{margin-top:16px;padding:18px 22px}
+.stats{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:10px}
+.stat{background:#0a111c;border:1px solid var(--edge);border-radius:12px;padding:12px 16px}
+.stat .n{font-size:26px;font-weight:700;margin-top:4px}
+.more{margin-top:14px;border:1px solid var(--edge);border-radius:12px;background:#0a111c;padding:12px 18px}
+.more summary{cursor:pointer;font-family:"Archivo Black",sans-serif;font-size:14px;list-style:none}
+.more summary::-webkit-details-marker{display:none}
+.more p{font-size:12px;color:var(--mut);line-height:1.7;margin:10px 0 0}
+.tip{position:fixed;z-index:9;pointer-events:none;max-width:300px;background:#08101a;border:1px solid #2a4a5e;border-radius:10px;padding:10px 12px;box-shadow:0 10px 30px #000000aa;opacity:0;transition:opacity .12s;font-size:12px;line-height:1.5;color:var(--soft)}
+.tip b{display:block;color:var(--txt);font-size:13px;margin-bottom:3px}
+@media (max-width:700px){.stats{grid-template-columns:1fr}.hero .big{font-size:44px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="top">
+    <div class="logo"><i></i></div><div class="brand"><b>EventTrader</b><span class="mono">Financial AI Models</span></div>
+    <div class="nav mono"><a href="#">Chart Analyzer</a><a href="#" class="on">Supply Analyzer</a></div>
+  </div>
+
+  <div class="head">
+    <div class="coin mono">HL</div>
+    <div><h1>HYPE</h1><small class="mono">HYPERLIQUID · TOKEN SUPPLY</small></div>
+    <div class="chips mono">
+      <div class="chipx"><i>PRICE</i><b>$88.62</b></div>
+      <div class="chipx"><i>MARKET CAP</i><b>$19.7B</b></div>
+      <div class="chipx"><i>FDV</i><b>$84.7B</b></div>
+      <div class="chipx"><i>MAX SUPPLY</i><b>1,000M</b></div>
+    </div>
+    <div class="spacer"></div>
+    <button class="btn mono">Share</button><button class="btn c mono">+ New</button>
+  </div>
+
+  <div class="card time">
+    <div class="trow">
+      <button class="play" id="play" title="Play month by month">▶</button>
+      <div class="month mono" id="month">Oct 2026<em>today</em></div>
+      <div class="sl">
+        <input type="range" id="t" min="0" max="24" step="1" value="0" aria-label="Month">
+        <div class="ticks mono" id="ticks"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="main">
+    <div class="card flowcard">
+      <div class="fhead"><div class="lab mono">SUPPLY FLOW</div><div class="pill mono" id="pill">1/10 FLOODING</div></div>
+      <div class="hero"><span class="big" id="hbig">+28%</span><span class="unit mono">a year</span></div>
+      <div class="hsub" id="hsub"></div>
+      <canvas id="flow" role="img" aria-label="Animated tank: the tokens that can be sold, with the flows into it and out of it"></canvas>
+      <div class="flegend mono"><span><i style="background:#ff4444"></i>becomes sellable</span><span><i style="background:#00ff88"></i>bought back</span><span>every dot is the same amount</span></div>
+    </div>
+
+    <div class="card pie">
+      <div class="lab mono" id="pielab">TOKENS IN PLAY</div>
+      <div class="prow">
+        <svg id="pie" viewBox="-200 -200 400 400" width="370" height="370" role="img" aria-label="Supply pie">
+          <defs>
+            <pattern id="hv" width="9" height="9" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="9" height="9" fill="#3a1218"/><line x1="0" y1="0" x2="0" y2="9" stroke="#ff4444" stroke-width="3.2" opacity=".7"/></pattern>
+            <pattern id="hb" width="9" height="9" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="9" height="9" fill="#0f2140"/><line x1="0" y1="0" x2="0" y2="9" stroke="#3b82f6" stroke-width="3.2" opacity=".8"/></pattern>
+            <pattern id="hg" width="9" height="9" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="9" height="9" fill="#0b2a1c"/><line x1="0" y1="0" x2="0" y2="9" stroke="#00ff88" stroke-width="3.2" opacity=".75"/></pattern>
+            <radialGradient id="shine" cx="32%" cy="26%" r="75%"><stop offset="0" stop-color="#ffffff" stop-opacity=".16"/><stop offset=".55" stop-color="#ffffff" stop-opacity="0"/><stop offset="1" stop-color="#000000" stop-opacity=".22"/></radialGradient>
+          </defs>
+          <g id="slices"></g><circle r="182" fill="url(#shine)" pointer-events="none"/><g id="plabels" pointer-events="none"></g>
+        </svg>
+        <div class="legend" id="legend"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="card chartc">
+    <div class="stats">
+      <div class="stat"><div class="lab mono">BECOMES SELLABLE THIS MONTH</div><div class="n mono" id="relN" style="color:var(--red)"></div></div>
+      <div class="stat"><div class="lab mono">BOUGHT BACK (BURNED OR KEPT)</div><div class="n mono" id="burnN" style="color:var(--green)"></div></div>
+      <div class="stat"><div class="lab mono">THE SELLABLE PILE, A YEAR</div><div class="n mono" id="netN"></div></div>
+    </div>
+    <div class="lab mono" style="margin:6px 0 2px">THE SELLABLE PILE, MONTH BY MONTH</div>
+    <svg id="chart" viewBox="0 0 1240 250" width="100%" height="250" role="img" aria-label="The sellable pile and the monthly flows"></svg>
+  </div>
+
+  <details class="more">
+    <summary>▸ How the numbers are made</summary>
+    <p class="mono">Measured today: 437.5M HYPE staked (Hyperliquid validators, exit takes 7 days), 47.6M burned (the Assistance Fund's balance), buyback $145M in Q3 (DefiLlama).
+    Estimated: the 207.8M staked on the Hyper Foundation's validators is taken to come from the reserve; team tranches of 9.92M a month (trackers differ on the day and the amount);
+    staking rewards of 0.79M a month at today's rate; buybacks at Q3's pace and today's price, all of them burned. Staking in and out is not measured, so it is held flat.
+    The pie shows the tokens in play; the reserve is the part of the max supply not paid out yet, and rewards come out of it. Each dot in the tank is the same amount of tokens.
+    The sellable pile is the free tokens plus the staking that can leave at any time. The 1 to 10 number is 6 plus the yearly change of the pile in steps of 2.5%, between 1 and 10.
+    A measured supply statistic, not financial advice and not a forecast. It places no orders.</p>
+  </details>
+</div>
+<div class="tip" id="tip"></div>
+
+<script>
+const START = {free:206.9, staked:229.7, locked:0, emitted:0, vesting:138.8, reserve:377.0, held:0, burned:47.6};
+const TRANCHE = 9.92, REWARD = 0.79, BURN = 0.546, BURN_SHARE = 1, MONTHS = 24;   // BURN = bought back a month; BURN_SHARE = how much of it is burned (1 = all, 0 = all kept)
+const ORDER = [
+  {k:'free',    name:'Free to sell',              sub:'In circulation, not staked',                 fill:'#00cfff'},
+  {k:'staked',  name:'Staked, free to unlock',    sub:'No lock: can leave any time (HYPE: 7 days)', fill:'#3b82f6'},
+  {k:'locked',  name:'Staked, locked',            sub:'Until a date; then it turns into free (HYPE: none)', fill:'url(#hb)'},
+  {k:'vesting', name:'Vesting',                   sub:'Locked allocation; a tranche a month (team)', fill:'url(#hv)'},
+  {k:'emitted', name:'Newly paid out',            sub:'Emissions and mints since today',            fill:'#ff4444'},
+  {k:'held',    name:'Bought back, kept',         sub:'Bought with fees, held by the project',      fill:'url(#hg)'},
+  {k:'burned',  name:'Bought back, burned',       sub:'Bought with fees, then burned for good',     fill:'#00ff88', op:.9},
+];
+const label = m => { const d = new Date(2026, 9 + m, 1); return d.toLocaleString('en-US',{month:'short'}) + ' ' + d.getFullYear(); };
+function state(m){
+  const vest = Math.max(0, START.vesting - TRANCHE*m), rel = START.vesting - vest;
+  return {free:START.free + rel - BURN*m, staked:START.staked, locked:0, emitted:REWARD*m,
+          vesting:vest, reserve:START.reserve - REWARD*m, held:START.held + BURN*(1 - BURN_SHARE)*m, burned:START.burned + BURN*BURN_SHARE*m};
+}
+function flows(m){ const left = Math.max(0, START.vesting - TRANCHE*m); const tr = Math.min(TRANCHE, left);
+  return {tranche:tr, reward:REWARD, release:tr + REWARD, burn:BURN}; }
+function pile(m){ const s = state(m); return s.free + s.staked + s.emitted; }           // what can be sold
+function pressure(m){ const f = flows(m), p = pile(m);
+  const net = (f.burn - f.release)*12/p*100; return {net, lvl:Math.max(1, Math.min(10, 6 + Math.floor(net/2.5))), pile:p}; }
+const MAXPILE = Math.max(...Array.from({length:MONTHS + 1}, (_, i) => pile(i)));
+const MINPILE = Math.min(...Array.from({length:MONTHS + 1}, (_, i) => pile(i)));
+const LAST = Math.ceil(START.vesting/TRANCHE) - 1;   // the month of the last team tranche
+const t = document.getElementById('t');
+t.style.setProperty('--vest', (100*(LAST+1)/MONTHS) + '%');
+const ticks = document.getElementById('ticks');
+for (const m of [0,6,12,18,24]) ticks.insertAdjacentHTML('beforeend', `<span style="left:${100*m/MONTHS}%">${label(m)}</span>`);
+ticks.insertAdjacentHTML('beforeend', `<span class="k" style="left:${100*(LAST+0.5)/MONTHS}%;bottom:auto;top:-46px">last team tranche ▼</span>`);
+
+/* ================================================================ the animated flow scene */
+const cv = document.getElementById('flow'), ctx = cv.getContext('2d');
+const CW = 420, CH = 540, DPR = Math.min(2, window.devicePixelRatio || 1);
+cv.width = CW*DPR; cv.height = CH*DPR; ctx.scale(DPR, DPR);
+const TANK = {x:150, y:236, w:150, h:200}, BOT = TANK.y + TANK.h;
+const VAULT = {x:26, y:22, w:128, h:74}, RES = {x:266, y:22, w:128, h:74}, STAKE = {x:14, y:372, w:88, h:68};
+const PUMP = {x:356, y:462, r:15}, FLAME = {x:392, y:506}, KEPT = {x:318, y:506};
+const PATHS = {
+  vest: [[90,96],[90,162],[190,162],[190,TANK.y]],
+  rew:  [[330,96],[330,162],[260,162],[260,TANK.y]],
+  buy:  [[TANK.x+TANK.w,404],[356,404],[356,447]],
+  burn: [[356,477],[356,490],[392,490],[392,498]],
+  keep: [[356,477],[356,490],[318,490],[318,498]],
+};
+const LEN = {};
+for (const k in PATHS){ let L = 0; const p = PATHS[k]; for (let i = 1; i < p.length; i++) L += Math.hypot(p[i][0]-p[i-1][0], p[i][1]-p[i-1][1]); LEN[k] = L; }
+function at(k, d){
+  const p = PATHS[k]; let r = d;
+  for (let i = 1; i < p.length; i++){ const seg = Math.hypot(p[i][0]-p[i-1][0], p[i][1]-p[i-1][1]);
+    if (r <= seg){ const u = r/seg; return [p[i-1][0] + (p[i][0]-p[i-1][0])*u, p[i-1][1] + (p[i][1]-p[i-1][1])*u]; } r -= seg; }
+  const q = p[p.length-1]; return [q[0], q[1] + r];     // past the end of an inflow pipe: free fall
+}
+const COLOR = {vest:'#ff4444', rew:'#ff7a7a', buy:'#00ff88', burn:'#00ff88', keep:'#5dd6a2'};
+const rate = {vest:0, rew:0, buy:0, burn:0, keep:0}, target = {vest:0, rew:0, buy:0, burn:0, keep:0}, phase = {vest:0, rew:0, buy:0, burn:0, keep:0};
+const parts = {vest:[], rew:[], buy:[], burn:[], keep:[]}, acc = {vest:0, rew:0, buy:0, burn:0, keep:0};
+const ripples = [], drops = [], bubbles = [], embers = [];
+let level = 0.6, levelT = 0.6, level0 = 0.6, vaultF = 1, vaultT = 1, resF = 1, resT = 1, pileShown = 0, pileT = 0, pile0 = 0, heroShown = 0, heroT = 0, last = performance.now(), hover = null, spin = 0;
+const SPAWN = 1.3;                                        // dots a second per 1M a month: the same amount per dot everywhere
+const ICON = {
+  lock: 'M3 7.5h10v7H3zM5.5 7.5V5a2.5 2.5 0 0 1 5 0v2.5',
+  fist: 'M3.5 4.5h9v6.5h-9zM6.5 4.5v3M9.5 4.5v3M5 11v3h6v-3',
+  vault:'M2 3h12v10H2zM5 6.5h6M8 6.5v4',
+};
+function icon(name, x, y, s, color, w){ ctx.save(); ctx.translate(x, y); ctx.scale(s, s); ctx.strokeStyle = color; ctx.lineWidth = (w || 1.5)/s; ctx.lineCap = 'round'; ctx.lineJoin = 'round'; ctx.stroke(new Path2D(ICON[name])); ctx.restore(); }
+function rr(x, y, w, h, r){ ctx.beginPath(); if (ctx.roundRect) ctx.roundRect(x, y, w, h, r); else ctx.rect(x, y, w, h); }
+function hatchPattern(fg, bg){ const c = document.createElement('canvas'); c.width = c.height = 12; const g = c.getContext('2d'); g.fillStyle = bg; g.fillRect(0, 0, 12, 12);
+  g.strokeStyle = fg; g.lineWidth = 3; g.beginPath(); g.moveTo(-2, 14); g.lineTo(14, -2); g.moveTo(-8, 8); g.lineTo(8, -8); g.moveTo(4, 20); g.lineTo(20, 4); g.stroke(); return ctx.createPattern(c, 'repeat'); }
+const HATCH_RED = hatchPattern('#ff444488', '#2a0d12'), HATCH_GREY = hatchPattern('#6f819944', '#0d1622');
+function chipText(x, y, text, color, align){ ctx.font = '700 12px "JetBrains Mono",monospace'; const w = ctx.measureText(text).width + 16, h = 22, x0 = align === 'right' ? x - w : (align === 'center' ? x - w/2 : x);
+  rr(x0, y - 16, w, h, 11); ctx.fillStyle = 'rgba(8,16,26,.92)'; ctx.fill(); ctx.strokeStyle = color; ctx.globalAlpha = .55; ctx.lineWidth = 1; ctx.stroke(); ctx.globalAlpha = 1;
+  ctx.fillStyle = color; ctx.textAlign = 'left'; ctx.fillText(text, x0 + 8, y); }
+function pathStroke(k){ const p = PATHS[k]; ctx.beginPath(); ctx.moveTo(p[0][0], p[0][1]); for (let i = 1; i < p.length; i++) ctx.lineTo(p[i][0], p[i][1]); }
+function pipe(k, active, dt){
+  ctx.save(); ctx.lineCap = 'round'; ctx.lineJoin = 'round';
+  pathStroke(k); ctx.strokeStyle = active ? '#27475e' : '#1a2836'; ctx.lineWidth = 18; if (!active) ctx.setLineDash([5, 6]); ctx.stroke(); ctx.setLineDash([]);
+  pathStroke(k); ctx.strokeStyle = '#070d16'; ctx.lineWidth = 13; ctx.stroke();
+  pathStroke(k); ctx.strokeStyle = 'rgba(255,255,255,.06)'; ctx.lineWidth = 2; ctx.stroke();
+  if (active){ phase[k] += (38 + 16*rate[k])*dt; ctx.setLineDash([7, 11]); ctx.lineDashOffset = -phase[k]; ctx.strokeStyle = COLOR[k]; ctx.globalAlpha = .28; ctx.lineWidth = 3; ctx.shadowColor = COLOR[k]; ctx.shadowBlur = 8; pathStroke(k); ctx.stroke(); }
+  ctx.restore();
+}
+function vessel(x, y, w, h, frac, fill, title, value, name){
+  const on = hover === name; rr(x, y, w, h, 10); ctx.fillStyle = '#070d16'; ctx.fill();
+  ctx.save(); rr(x, y, w, h, 10); ctx.clip(); const fh = h*Math.max(0, Math.min(1, frac)); ctx.fillStyle = fill; ctx.globalAlpha = .9; ctx.fillRect(x, y + h - fh, w, fh); ctx.globalAlpha = 1;
+  const gl = ctx.createLinearGradient(x, 0, x + w, 0); gl.addColorStop(0, 'rgba(255,255,255,.10)'); gl.addColorStop(.35, 'rgba(255,255,255,0)'); ctx.fillStyle = gl; ctx.fillRect(x, y, w, h); ctx.restore();
+  rr(x, y, w, h, 10); ctx.strokeStyle = on ? '#00cfff' : '#2f5470'; ctx.lineWidth = on ? 2 : 1.5; ctx.stroke();
+  ctx.textAlign = 'center'; ctx.fillStyle = '#e6edf7'; ctx.font = '700 12px "IBM Plex Sans",sans-serif'; ctx.fillText(title, x + w/2, y + 27);
+  ctx.fillStyle = '#c4d2e2'; ctx.font = '700 12px "JetBrains Mono",monospace'; ctx.fillText(value, x + w/2, y + 47);
+}
+function flame(cx, cy, scale, power, ts){
+  const wob = Math.sin(ts*9 + 1.3)*1.6*scale, w = 13*scale, h = (26 + 8*Math.sin(ts*7))*scale*power;
+  ctx.save(); ctx.shadowColor = '#00ff88'; ctx.shadowBlur = 16*power;
+  for (const [k, col, a] of [[1, '#00ff88', .85], [.62, '#b8ffd9', .95], [.32, '#ffffff', .95]]){
+    ctx.beginPath(); ctx.moveTo(cx, cy);
+    ctx.bezierCurveTo(cx + w*k*1.05, cy - h*k*.28, cx + w*k*.55, cy - h*k*.78, cx + wob*k, cy - h*k);
+    ctx.bezierCurveTo(cx - w*k*.55, cy - h*k*.78, cx - w*k*1.05, cy - h*k*.28, cx, cy); ctx.closePath();
+    ctx.fillStyle = col; ctx.globalAlpha = a*power; ctx.fill(); }
+  ctx.restore();
+}
+function scene(now){
+  const dt = Math.min(0.05, (now - last)/1000), ts = now/1000; last = now;
+  for (const k in rate) rate[k] += (target[k] - rate[k])*Math.min(1, dt*4);
+  const e3 = Math.min(1, dt*3);
+  level += (levelT - level)*e3; vaultF += (vaultT - vaultF)*e3; resF += (resT - resF)*e3; pileShown += (pileT - pileShown)*e3; heroShown += (heroT - heroShown)*Math.min(1, dt*4);
+  spin += (2 + rate.buy*5)*dt;
+  const surf = BOT - level*TANK.h;
+  ctx.clearRect(0, 0, CW, CH);
+  const bg = ctx.createRadialGradient(225, 340, 10, 225, 340, 230); bg.addColorStop(0, 'rgba(0,207,255,.10)'); bg.addColorStop(1, 'rgba(0,207,255,0)'); ctx.fillStyle = bg; ctx.fillRect(0, 0, CW, CH);
+
+  pipe('vest', target.vest > 0.01, dt); pipe('rew', target.rew > 0.01, dt); pipe('buy', target.buy > 0.01, dt); pipe('burn', target.burn > 0.01, dt); pipe('keep', target.keep > 0.01, dt);
+  vessel(VAULT.x, VAULT.y, VAULT.w, VAULT.h, vaultF, HATCH_RED, 'Vesting', `${(vaultT*START.vesting).toFixed(0)}M left`, 'vest');
+  vessel(RES.x, RES.y, RES.w, RES.h, resF, HATCH_GREY, 'Reserve', `${(resT*START.reserve).toFixed(0)}M left`, 'rew');
+  vessel(STAKE.x, STAKE.y, STAKE.w, STAKE.h, 1, '#10294a', 'Staked', '230M', 'stake'); icon('lock', STAKE.x + STAKE.w - 22, STAKE.y + 8, 0.9, '#3b82f6', 1.6);
+  ctx.save(); ctx.setLineDash([4, 5]); ctx.strokeStyle = '#3b82f6'; ctx.globalAlpha = .55; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(STAKE.x + STAKE.w, 408); ctx.lineTo(TANK.x, 408); ctx.stroke(); ctx.restore();
+
+  // the tank: back, water (two waves), bubbles, glass
+  rr(TANK.x, TANK.y, TANK.w, TANK.h, 12); ctx.fillStyle = 'rgba(5,10,18,.92)'; ctx.fill();
+  ctx.save(); rr(TANK.x, TANK.y, TANK.w, TANK.h, 12); ctx.clip();
+  for (const [off, amp, spd, a, c0, c1] of [[0, 2.6, 2.0, .55, 'rgba(0,160,210,.55)', 'rgba(5,60,92,.7)'], [1.7, 2.2, 2.7, 1, 'rgba(0,207,255,.74)', 'rgba(6,66,100,.95)']]){
+    ctx.beginPath(); ctx.moveTo(TANK.x, surf);
+    for (let x = TANK.x; x <= TANK.x + TANK.w; x += 4) ctx.lineTo(x, surf + Math.sin(x*0.06 + ts*spd + off)*amp + (off ? 0 : 2));
+    ctx.lineTo(TANK.x + TANK.w, BOT); ctx.lineTo(TANK.x, BOT); ctx.closePath();
+    const g = ctx.createLinearGradient(0, surf, 0, BOT); g.addColorStop(0, c0); g.addColorStop(1, c1); ctx.globalAlpha = a; ctx.fillStyle = g; ctx.fill(); ctx.globalAlpha = 1; }
+  ctx.globalAlpha = .08; ctx.fillStyle = '#ffffff'; for (let i = 0; i < 3; i++){ const sx = TANK.x + ((ts*18 + i*70) % (TANK.w + 60)) - 40; ctx.beginPath(); ctx.moveTo(sx, surf); ctx.lineTo(sx + 18, surf); ctx.lineTo(sx - 14, BOT); ctx.lineTo(sx - 32, BOT); ctx.closePath(); ctx.fill(); }
+  ctx.globalAlpha = 1;
+  if (Math.random() < dt*1.6) bubbles.push({x:TANK.x + 12 + Math.random()*(TANK.w - 24), y:BOT - 6, r:1.4 + Math.random()*2.2, v:14 + Math.random()*18});
+  for (let i = bubbles.length - 1; i >= 0; i--){ const b = bubbles[i]; b.y -= b.v*dt; b.x += Math.sin(ts*3 + b.y*0.1)*0.15; if (b.y < surf + 4){ bubbles.splice(i, 1); continue; }
+    ctx.strokeStyle = 'rgba(220,245,255,.45)'; ctx.lineWidth = 1; ctx.beginPath(); ctx.arc(b.x, b.y, b.r, 0, 7); ctx.stroke(); }
+  ctx.restore();
+  const gl = ctx.createLinearGradient(TANK.x, 0, TANK.x + TANK.w, 0); gl.addColorStop(0, 'rgba(255,255,255,.16)'); gl.addColorStop(.12, 'rgba(255,255,255,.02)'); gl.addColorStop(.9, 'rgba(255,255,255,0)'); gl.addColorStop(1, 'rgba(255,255,255,.08)');
+  rr(TANK.x, TANK.y, TANK.w, TANK.h, 12); ctx.fillStyle = gl; ctx.fill();
+  rr(TANK.x, TANK.y, TANK.w, TANK.h, 12); ctx.strokeStyle = hover === 'tank' ? '#7fe6ff' : '#00cfff'; ctx.globalAlpha = .85; ctx.lineWidth = hover === 'tank' ? 2.6 : 2; ctx.shadowColor = '#00cfff'; ctx.shadowBlur = 12; ctx.stroke(); ctx.shadowBlur = 0; ctx.globalAlpha = 1;
+  // today's mark and the change since
+  const y0 = BOT - level0*TANK.h; ctx.save(); ctx.setLineDash([4, 4]); ctx.strokeStyle = '#e6edf7'; ctx.globalAlpha = .6; ctx.beginPath(); ctx.moveTo(TANK.x - 8, y0); ctx.lineTo(TANK.x + TANK.w + 12, y0); ctx.stroke(); ctx.restore();
+  chipText(TANK.x - 10, y0 + 4, `today ${pile0.toFixed(0)}M`, '#a9b8cc', 'right');
+  const diff = pileShown - pile0;
+  if (Math.abs(diff) > 2){ const bx = TANK.x + TANK.w + 16, up = diff > 0, col = up ? '#ff4444' : '#00ff88';
+    ctx.strokeStyle = col; ctx.lineWidth = 1.6; ctx.beginPath(); ctx.moveTo(bx, y0); ctx.lineTo(bx, surf); ctx.stroke();
+    ctx.fillStyle = col; ctx.beginPath(); ctx.moveTo(bx, surf); ctx.lineTo(bx - 4, surf + (up ? 7 : -7)); ctx.lineTo(bx + 4, surf + (up ? 7 : -7)); ctx.closePath(); ctx.fill();
+    chipText(bx + 6, (y0 + surf)/2 + 4, `${up ? '+' : '−'}${Math.abs(diff).toFixed(0)}M`, col, 'left'); }
+  ctx.textAlign = 'center'; ctx.fillStyle = '#ffffff'; ctx.font = '700 25px "JetBrains Mono",monospace'; ctx.shadowColor = '#000000aa'; ctx.shadowBlur = 8;
+  ctx.fillText(`${pileShown.toFixed(0)}M`, TANK.x + TANK.w/2, TANK.y + 128); ctx.shadowBlur = 0;
+  ctx.font = '12px "IBM Plex Sans",sans-serif'; ctx.fillStyle = '#d7e6f5'; ctx.fillText('can be sold', TANK.x + TANK.w/2, TANK.y + 148);
+
+  // the dots, with a short tail
+  for (const k in parts){
+    acc[k] += rate[k]*SPAWN*dt; while (acc[k] >= 1){ acc[k] -= 1; parts[k].push(0); }
+    const sp = 38 + 16*rate[k]; const inflow = (k === 'vest' || k === 'rew');
+    parts[k] = parts[k].map(d => d + sp*dt).filter(d => {
+      if (!inflow) return d < LEN[k];
+      const [x, y] = at(k, d); if (y >= surf){ ripples.push({x, y:surf, r:2, a:.9}); for (let i = 0; i < 2; i++) drops.push({x, y:surf, vx:(Math.random() - .5)*46, vy:-(30 + Math.random()*30), a:1}); return false; } return true; });
+    ctx.shadowColor = COLOR[k]; ctx.shadowBlur = 9;
+    for (const d of parts[k]){
+      for (let i = 4; i >= 1; i--){ if (d - i*5 < 0) continue; const [tx, ty] = at(k, d - i*5); ctx.globalAlpha = .38/i; ctx.fillStyle = COLOR[k]; ctx.beginPath(); ctx.arc(tx, ty, 2.6, 0, 7); ctx.fill(); }
+      const [x, y] = at(k, d); const rg = ctx.createRadialGradient(x - 1, y - 1, .5, x, y, 4); rg.addColorStop(0, '#ffffff'); rg.addColorStop(1, COLOR[k]); ctx.globalAlpha = 1; ctx.fillStyle = rg; ctx.beginPath(); ctx.arc(x, y, 3.8, 0, 7); ctx.fill(); }
+    ctx.shadowBlur = 0; ctx.globalAlpha = 1;
+  }
+  for (let i = ripples.length - 1; i >= 0; i--){ const r = ripples[i]; r.r += 40*dt; r.a -= 1.8*dt; if (r.a <= 0){ ripples.splice(i, 1); continue; }
+    ctx.strokeStyle = `rgba(255,150,150,${r.a})`; ctx.lineWidth = 1.2; ctx.beginPath(); ctx.ellipse(r.x, r.y, r.r, r.r*0.3, 0, 0, 7); ctx.stroke(); }
+  for (let i = drops.length - 1; i >= 0; i--){ const p = drops[i]; p.vy += 220*dt; p.x += p.vx*dt; p.y += p.vy*dt; p.a -= 1.6*dt; if (p.a <= 0 || p.y > surf + 2){ drops.splice(i, 1); continue; }
+    ctx.fillStyle = `rgba(255,140,140,${p.a})`; ctx.beginPath(); ctx.arc(p.x, p.y, 1.6, 0, 7); ctx.fill(); }
+
+  // the buyback pump, the flame, the vault of kept tokens
+  const pw = Math.min(1, rate.buy/0.6), on = hover === 'buy';
+  ctx.save(); ctx.translate(PUMP.x, PUMP.y); ctx.shadowColor = '#00ff88'; ctx.shadowBlur = 10 + 6*Math.sin(ts*3)*pw;
+  ctx.beginPath(); ctx.arc(0, 0, PUMP.r + 4, 0, 7); ctx.fillStyle = '#070d16'; ctx.fill(); ctx.strokeStyle = on ? '#9dffd0' : '#00ff88'; ctx.lineWidth = 2; ctx.stroke(); ctx.shadowBlur = 0;
+  ctx.rotate(spin); ctx.setLineDash([5, 5]); ctx.strokeStyle = '#00ff88'; ctx.globalAlpha = .6; ctx.lineWidth = 2; ctx.beginPath(); ctx.arc(0, 0, PUMP.r + 9, 0, 7); ctx.stroke(); ctx.restore();
+  icon('fist', PUMP.x - 12, PUMP.y - 13, 1.55, '#00ff88', 1.7);
+  const bp = Math.min(1, target.burn/0.6);
+  if (bp > 0.02){ flame(FLAME.x, FLAME.y + 4, 1.1, 0.55 + 0.45*bp, ts); if (Math.random() < dt*6*bp) embers.push({x:FLAME.x + (Math.random() - .5)*8, y:FLAME.y - 18, v:16 + Math.random()*16, a:1}); }
+  else { ctx.globalAlpha = .35; flame(FLAME.x, FLAME.y + 4, 1.1, .5, 0); ctx.globalAlpha = 1; }
+  for (let i = embers.length - 1; i >= 0; i--){ const p = embers[i]; p.y -= p.v*dt; p.x += Math.sin(ts*8 + p.y)*0.3; p.a -= 1.1*dt; if (p.a <= 0){ embers.splice(i, 1); continue; } ctx.fillStyle = `rgba(160,255,210,${p.a})`; ctx.beginPath(); ctx.arc(p.x, p.y, 1.4, 0, 7); ctx.fill(); }
+  icon('vault', KEPT.x - 12, KEPT.y - 12, 1.5, target.keep > 0.01 ? '#5dd6a2' : '#3d5266', 1.5);
+
+  // labels
+  chipText(94, 134, `+${target.vest.toFixed(1)}M / mo`, '#ff4444', 'left'); chipText(326, 134, `+${target.rew.toFixed(1)}M / mo`, '#ff7a7a', 'right');
+  ctx.font = '11px "IBM Plex Sans",sans-serif'; ctx.fillStyle = '#a9b8cc'; ctx.textAlign = 'left'; ctx.fillText('team vesting', 98, 152); ctx.textAlign = 'right'; ctx.fillText('staking rewards', 322, 152);
+  chipText(332, 460, `−${target.buy.toFixed(2)}M / mo`, '#00ff88', 'right');
+  ctx.font = '11px "IBM Plex Sans",sans-serif'; ctx.fillStyle = '#a9b8cc'; ctx.textAlign = 'right'; ctx.fillText('buyback', 332, 478);
+  ctx.font = '10.5px "JetBrains Mono",monospace'; ctx.fillStyle = '#6f8199'; ctx.textAlign = 'center'; ctx.fillText('burned', FLAME.x, 530); ctx.fillText('kept', KEPT.x, 530);
+  ctx.textAlign = 'left'; ctx.fillStyle = '#6f8199'; ctx.fillText('staking: flat', STAKE.x, STAKE.y - 7);
+
+  // the hero number follows the pile
+  const hb = document.getElementById('hbig'); const hv = heroShown; hb.textContent = `${hv >= 0 ? '+' : '−'}${Math.abs(hv) < 10 ? Math.abs(hv).toFixed(1) : Math.abs(hv).toFixed(0)}%`;
+  requestAnimationFrame(scene);
+}
+
+/* hover: what each part of the scene is */
+const tip = document.getElementById('tip');
+function distSeg(px, py, a, b){ const dx = b[0]-a[0], dy = b[1]-a[1], l2 = dx*dx + dy*dy; let u = l2 ? ((px-a[0])*dx + (py-a[1])*dy)/l2 : 0; u = Math.max(0, Math.min(1, u)); return Math.hypot(px - (a[0] + u*dx), py - (a[1] + u*dy)); }
+function nearPipe(k, x, y){ const p = PATHS[k]; for (let i = 1; i < p.length; i++) if (distSeg(x, y, p[i-1], p[i]) <= 12) return true; return false; }
+const inRect = (x, y, r) => x >= r.x && x <= r.x + r.w && y >= r.y && y <= r.y + r.h;
+function hitTest(x, y){
+  if (Math.hypot(x - PUMP.x, y - PUMP.y) <= 24) return 'buy';
+  if (Math.hypot(x - FLAME.x, y - (FLAME.y - 8)) <= 26) return 'burn';
+  if (Math.hypot(x - KEPT.x, y - KEPT.y) <= 26) return 'keep';
+  if (inRect(x, y, STAKE)) return 'stake';
+  if (inRect(x, y, VAULT) || nearPipe('vest', x, y)) return 'vest';
+  if (inRect(x, y, RES) || nearPipe('rew', x, y)) return 'rew';
+  if (inRect(x, y, TANK)) return 'tank';
+  if (nearPipe('buy', x, y)) return 'buy';
+  return null;
+}
+function tipFor(name){
+  const m = +t.value, f = flows(m), s = state(m), p = pile(m);
+  switch (name){
+    case 'vest': return ['Team vesting', `238M HYPE for core contributors, released in 24 monthly tranches of about 9.9M. Each tranche becomes sellable. This month ${f.tranche.toFixed(1)}M; ${s.vesting.toFixed(0)}M still locked.`];
+    case 'rew': return ['Reserve and staking rewards', `The reserve is the part of the 1B max supply not paid out yet. Staking rewards come out of it, about ${f.reward.toFixed(1)}M a month, and become new supply.`];
+    case 'tank': return ['The sellable pile', `${p.toFixed(0)}M HYPE can be sold now: the free tokens plus the staking that can leave at any time. Dashed line: where it stood today (${pile(0).toFixed(0)}M).`];
+    case 'buy': return ['Buyback', `The Assistance Fund buys HYPE with trading fees: $145M in Q3, about ${f.burn.toFixed(2)}M HYPE a month at today's price. It takes tokens off the market.`];
+    case 'burn': return ['Burned', `All of the bought HYPE is burned for good (the Assistance Fund's balance is recognised as burned by a validator vote). ${s.burned.toFixed(1)}M burned so far.`];
+    case 'keep': return ['Kept', 'Bought back and held by the project instead of burned. None for HYPE. A kept token can come back to the market.'];
+    case 'stake': return ['Staking, held flat', '437.5M HYPE are staked; about 230M of that is not on the Hyper Foundation\'s own validators. Exit takes 7 days. New staking and unstaking are not measured, so this is held flat.'];
+  }
+  return null;
+}
+cv.addEventListener('mousemove', e => { const r = cv.getBoundingClientRect(); const x = (e.clientX - r.left)*CW/r.width, y = (e.clientY - r.top)*CH/r.height;
+  const h = hitTest(x, y); hover = h; cv.style.cursor = h ? 'help' : 'default'; const tf = h && tipFor(h);
+  if (tf){ tip.innerHTML = `<b>${tf[0]}</b>${tf[1]}`; tip.style.opacity = 1; tip.style.left = Math.min(window.innerWidth - 320, e.clientX + 16) + 'px'; tip.style.top = (e.clientY + 16) + 'px'; } else tip.style.opacity = 0; });
+cv.addEventListener('mouseleave', () => { hover = null; tip.style.opacity = 0; });
+
+/* ================================================================ the pie */
+const P = document.getElementById('slices'), L = document.getElementById('plabels'), R = 178;
+let cur = state(0), hoverSlice = null;
+function arc(a0, a1, rad){ const p = a => [rad*Math.sin(a), -rad*Math.cos(a)]; const [x0,y0] = p(a0), [x1,y1] = p(a1);
+  return `M0 0L${x0.toFixed(2)} ${y0.toFixed(2)}A${rad} ${rad} 0 ${a1-a0 > Math.PI ? 1 : 0} 1 ${x1.toFixed(2)} ${y1.toFixed(2)}Z`; }
+function drawPie(s){
+  const tot = ORDER.reduce((a,o) => a + s[o.k], 0); let a = 0; P.innerHTML = ''; L.innerHTML = '';
+  document.getElementById('pielab').textContent = `TOKENS IN PLAY · ${Math.round(tot)}M OF 1,000M MAX`;
+  for (const o of ORDER){ const v = s[o.k]; if (v <= 0.05) continue; const a1 = a + 2*Math.PI*v/tot, mid = (a + a1)/2, hv = hoverSlice === o.k;
+    const tx = hv ? 9*Math.sin(mid) : 0, ty = hv ? -9*Math.cos(mid) : 0;
+    P.insertAdjacentHTML('beforeend', `<path data-k="${o.k}" d="${arc(a, a1, R)}" transform="translate(${tx.toFixed(1)} ${ty.toFixed(1)})" fill="${o.fill}" fill-opacity="${o.op ?? 1}" stroke="#0b1220" stroke-width="3" opacity="${hoverSlice && !hv ? .55 : 1}"/>`);
+    const share = 100*v/tot;
+    if (share >= 5){ const rr_ = R*0.66;
+      L.insertAdjacentHTML('beforeend', `<text x="${(rr_*Math.sin(mid) + tx).toFixed(1)}" y="${(-rr_*Math.cos(mid) + ty + 6).toFixed(1)}" text-anchor="middle" font-family="JetBrains Mono,monospace" font-weight="700" font-size="${share > 20 ? 21 : 15}" fill="${o.k==='free'||o.k==='burned' ? '#062431' : '#ffffff'}">${Math.round(share)}%</text>`); }
+    a = a1; }
+}
+P.addEventListener('mousemove', e => { const k = e.target.dataset ? e.target.dataset.k : null; if (k !== hoverSlice){ hoverSlice = k || null; drawPie(cur); markLegend(); } });
+P.addEventListener('mouseleave', () => { hoverSlice = null; drawPie(cur); markLegend(); });
+const legend = document.getElementById('legend');
+function markLegend(){ legend.querySelectorAll('.li').forEach(li => li.classList.toggle('on', li.dataset.k === hoverSlice)); }
+function drawLegend(s, m){
+  const s0 = state(0); legend.innerHTML = '';
+  const tot = ORDER.reduce((a,x) => a + s[x.k], 0);
+  const hatch = {vesting:'repeating-linear-gradient(45deg,#ff4444 0 3px,#3a1218 3px 7px)', locked:'repeating-linear-gradient(45deg,#3b82f6 0 3px,#0f2140 3px 7px)', held:'repeating-linear-gradient(45deg,#00ff88 0 3px,#0b2a1c 3px 7px)'};
+  for (const o of ORDER){ const v = s[o.k], d = v - s0[o.k];
+    const dcls = Math.abs(d) < 0.05 ? 'flat' : ((d > 0) === (o.k==='burned' || o.k==='held' || o.k==='locked' || o.k==='staked') ? 'down' : 'up');
+    const dtxt = m === 0 ? '' : `<small class="d ${dcls}">${d >= 0 ? '+' : '−'}${Math.abs(d).toFixed(1)}M since today</small>`;
+    legend.insertAdjacentHTML('beforeend', `<div class="li" data-k="${o.k}"><span class="chip" style="background:${o.fill.startsWith('url') ? hatch[o.k] : o.fill};opacity:${o.op ?? 1}"></span>
+      <div><b>${o.name}</b><small>${o.sub}</small></div>
+      <div class="val mono">${v.toFixed(1)}M <small style="color:var(--mut)">${(100*v/tot).toFixed(1)}%</small>${dtxt}</div></div>`); }
+  const rd = s.reserve - s0.reserve;
+  legend.insertAdjacentHTML('beforeend', `<div class="li" style="border-top:1px dashed var(--edge);border-radius:0;margin-top:6px;padding-top:12px"><span class="chip" style="border:1.5px dashed var(--mut)"></span>
+      <div><b style="color:var(--soft)">Not in the pie: reserve</b><small>Max supply not paid out yet; rewards come out of it</small></div>
+      <div class="val mono" style="color:var(--soft)">${s.reserve.toFixed(1)}M${m === 0 ? '' : `<small class="d flat">${rd >= 0 ? '+' : '−'}${Math.abs(rd).toFixed(1)}M since today</small>`}</div></div>`);
+  legend.querySelectorAll('.li[data-k]').forEach(li => { li.addEventListener('mouseenter', () => { hoverSlice = li.dataset.k; drawPie(cur); markLegend(); }); li.addEventListener('mouseleave', () => { hoverSlice = null; drawPie(cur); markLegend(); }); });
+  markLegend();
+}
+let anim = null;
+function tween(to){ const from = {...cur}, t0 = performance.now(); cancelAnimationFrame(anim);
+  const step = now => { const k = Math.min(1, (now - t0)/350), e = 1 - Math.pow(1 - k, 3);
+    for (const o of ORDER) cur[o.k] = from[o.k] + (to[o.k] - from[o.k])*e; drawPie(cur);
+    if (k < 1) anim = requestAnimationFrame(step); }; anim = requestAnimationFrame(step); }
+
+/* ================================================================ the pile over time, and the monthly flows */
+const CH_ = document.getElementById('chart');
+function drawChart(m){
+  const W = 1240, padL = 6, padR = 6, x = i => padL + (W - padL - padR)*i/MONTHS, top = 26, bot = 150, lo = MINPILE - 25, hi = MAXPILE + 25;
+  const y = v => bot - (bot - top)*(v - lo)/(hi - lo), base = y(pile(0));
+  let pos = '', neg = '', line = '';
+  const pts = Array.from({length:MONTHS + 1}, (_, i) => [x(i), y(pile(i))]);
+  line = pts.map((p, i) => (i ? 'L' : 'M') + p[0].toFixed(1) + ' ' + p[1].toFixed(1)).join('');
+  pos = 'M' + pts.map(p => p[0].toFixed(1) + ' ' + Math.min(p[1], base).toFixed(1)).join('L') + 'L' + pts[MONTHS][0].toFixed(1) + ' ' + base.toFixed(1) + 'L' + pts[0][0].toFixed(1) + ' ' + base.toFixed(1) + 'Z';
+  neg = 'M' + pts.map(p => p[0].toFixed(1) + ' ' + Math.max(p[1], base).toFixed(1)).join('L') + 'L' + pts[MONTHS][0].toFixed(1) + ' ' + base.toFixed(1) + 'L' + pts[0][0].toFixed(1) + ' ' + base.toFixed(1) + 'Z';
+  let h = `<defs><linearGradient id="gl" x1="0" x2="1"><stop offset="0" stop-color="#00cfff"/><stop offset="1" stop-color="#7fe6ff"/></linearGradient></defs>`;
+  h += `<path d="${pos}" fill="#ff4444" opacity=".22"/><path d="${neg}" fill="#00ff88" opacity=".22"/>`;
+  h += `<line x1="${padL}" x2="${W - padR}" y1="${base}" y2="${base}" stroke="#e6edf7" stroke-opacity=".5" stroke-dasharray="4 5"/><text x="${W - padR}" y="${base - 6}" text-anchor="end" font-size="11" fill="#a9b8cc" font-family="JetBrains Mono,monospace">today's pile ${pile(0).toFixed(0)}M</text>`;
+  h += `<path d="${line}" fill="none" stroke="url(#gl)" stroke-width="3" stroke-linejoin="round" style="filter:drop-shadow(0 0 6px #00cfff99)"/>`;
+  // the monthly flows under it
+  const bw = (W - padL - padR)/(MONTHS + 1), bb = 232, maxF = 11.5;
+  for (let i = 0; i <= MONTHS; i++){ const f = flows(i), on = i === m, bx = padL + bw*i, hr = 58*f.release/maxF, hg = Math.max(2, 58*f.burn/maxF);
+    h += `<rect x="${(bx + bw*0.14).toFixed(1)}" y="${(bb - hr).toFixed(1)}" width="${(bw*0.42).toFixed(1)}" height="${hr.toFixed(1)}" rx="2" fill="#ff4444" opacity="${on ? 1 : .38}"/>`;
+    h += `<rect x="${(bx + bw*0.58).toFixed(1)}" y="${(bb - hg).toFixed(1)}" width="${(bw*0.28).toFixed(1)}" height="${hg.toFixed(1)}" rx="2" fill="#00ff88" opacity="${on ? 1 : .5}"/>`;
+    if (i % 6 === 0) h += `<text x="${(bx + bw/2).toFixed(1)}" y="246" text-anchor="middle" font-size="11" fill="#6f8199" font-family="JetBrains Mono,monospace">${label(i)}</text>`; }
+  // the marker
+  const mx = x(m), mv = pile(m), my = y(mv), d = mv - pile(0);
+  h += `<line x1="${mx}" x2="${mx}" y1="${top - 8}" y2="${bb}" stroke="#00cfff" stroke-opacity=".55"/><circle cx="${mx}" cy="${my}" r="7" fill="#06202b" stroke="#00cfff" stroke-width="3" style="filter:drop-shadow(0 0 8px #00cfff)"/>`;
+  const cx = Math.max(130, Math.min(W - 130, mx));
+  h += `<g transform="translate(${cx} ${Math.max(14, my - 38)})"><rect x="-122" y="-16" width="244" height="26" rx="13" fill="#08101a" stroke="#2a4a5e"/><text text-anchor="middle" y="2" font-size="12" font-weight="700" fill="#e6edf7" font-family="JetBrains Mono,monospace">${label(m)} · ${mv.toFixed(0)}M · <tspan fill="${d > 0 ? '#ff4444' : (d < 0 ? '#00ff88' : '#a9b8cc')}">${d >= 0 ? '+' : '−'}${Math.abs(100*d/pile(0)).toFixed(0)}%</tspan></text></g>`;
+  h += `<text x="${padL}" y="14" font-size="11" fill="#ff4444" font-family="JetBrains Mono,monospace">■ becomes sellable a month</text><text x="${padL + 200}" y="14" font-size="11" fill="#00ff88" font-family="JetBrains Mono,monospace">■ bought back a month</text>`;
+  CH_.innerHTML = h; }
+
+/* ================================================================ one month */
+function show(m){
+  const p = pressure(m), f = flows(m), s = state(m);
+  const band = p.lvl >= 8 ? ['SQUEEZING','#00ff88','#0b2a1c'] : (p.lvl >= 4 ? ['BALANCED','#3b82f6','#0f1d3a'] : ['FLOODING','#ff4444','#2a0f14']);
+  document.getElementById('month').innerHTML = label(m) + (m === 0 ? '<em>today</em>' : '');
+  const pill = document.getElementById('pill'); pill.textContent = `${p.lvl}/10 ${band[0]}`; pill.style.color = band[1]; pill.style.borderColor = band[1]; pill.style.background = band[2];
+  const net = f.release - f.burn, pct = net*12/p.pile*100;
+  document.getElementById('hbig').style.color = Math.abs(pct) < 1 ? '#a9b8cc' : (pct > 0 ? '#ff4444' : '#00ff88');
+  document.getElementById('hsub').innerHTML = Math.abs(pct) < 1
+    ? `The sellable pile <b>barely moves</b>. Only staking rewards still come in.`
+    : (net > 0 ? `The pile of tokens that can be sold <b>grows ${net.toFixed(1)}M a month</b>. New tokens outweigh buybacks ${Math.round(f.release/f.burn)} to 1.`
+               : `The pile of tokens that can be sold <b>shrinks ${Math.abs(net).toFixed(1)}M a month</b>. Buybacks outweigh new tokens.`);
+  document.getElementById('relN').textContent = `+${f.release.toFixed(2)}M`;
+  document.getElementById('burnN').textContent = `−${f.burn.toFixed(2)}M`;
+  const n = document.getElementById('netN'); n.textContent = `${pct >= 0 ? '+' : '−'}${Math.abs(pct).toFixed(1)}%`; n.style.color = pct > 0 ? '#ff4444' : '#00ff88';
+  target.vest = f.tranche; target.rew = f.reward; target.buy = f.burn; target.burn = f.burn*BURN_SHARE; target.keep = f.burn*(1 - BURN_SHARE);
+  levelT = p.pile/(MAXPILE*1.08); pileT = p.pile; vaultT = s.vesting/START.vesting; resT = s.reserve/START.reserve; heroT = pct;
+  tween(s); drawLegend(s, m); drawChart(m);
+}
+t.addEventListener('input', () => show(+t.value));
+let playing = null;
+document.getElementById('play').addEventListener('click', e => {
+  if (playing){ clearInterval(playing); playing = null; e.target.textContent = '▶'; return; }
+  e.target.textContent = '❚❚'; if (+t.value >= MONTHS){ t.value = 0; show(0); }
+  playing = setInterval(() => { if (+t.value >= MONTHS){ clearInterval(playing); playing = null; e.target.textContent = '▶'; return; }
+    t.value = +t.value + 1; show(+t.value); }, 900); });
+pile0 = pile(0); level0 = pile0/(MAXPILE*1.08); level = levelT = level0; pileShown = pileT = pile0; vaultF = 1; resF = 1;
+const m0 = Math.max(0, Math.min(MONTHS, parseInt(new URLSearchParams(location.search).get('m'), 10) || 0));   // ?m=15 opens the page in that month
+t.value = m0; cur = state(m0); level = levelT = pile(m0)/(MAXPILE*1.08); pileShown = pileT = pile(m0); vaultF = state(m0).vesting/START.vesting; resF = state(m0).reserve/START.reserve;
+drawPie(cur); show(m0); heroShown = heroT; requestAnimationFrame(scene);
+</script>
+</body>
+</html>
