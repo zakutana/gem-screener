@@ -1,67 +1,95 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 820 640" width="820" height="640" role="img" aria-label="The Supply Analyzer inside the Gem Screener: a Supply column in the tables and a Supply pressure card in a coin's detail">
-<defs><linearGradient id="a" x1="0" x2="1"><stop offset="0" stop-color="#00cfff"/><stop offset="1" stop-color="#7fe6ff"/></linearGradient></defs>
-<rect width="820" height="640" fill="#0a0e17"/>
-<text x="26" y="30" font-size="11" fill="#6f8199" font-family="JetBrains Mono, IBM Plex Mono, Consolas, monospace" letter-spacing="1">1 · A SUPPLY COLUMN, BETWEEN CHART AND UPSIDE, ON APPS AND CHAINS</text>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 820 720" width="820" height="720" role="img" aria-label="The Supply Analyzer inside the Gem Screener: a mini pie beside the number in the tables, and one card in a coin's detail that replaces Market cap and supply">
+<defs>
+<linearGradient id="a" x1="0" x2="1"><stop offset="0" stop-color="#00cfff"/><stop offset="1" stop-color="#7fe6ff"/></linearGradient>
+<pattern id="hv" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="6" height="6" fill="#3a1218"/><line x1="0" y1="0" x2="0" y2="6" stroke="#ff4444" stroke-width="2.4" opacity=".75"/></pattern>
+<pattern id="hb" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="6" height="6" fill="#0f2140"/><line x1="0" y1="0" x2="0" y2="6" stroke="#3b82f6" stroke-width="2.4" opacity=".8"/></pattern>
+<pattern id="hg" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><rect width="6" height="6" fill="#0b2a1c"/><line x1="0" y1="0" x2="0" y2="6" stroke="#00ff88" stroke-width="2.4" opacity=".75"/></pattern>
+<radialGradient id="shine" cx="32%" cy="26%" r="75%"><stop offset="0" stop-color="#fff" stop-opacity=".16"/><stop offset=".55" stop-color="#fff" stop-opacity="0"/><stop offset="1" stop-color="#000" stop-opacity=".22"/></radialGradient>
+</defs>
+<rect width="820" height="720" fill="#0a0e17"/>
+<text x="26" y="30" font-size="11" fill="#6f8199" font-family="JetBrains Mono, IBM Plex Mono, Consolas, monospace" letter-spacing="1">1 · THE SUPPLY COLUMN: A MINI PIE BESIDE THE NUMBER, BETWEEN CHART AND UPSIDE</text>
 <rect x="26" y="44" width="768" height="236" rx="12" fill="#0c1421" stroke="#1a2a3d"/>
 <text x="44" y="72" font-size="10.5" fill="#6f8199" font-family="JetBrains Mono, IBM Plex Mono, Consolas, monospace" font-weight="700" letter-spacing="1">PROJECT</text>
 <text x="250" y="72" font-size="10.5" fill="#6f8199" font-family="JetBrains Mono, IBM Plex Mono, Consolas, monospace" font-weight="700" letter-spacing="1">MARKET CAP</text>
 <text x="360" y="72" font-size="10.5" fill="#6f8199" font-family="JetBrains Mono, IBM Plex Mono, Consolas, monospace" font-weight="700" letter-spacing="1">12 MONTHS</text>
 <text x="480" y="72" font-size="10.5" fill="#6f8199" font-family="JetBrains Mono, IBM Plex Mono, Consolas, monospace" font-weight="700" letter-spacing="1">CHART</text>
-<text x="560" y="72" font-size="10.5" fill="#00cfff" font-family="JetBrains Mono, IBM Plex Mono, Consolas, monospace" font-weight="700" letter-spacing="1">SUPPLY</text>
-<text x="660" y="72" font-size="10.5" fill="#6f8199" font-family="JetBrains Mono, IBM Plex Mono, Consolas, monospace" font-weight="700" letter-spacing="1">UPSIDE</text>
-<rect x="548" y="52" width="76" height="34" rx="6" fill="none" stroke="#00cfff" stroke-opacity=".5" stroke-dasharray="4 3"/>
+<text x="566" y="72" font-size="10.5" fill="#00cfff" font-family="JetBrains Mono, IBM Plex Mono, Consolas, monospace" font-weight="700" letter-spacing="1">SUPPLY</text>
+<text x="680" y="72" font-size="10.5" fill="#6f8199" font-family="JetBrains Mono, IBM Plex Mono, Consolas, monospace" font-weight="700" letter-spacing="1">UPSIDE</text>
+<rect x="554" y="52" width="104" height="34" rx="6" fill="none" stroke="#00cfff" stroke-opacity=".5" stroke-dasharray="4 3"/>
 <line x1="26" y1="84" x2="794" y2="84" stroke="#1a2a3d"/>
 <circle cx="56" cy="113" r="10" fill="#172538"/>
 <text x="74" y="110" font-size="13" font-weight="700" fill="#e6edf7" font-family="IBM Plex Sans, Segoe UI, Arial, sans-serif">Hyperliquid</text><text x="74" y="124" font-size="10.5" fill="#6f8199" font-family="JetBrains Mono, IBM Plex Mono, Consolas, monospace">HYPE</text>
 <text x="250" y="118" font-size="13" fill="#a9b8cc" font-family="JetBrains Mono, IBM Plex Mono, Consolas, monospace">$19.7B</text>
 <path d="M360 120l14-8 14 4 14-9 14 5 14-6 14 3" fill="none" stroke="#00cfff" stroke-width="1.6"/>
 <text x="486" y="118" font-size="14" font-weight="700" fill="#a9b8cc" font-family="JetBrains Mono, IBM Plex Mono, Consolas, monospace">61</text>
-<text x="574" y="118" font-size="15" font-weight="700" fill="#ff4444" font-family="JetBrains Mono, IBM Plex Mono, Consolas, monospace">1</text>
-<rect x="660" y="104" width="54" height="22" rx="4" fill="#00ff88"/><text x="687" y="120" font-size="12.5" font-weight="700" fill="#0a0e17" text-anchor="middle" font-family="JetBrains Mono, IBM Plex Mono, Consolas, monospace">1.0x</text>
+<path d="M582 113L582.00 102.00A11 11 0 0 1 591.57 118.43Z" fill="#00cfff" stroke="#0c1421" stroke-width="1"/><path d="M582 113L591.57 118.43A11 11 0 0 1 571.52 116.35Z" fill="#3b82f6" stroke="#0c1421" stroke-width="1"/><path d="M582 113L571.52 116.35A11 11 0 0 1 576.92 103.24Z" fill="url(#hv)" stroke="#0c1421" stroke-width="1"/><path d="M582 113L576.92 103.24A11 11 0 0 1 582.00 102.00Z" fill="#00ff88" stroke="#0c1421" stroke-width="1"/>
+<circle cx="582" cy="113" r="11" fill="url(#shine)"/>
+<text x="606" y="118" font-size="15" font-weight="700" fill="#ff4444" font-family="JetBrains Mono, IBM Plex Mono, Consolas, monospace">1</text>
+<rect x="680" y="104" width="54" height="22" rx="4" fill="#00ff88"/><text x="707" y="120" font-size="12.5" font-weight="700" fill="#0a0e17" text-anchor="middle" font-family="JetBrains Mono, IBM Plex Mono, Consolas, monospace">1.0x</text>
 <circle cx="56" cy="147" r="10" fill="#172538"/>
 <text x="74" y="144" font-size="13" font-weight="700" fill="#e6edf7" font-family="IBM Plex Sans, Segoe UI, Arial, sans-serif">PancakeSwap</text><text x="74" y="158" font-size="10.5" fill="#6f8199" font-family="JetBrains Mono, IBM Plex Mono, Consolas, monospace">CAKE</text>
 <text x="250" y="152" font-size="13" fill="#a9b8cc" font-family="JetBrains Mono, IBM Plex Mono, Consolas, monospace">$855M</text>
 <path d="M360 154l14-8 14 4 14-9 14 5 14-6 14 3" fill="none" stroke="#00cfff" stroke-width="1.6"/>
 <text x="486" y="152" font-size="14" font-weight="700" fill="#a9b8cc" font-family="JetBrains Mono, IBM Plex Mono, Consolas, monospace">53</text>
-<text x="574" y="152" font-size="15" font-weight="700" fill="#00ff88" font-family="JetBrains Mono, IBM Plex Mono, Consolas, monospace">8</text>
-<rect x="660" y="138" width="54" height="22" rx="4" fill="#00ff88"/><text x="687" y="154" font-size="12.5" font-weight="700" fill="#0a0e17" text-anchor="middle" font-family="JetBrains Mono, IBM Plex Mono, Consolas, monospace">2.5x</text>
+<path d="M582 147L582.00 136.00A11 11 0 1 1 571.54 150.40Z" fill="#00cfff" stroke="#0c1421" stroke-width="1"/><path d="M582 147L571.54 150.40A11 11 0 0 1 571.19 144.94Z" fill="#3b82f6" stroke="#0c1421" stroke-width="1"/><path d="M582 147L571.19 144.94A11 11 0 0 1 582.00 136.00Z" fill="#00ff88" stroke="#0c1421" stroke-width="1"/>
+<circle cx="582" cy="147" r="11" fill="url(#shine)"/>
+<text x="606" y="152" font-size="15" font-weight="700" fill="#00ff88" font-family="JetBrains Mono, IBM Plex Mono, Consolas, monospace">8</text>
+<rect x="680" y="138" width="54" height="22" rx="4" fill="#00ff88"/><text x="707" y="154" font-size="12.5" font-weight="700" fill="#0a0e17" text-anchor="middle" font-family="JetBrains Mono, IBM Plex Mono, Consolas, monospace">2.5x</text>
 <circle cx="56" cy="181" r="10" fill="#172538"/>
 <text x="74" y="178" font-size="13" font-weight="700" fill="#e6edf7" font-family="IBM Plex Sans, Segoe UI, Arial, sans-serif">GMX</text><text x="74" y="192" font-size="10.5" fill="#6f8199" font-family="JetBrains Mono, IBM Plex Mono, Consolas, monospace">GMX</text>
 <text x="250" y="186" font-size="13" fill="#a9b8cc" font-family="JetBrains Mono, IBM Plex Mono, Consolas, monospace">$82M</text>
 <path d="M360 188l14-8 14 4 14-9 14 5 14-6 14 3" fill="none" stroke="#00cfff" stroke-width="1.6"/>
 <text x="486" y="186" font-size="14" font-weight="700" fill="#a9b8cc" font-family="JetBrains Mono, IBM Plex Mono, Consolas, monospace">46</text>
-<text x="574" y="186" font-size="15" font-weight="700" fill="#3b82f6" font-family="JetBrains Mono, IBM Plex Mono, Consolas, monospace">7</text>
-<rect x="660" y="172" width="54" height="22" rx="4" fill="#00ff88"/><text x="687" y="188" font-size="12.5" font-weight="700" fill="#0a0e17" text-anchor="middle" font-family="JetBrains Mono, IBM Plex Mono, Consolas, monospace">6.5x</text>
+<path d="M582 181L582.00 170.00A11 11 0 0 1 588.13 190.14Z" fill="#00cfff" stroke="#0c1421" stroke-width="1"/><path d="M582 181L588.13 190.14A11 11 0 1 1 582.00 170.00Z" fill="#3b82f6" stroke="#0c1421" stroke-width="1"/>
+<circle cx="582" cy="181" r="11" fill="url(#shine)"/>
+<text x="606" y="186" font-size="15" font-weight="700" fill="#3b82f6" font-family="JetBrains Mono, IBM Plex Mono, Consolas, monospace">7</text>
+<rect x="680" y="172" width="54" height="22" rx="4" fill="#00ff88"/><text x="707" y="188" font-size="12.5" font-weight="700" fill="#0a0e17" text-anchor="middle" font-family="JetBrains Mono, IBM Plex Mono, Consolas, monospace">6.5x</text>
 <circle cx="56" cy="215" r="10" fill="#172538"/>
 <text x="74" y="212" font-size="13" font-weight="700" fill="#e6edf7" font-family="IBM Plex Sans, Segoe UI, Arial, sans-serif">Pump</text><text x="74" y="226" font-size="10.5" fill="#6f8199" font-family="JetBrains Mono, IBM Plex Mono, Consolas, monospace">PUMP</text>
 <text x="250" y="220" font-size="13" fill="#a9b8cc" font-family="JetBrains Mono, IBM Plex Mono, Consolas, monospace">$2.7B</text>
 <path d="M360 222l14-8 14 4 14-9 14 5 14-6 14 3" fill="none" stroke="#00cfff" stroke-width="1.6"/>
 <text x="486" y="220" font-size="14" font-weight="700" fill="#a9b8cc" font-family="JetBrains Mono, IBM Plex Mono, Consolas, monospace">58</text>
-<text x="574" y="220" font-size="15" font-weight="700" fill="#ff4444" font-family="JetBrains Mono, IBM Plex Mono, Consolas, monospace">3</text>
-<rect x="660" y="206" width="54" height="22" rx="4" fill="#00ff88"/><text x="687" y="222" font-size="12.5" font-weight="700" fill="#0a0e17" text-anchor="middle" font-family="JetBrains Mono, IBM Plex Mono, Consolas, monospace">7.2x</text>
+<path d="M582 215L582.00 204.00A11 11 0 1 1 571.54 211.60Z" fill="#00cfff" stroke="#0c1421" stroke-width="1"/><path d="M582 215L571.54 211.60A11 11 0 0 1 582.00 204.00Z" fill="#00ff88" stroke="#0c1421" stroke-width="1"/>
+<circle cx="582" cy="215" r="11" fill="url(#shine)"/>
+<text x="606" y="220" font-size="15" font-weight="700" fill="#ff4444" font-family="JetBrains Mono, IBM Plex Mono, Consolas, monospace">3</text>
+<rect x="680" y="206" width="54" height="22" rx="4" fill="#00ff88"/><text x="707" y="222" font-size="12.5" font-weight="700" fill="#0a0e17" text-anchor="middle" font-family="JetBrains Mono, IBM Plex Mono, Consolas, monospace">7.2x</text>
 <circle cx="56" cy="249" r="10" fill="#172538"/>
 <text x="74" y="246" font-size="13" font-weight="700" fill="#e6edf7" font-family="IBM Plex Sans, Segoe UI, Arial, sans-serif">KyberSwap</text><text x="74" y="260" font-size="10.5" fill="#6f8199" font-family="JetBrains Mono, IBM Plex Mono, Consolas, monospace">KNC</text>
 <text x="250" y="254" font-size="13" fill="#a9b8cc" font-family="JetBrains Mono, IBM Plex Mono, Consolas, monospace">$29M</text>
 <path d="M360 256l14-8 14 4 14-9 14 5 14-6 14 3" fill="none" stroke="#00cfff" stroke-width="1.6"/>
 <text x="486" y="254" font-size="14" font-weight="700" fill="#a9b8cc" font-family="JetBrains Mono, IBM Plex Mono, Consolas, monospace">49</text>
-<text x="574" y="254" font-size="15" font-weight="700" fill="#6f8199" font-family="JetBrains Mono, IBM Plex Mono, Consolas, monospace">–</text>
-<rect x="660" y="240" width="54" height="22" rx="4" fill="#00ff88"/><text x="687" y="256" font-size="12.5" font-weight="700" fill="#0a0e17" text-anchor="middle" font-family="JetBrains Mono, IBM Plex Mono, Consolas, monospace">7.4x</text>
-<text x="26" y="300" font-size="11" fill="#6f8199" font-family="IBM Plex Sans, Segoe UI, Arial, sans-serif">Same cell, header, tooltip and place as the Chart column: the number in its colour, a dash where it is unknown,</text>
-<text x="26" y="315" font-size="11" fill="#6f8199" font-family="IBM Plex Sans, Segoe UI, Arial, sans-serif">a dashed ring where only a range is known. Chart scores here are placeholders.</text>
-<text x="26" y="344" font-size="11" fill="#6f8199" font-family="JetBrains Mono, IBM Plex Mono, Consolas, monospace" letter-spacing="1">2 · A SUPPLY PRESSURE CARD IN A COIN'S AND A CHAIN'S DETAIL, DIRECTLY UNDER THE CHART CARD</text>
-<rect x="26" y="358" width="768" height="196" rx="10" fill="#111a28" stroke="#0096ff" stroke-opacity=".15"/>
-<text x="48" y="388" font-size="13" font-weight="600" fill="#6f8199" letter-spacing="1" font-family="IBM Plex Sans, Segoe UI, Arial, sans-serif">SUPPLY PRESSURE</text>
-<rect x="188" y="375" width="40" height="17" rx="8.5" fill="#0c2a38" stroke="#1f6f86"/><text x="208" y="388" font-size="10.5" font-weight="700" fill="#00cfff" text-anchor="middle" font-family="JetBrains Mono, IBM Plex Mono, Consolas, monospace">NEW</text>
-<circle cx="765" cy="384" r="11" fill="none" stroke="#6f8199" stroke-opacity=".6"/><text x="765" y="389" font-size="14" fill="#6f8199" text-anchor="middle" font-family="IBM Plex Sans, Segoe UI, Arial, sans-serif">i</text>
-<text x="48" y="452" font-size="46" fill="#ff4444" font-family="Archivo Black, Arial Black, sans-serif">+28%</text><text x="196" y="450" font-size="13" fill="#a9b8cc" font-family="JetBrains Mono, IBM Plex Mono, Consolas, monospace">a year</text>
-<text x="48" y="478" font-size="13" fill="#e6edf7" font-family="IBM Plex Sans, Segoe UI, Arial, sans-serif">The pile of tokens that can be sold</text><text x="48" y="496" font-size="13" font-weight="700" fill="#e6edf7" font-family="IBM Plex Sans, Segoe UI, Arial, sans-serif">grows 10.2M a month.</text>
-<path d="M290.0 507.0L302.9 500.4L315.8 493.8L328.8 487.2L341.7 480.6L354.6 474.0L367.5 467.4L380.4 460.8L393.3 454.2L406.2 447.6L419.2 441.0L432.1 434.3L445.0 427.7L457.9 421.1L470.8 414.6L483.8 414.4L496.7 414.3L509.6 414.1L522.5 413.9L535.4 413.8L548.3 413.6L561.2 413.5L574.2 413.3L587.1 413.2L600.0 413.0L600 507.0L290 507.0Z" fill="#ff4444" opacity=".24"/><line x1="290" x2="600" y1="507.0" y2="507.0" stroke="#e6edf7" stroke-opacity=".5" stroke-dasharray="4 4"/>
-<path d="M290.0 507.0L302.9 500.4L315.8 493.8L328.8 487.2L341.7 480.6L354.6 474.0L367.5 467.4L380.4 460.8L393.3 454.2L406.2 447.6L419.2 441.0L432.1 434.3L445.0 427.7L457.9 421.1L470.8 414.6L483.8 414.4L496.7 414.3L509.6 414.1L522.5 413.9L535.4 413.8L548.3 413.6L561.2 413.5L574.2 413.3L587.1 413.2L600.0 413.0" fill="none" stroke="url(#a)" stroke-width="2.6" stroke-linejoin="round"/><circle cx="290" cy="507.0" r="5" fill="#06202b" stroke="#00cfff" stroke-width="2.5"/>
-<text x="290" y="540" font-size="10.5" fill="#6f8199" font-family="JetBrains Mono, IBM Plex Mono, Consolas, monospace">Oct 2026</text><text x="600" y="540" font-size="10.5" fill="#6f8199" text-anchor="end" font-family="JetBrains Mono, IBM Plex Mono, Consolas, monospace">Oct 2028</text>
-<text x="600" y="501.0" font-size="10.5" fill="#a9b8cc" text-anchor="end" font-family="JetBrains Mono, IBM Plex Mono, Consolas, monospace">today 437M</text>
-<rect x="640" y="410" width="132" height="26" rx="13" fill="#2a0f14" stroke="#ff4444"/><text x="706" y="428" font-size="12" font-weight="700" fill="#ff4444" text-anchor="middle" font-family="JetBrains Mono, IBM Plex Mono, Consolas, monospace">1/10 FLOODING</text>
-<text x="772" y="470" font-size="12.5" font-weight="700" fill="#00cfff" text-anchor="end" font-family="IBM Plex Sans, Segoe UI, Arial, sans-serif">Open in Supply Analyzer ↗</text>
-<text x="26" y="578" font-size="11" fill="#6f8199" font-family="IBM Plex Sans, Segoe UI, Arial, sans-serif">One number, one yearly change, the pile over two years. No sentences on the card: how it is made is in its tooltip,</text>
-<text x="26" y="593" font-size="11" fill="#6f8199" font-family="IBM Plex Sans, Segoe UI, Arial, sans-serif">about 25 words. Unknown is a dash; a range is drawn dashed.</text>
-<text x="26" y="615" font-size="11" fill="#6f8199" font-family="IBM Plex Sans, Segoe UI, Arial, sans-serif">Hyperliquid is the owner's reading of 2 October 2026; the other pressure figures are his sketch of the same day.</text>
+<circle cx="582" cy="249" r="10" fill="none" stroke="#6f8199" stroke-width="1.6" stroke-dasharray="3 3"/>
+<text x="606" y="254" font-size="15" font-weight="700" fill="#6f8199" font-family="JetBrains Mono, IBM Plex Mono, Consolas, monospace">–</text>
+<rect x="680" y="240" width="54" height="22" rx="4" fill="#00ff88"/><text x="707" y="256" font-size="12.5" font-weight="700" fill="#0a0e17" text-anchor="middle" font-family="JetBrains Mono, IBM Plex Mono, Consolas, monospace">7.4x</text>
+<text x="26" y="300" font-size="11" fill="#6f8199" font-family="IBM Plex Sans, Segoe UI, Arial, sans-serif">The Chart column's cell, header and tooltip. The pie is the token's supply in miniature, the number is the pressure in its band's colour.</text>
+<text x="26" y="315" font-size="11" fill="#6f8199" font-family="IBM Plex Sans, Segoe UI, Arial, sans-serif">A dashed ring and a dash where it is unknown. Sortable by the number. Only Hyperliquid's pie is a real reading; the others show the look.</text>
+<text x="26" y="352" font-size="11" fill="#6f8199" font-family="JetBrains Mono, IBM Plex Mono, Consolas, monospace" letter-spacing="1">2 · IN A COIN'S DETAIL ONE CARD REPLACES "MARKET CAP &amp; SUPPLY": THE PIE SAYS WHAT ITS TILES SAID</text>
+<rect x="26" y="366" width="768" height="318" rx="10" fill="#111a28" stroke="#0096ff" stroke-opacity=".15"/>
+<text x="48" y="398" font-size="13" font-weight="700" fill="#6f8199" letter-spacing="1" font-family="IBM Plex Sans, Segoe UI, Arial, sans-serif">MARKET CAP &amp; SUPPLY</text>
+<circle cx="770" cy="394" r="11" fill="none" stroke="#6f8199" stroke-opacity=".6"/><text x="770" y="399" font-size="14" fill="#6f8199" text-anchor="middle" font-family="IBM Plex Sans, Segoe UI, Arial, sans-serif">i</text>
+<rect x="48" y="412" width="150" height="28" rx="14" fill="#0a111c" stroke="#1a2a3d"/><text x="62" y="430" font-size="10.5" fill="#6f8199" font-weight="700" letter-spacing="1" font-family="JetBrains Mono, IBM Plex Mono, Consolas, monospace">MCAP</text><text x="184" y="431" font-size="13" fill="#e6edf7" font-weight="700" text-anchor="end" font-family="JetBrains Mono, IBM Plex Mono, Consolas, monospace">$19.7B</text>
+<rect x="206" y="412" width="288" height="28" rx="14" fill="#0a111c" stroke="#1a2a3d"/><text x="220" y="430" font-size="10.5" fill="#6f8199" font-weight="700" letter-spacing="1" font-family="JetBrains Mono, IBM Plex Mono, Consolas, monospace">NEW TOKENS</text><text x="480" y="431" font-size="13" fill="#ff4444" font-weight="700" text-anchor="end" font-family="JetBrains Mono, IBM Plex Mono, Consolas, monospace">+1.0% a week  ⚠</text>
+<rect x="502" y="412" width="270" height="28" rx="14" fill="#0a111c" stroke="#1a2a3d"/><text x="516" y="430" font-size="10.5" fill="#6f8199" font-weight="700" letter-spacing="1" font-family="JetBrains Mono, IBM Plex Mono, Consolas, monospace">NEXT UNLOCK</text><text x="758" y="431" font-size="13" fill="#e6edf7" font-weight="700" text-anchor="end" font-family="JetBrains Mono, IBM Plex Mono, Consolas, monospace">4 days · 9.9M · team</text>
+<g><path d="M138 556L138.00 474.00A82 82 0 0 1 209.33 596.45Z" fill="#00cfff" stroke="#0c1421" stroke-width="2.5"/><path d="M138 556L209.33 596.45A82 82 0 0 1 59.89 580.95Z" fill="#3b82f6" stroke="#0c1421" stroke-width="2.5"/><path d="M138 556L59.89 580.95A82 82 0 0 1 100.13 483.27Z" fill="url(#hv)" stroke="#0c1421" stroke-width="2.5"/><path d="M138 556L100.13 483.27A82 82 0 0 1 138.00 474.00Z" fill="#00ff88" stroke="#0c1421" stroke-width="2.5"/><text x="181.9" y="536.4" font-size="17" font-weight="700" fill="#062431" text-anchor="middle" font-family="JetBrains Mono, IBM Plex Mono, Consolas, monospace">33%</text><text x="132.8" y="612.5" font-size="17" font-weight="700" fill="#ffffff" text-anchor="middle" font-family="JetBrains Mono, IBM Plex Mono, Consolas, monospace">37%</text><text x="91.0" y="542.6" font-size="17" font-weight="700" fill="#ffffff" text-anchor="middle" font-family="JetBrains Mono, IBM Plex Mono, Consolas, monospace">22%</text><text x="125.9" y="512.6" font-size="17" font-weight="700" fill="#062431" text-anchor="middle" font-family="JetBrains Mono, IBM Plex Mono, Consolas, monospace">8%</text><circle cx="138" cy="556" r="82" fill="url(#shine)"/></g>
+<rect x="258" y="497" width="14" height="14" rx="3.5" fill="#00cfff"/>
+<text x="280" y="508" font-size="13" font-weight="600" fill="#e6edf7" font-family="IBM Plex Sans, Segoe UI, Arial, sans-serif">Free to sell</text>
+<text x="466" y="508" font-size="13" font-weight="700" fill="#a9b8cc" text-anchor="end" font-family="JetBrains Mono, IBM Plex Mono, Consolas, monospace">207M</text>
+<rect x="258" y="527" width="14" height="14" rx="3.5" fill="#3b82f6"/>
+<text x="280" y="538" font-size="13" font-weight="600" fill="#e6edf7" font-family="IBM Plex Sans, Segoe UI, Arial, sans-serif">Staked, free to unlock</text>
+<text x="466" y="538" font-size="13" font-weight="700" fill="#a9b8cc" text-anchor="end" font-family="JetBrains Mono, IBM Plex Mono, Consolas, monospace">230M</text>
+<rect x="258" y="557" width="14" height="14" rx="3.5" fill="url(#hv)"/>
+<text x="280" y="568" font-size="13" font-weight="600" fill="#e6edf7" font-family="IBM Plex Sans, Segoe UI, Arial, sans-serif">Vesting</text>
+<text x="466" y="568" font-size="13" font-weight="700" fill="#a9b8cc" text-anchor="end" font-family="JetBrains Mono, IBM Plex Mono, Consolas, monospace">139M</text>
+<rect x="258" y="587" width="14" height="14" rx="3.5" fill="#00ff88"/>
+<text x="280" y="598" font-size="13" font-weight="600" fill="#e6edf7" font-family="IBM Plex Sans, Segoe UI, Arial, sans-serif">Bought back, burned</text>
+<text x="466" y="598" font-size="13" font-weight="700" fill="#a9b8cc" text-anchor="end" font-family="JetBrains Mono, IBM Plex Mono, Consolas, monospace">48M</text>
+<text x="258" y="636" font-size="11" fill="#6f8199" font-family="IBM Plex Sans, Segoe UI, Arial, sans-serif">In play: 623M of 1,000M. The rest is reserve.</text>
+<text x="504" y="526" font-size="44" fill="#ff4444" font-family="Archivo Black, Arial Black, sans-serif">+28%</text><text x="504" y="548" font-size="13" fill="#a9b8cc" font-family="JetBrains Mono, IBM Plex Mono, Consolas, monospace">a year</text>
+<text x="504" y="574" font-size="12.5" fill="#e6edf7" font-family="IBM Plex Sans, Segoe UI, Arial, sans-serif">The pile that can be sold</text><text x="504" y="591" font-size="12.5" font-weight="700" fill="#e6edf7" font-family="IBM Plex Sans, Segoe UI, Arial, sans-serif">grows 10.2M a month.</text>
+<rect x="504" y="604" width="132" height="26" rx="13" fill="#2a0f14" stroke="#ff4444"/><text x="570" y="622" font-size="12" font-weight="700" fill="#ff4444" text-anchor="middle" font-family="JetBrains Mono, IBM Plex Mono, Consolas, monospace">1/10 FLOODING</text>
+<path d="M676.0 555.3L679.9 550.9L683.8 546.5L687.8 542.1L691.7 537.7L695.6 533.3L699.5 528.9L703.4 524.5L707.3 520.1L711.2 515.7L715.2 511.3L719.1 506.9L723.0 502.5L726.9 498.1L730.8 493.7L734.8 493.6L738.7 493.5L742.6 493.4L746.5 493.3L750.4 493.2L754.3 493.1L758.2 493.0L762.2 492.9L766.1 492.8L770.0 492.7L770 555.3L676 555.3Z" fill="#ff4444" opacity=".24"/><line x1="676" x2="770" y1="555.3" y2="555.3" stroke="#e6edf7" stroke-opacity=".5" stroke-dasharray="3 3"/>
+<path d="M676.0 555.3L679.9 550.9L683.8 546.5L687.8 542.1L691.7 537.7L695.6 533.3L699.5 528.9L703.4 524.5L707.3 520.1L711.2 515.7L715.2 511.3L719.1 506.9L723.0 502.5L726.9 498.1L730.8 493.7L734.8 493.6L738.7 493.5L742.6 493.4L746.5 493.3L750.4 493.2L754.3 493.1L758.2 493.0L762.2 492.9L766.1 492.8L770.0 492.7" fill="none" stroke="url(#a)" stroke-width="2.4" stroke-linejoin="round"/><circle cx="676" cy="555.3" r="4.5" fill="#06202b" stroke="#00cfff" stroke-width="2.2"/>
+<text x="676" y="580" font-size="10" fill="#6f8199" font-family="JetBrains Mono, IBM Plex Mono, Consolas, monospace">Oct 26</text><text x="770" y="580" font-size="10" fill="#6f8199" text-anchor="end" font-family="JetBrains Mono, IBM Plex Mono, Consolas, monospace">Oct 28</text>
+<text x="770" y="666" font-size="12.5" font-weight="700" fill="#00cfff" text-anchor="end" font-family="IBM Plex Sans, Segoe UI, Arial, sans-serif">Open in Supply Analyzer ↗</text>
+<text x="26" y="708" font-size="11" fill="#6f8199" font-family="IBM Plex Sans, Segoe UI, Arial, sans-serif">One card instead of the tiles: MCAP, the Dilution figure with its flag and the next unlock stay as small chips; no FDV; the rest is read from the pie.</text>
 </svg>

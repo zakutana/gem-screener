@@ -2,7 +2,7 @@
 
 **For:** the lead agent of the Cymetica SDLC pipeline
 **From:** Adam (product owner, Gem Screener)
-**Scope:** a new standalone app, the Supply Analyzer, built the way the Chart Analyzer is built (type any token, get a result page, a public API and an MCP tool); and its place in the Gem Screener: a Supply column in the Apps and Chains tables and a Supply pressure card in a coin's and a chain's detail. Build or change only what is named; leave the rest of the apps as they are.
+**Scope:** a new standalone app, the Supply Analyzer, built the way the Chart Analyzer is built (type any token, get a result page, a public API and an MCP tool); and its place in the Gem Screener: a Supply column in the Apps and Chains tables (a mini pie beside the number), one Supply card in a coin's and a chain's detail that replaces "Market cap & supply", and the end of the FDV view. Build or change only what is named; leave the rest of the apps as they are.
 
 > **HOW TO READ THIS SPEC**
 > 1. **Goals, not methods.** How you build it is your call. Where an item gives a rule or a number, it is a good default, and you may improve it; say what you changed and why in your spec.
@@ -21,7 +21,7 @@
 | `reference/supply-analyzer-hyperliquid.html` | 3, 4, 5, 13 | A working page for Hyperliquid, with the owner's reading of 2 October 2026 as sample data. Open it in a browser: the month slider and the play button move the tank, the pie, the numbers and the chart; hover any part of the tank. `?m=15` opens it in the 15th month. It is the look and the motion, not the code |
 | `reference/shot-month-0.png`, `reference/shot-month-15.png` | 3 | The same page in October 2026 and in January 2028, as pictures |
 | `reference/input-page.svg` | 2 | The input page, in the Chart Analyzer's own layout |
-| `reference/gem-screener-integration.svg` | 8, 9 | The Supply column and the Supply pressure card inside the Gem Screener |
+| `reference/gem-screener-integration.svg` | 8, 9 | The Supply column with its mini pie, and the one card that replaces "Market cap & supply", inside the Gem Screener |
 
 ![The Supply Analyzer for Hyperliquid, October 2026](reference/shot-month-0.png)
 
@@ -47,7 +47,7 @@ It must work for **every token in the Gem Screener** (215 apps and 33 chains) **
 
 **[3] The result page has these parts, in this order.** The reference page shows each one.
 
-- **The header**: the token, and its price, market cap, FDV and max supply as small chips.
+- **The header**: the token, and its price, market cap and max supply as small chips. No FDV: the tokens not out yet are in the pie, as vesting, dated (item 9).
 - **The month slider** (item 4), with a play button, above everything.
 - **The supply flow card, on the left**: the hero number (the yearly change of the pile, +28%, red when the pile grows, green when it shrinks, grey when it barely moves, with the sentence under it: "The pile of tokens that can be sold grows 10.2M a month. New tokens outweigh buybacks 20 to 1"); the 1 to 10 pill with its word; and **an animated tank**. The tank is the pile that can be sold, its level moves with the month, a dashed line marks where it stands today and a bracket shows the change since, in M. Into it pour **two sources**: the vesting (a vault that empties as the tranches are released) and the reserve (the part of the max supply not paid out yet, from which rewards come). Out of it goes **the buyback**, through a pump, to a flame (burned) or a vault (kept). Staking in and out is a dashed pipe, marked "flat" when it is not measured. **Every flow is dots**: how many dots a second and how fast they move follow the monthly amount, and every dot is the same amount of tokens, so a 10.7M inflow against a 0.55M outflow is a stream against a trickle.
 - **The pie, on the right**: the tokens in play, seven slices with generic names so that one page works for any token: *Free to sell*, *Staked, free to unlock* (it can leave at any time; the page says how long the exit takes), *Staked, locked* (until a date, then it turns into free), *Vesting*, *Newly paid out* (emissions, mints and rewards since today), *Bought back, kept* and *Bought back, burned*. The percentages stand in the slices, a legend gives each amount, its share and its change since today, and the reserve stands under the legend as one line, outside the pie, because it is not in anyone's hands. Hovering a slice or a legend row lights the other.
@@ -106,11 +106,19 @@ Rules for all of them:
 
 ## 8. In the Gem Screener
 
-**[8] A Supply column in the Apps and Chains tables.** Live, the Chart column stands between the 12-month chart and Upside. The Supply column stands between Chart and Upside, with the same cell, header, tooltip and place as the Chart column: the pressure number in its band's colour (green, blue, red as in the Degen meter), a dash where it is unknown, a dashed ring where only a range is known. The header's tooltip says what it is in about 25 words. **It is sortable**, because the owner wants to find the squeezed ones first. It is not a gate, and the default views, the gates and the picks do not change in this request.
+**[8] A Supply column in the Apps and Chains tables.** Live, the Chart column stands between the 12-month chart and Upside. The Supply column stands between Chart and Upside, with the same cell, header, tooltip and place as the Chart column. The cell holds **a small pie of the token's supply** (the pie of item 3 in miniature, about 22 px, the same colours) **and the pressure number beside it**, in its band's colour (green, blue, red as in the Degen meter); a dashed ring and a dash where it is unknown, a dashed ring around a pie where only a range is known. The header's tooltip says what it is in about 25 words. **It is sortable**, because the owner wants to find the squeezed ones first. It is not a gate, and the default views, the gates and the picks do not change in this request.
 
-**[9] A Supply pressure card in a coin's and a chain's detail**, directly under the Chart card: the hero number (the yearly change), the 1 to 10 pill, a 24-month curve of the pile with today's line, and the link "Open in Supply Analyzer ↗", which opens the result for that token in a new tab (`rel="noopener"`, like every link that leaves the page). No other sentence on the card: how it is made is in its tooltip, about 25 words. Where the number is unknown it is a dash, and the tooltip names the unknown inputs.
+**[9] One Supply card replaces "Market cap & supply" in a coin's detail.** Live, that card is a bar and four tiles (market cap; FDV with the share of tokens out; new tokens a week with its flag; the next unlock). The owner wants them gone: the pie says what they said. The new card, in the same place and with the same name, holds:
 
-![The Supply column and the Supply pressure card](reference/gem-screener-integration.svg)
+- **Small chips along the top**: MCAP; the Dilution figure with its flag (ET-28821 item 10, "NEW TOKENS +1.0% a week" with the warning icon, read from the schedule of item 10 below, so the Supply row of the checks and the Apps row still read the same figure); and the next unlock as one line (when, how much, for whom). **No FDV and no "out" share.**
+- **The pie** of the token's supply, the tokens in play, with the percentages in the slices and a legend of the slices that are not empty, each with its amount; a short line saying how much of the max supply is in play and that the rest is the reserve. The grey tag "supply sources disagree" stays under it where it applies.
+- **The hero number** (the yearly change of the pile that can be sold), the 1 to 10 pill, a 24-month curve of the pile with today's line, and the link "Open in Supply Analyzer ↗", which opens the result for that token in a new tab (`rel="noopener"`, like every link that leaves the page).
+- No other sentence: how it is made is in the card's tooltip, about 25 words. Where the number is unknown it is a dash, and the tooltip names the unknown inputs.
+- **On a chain** there is no "Market cap & supply" card (its detail has the slim row with Market cap and Adoption). The same card stands directly under the Chart card and the slim row stays.
+
+**The FDV view goes from the Gem Screener's display.** Valuing a token by all of its tokens, including those that are not out yet, is the wrong lens: what is still to come is in the pie as vesting and reserve, dated, and the pressure number measures it better. So the FDV tile, the "if all tokens were out" symbol and tooltip in the Upside cell, and the "x if all tokens were out" lines on the pick cards and in the detail's Upside tooltip go. The Upside itself (against the market cap), the gates, the picks and the API fields stay as they are.
+
+![The Supply column with its mini pie, and the one card that replaces Market cap and supply](reference/gem-screener-integration.svg)
 
 **[10] The Gem Screener and the Supply Analyzer answer from one schedule.** Live, on Hyperliquid's detail the card "Market cap & supply" reads **"0% new tokens a week · emissions 30d: $0 · none in 90 days"**, and Hyperliquid is the benchmark of the Dilution flag: its 0.0% a week sets the lines at 0.5% and 1.0%. Yet its team vests 238M HYPE in 24 monthly tranches of about 9.9M (about 4.5% of its market cap a month), and the Gem Screener's own unlock record for it carries `tbd_pct: 61.2`. A token whose schedule is not in the data reads "none", which is an absence read as a zero. The owner wants: **where the Supply Analyzer knows a schedule, the Gem Screener's next unlock, its Dilution figure and its flag read that schedule**; "none in 90 days" is shown only when the schedule says so, and "unknown" otherwise; and the benchmark's figure that sets the flag lines is read from it too (the red line stays at most 1% a week, as ET-28821 has it).
 
@@ -132,7 +140,7 @@ Rules for all of them:
 
 The owner's reading of public records on 2 October 2026; the trackers differ on the team's day and amount, so treat the team's figure as the least settled.
 
-- **Supply:** 222.4M in circulation of 1,000M max (22%); price $88.62, market cap $19.7B, FDV $84.7B.
+- **Supply:** 222.4M in circulation of 1,000M max (22%); price $88.62, market cap $19.7B.
 - **Staked:** 437.5M HYPE; the exit takes 7 days; about 207.8M of it is on the project foundation's own validators. No time-locked staking.
 - **Vesting:** 238M HYPE for the core team in 24 monthly tranches of about 9.92M; about 138.8M still to come; the last tranche lands in November 2027.
 - **Rewards:** about 0.79M HYPE a month paid to stakers out of the reserve.
@@ -149,7 +157,7 @@ Orders or trades; a judgement of whether a token is good; labels on wallets nobo
 
 - [ ] 2 The page `/supply-analyzer` has the Chart Analyzer's input: the ticker or contract box, the chain select (auto), Analyze, the strip for AI agents and the chips from the Gem Screener's current picks; Share and + New on a result; `?symbol=` and `?contract=&chain=` open a result.
 - [ ] 2 A ticker that two tokens share asks which one; a contract keeps them apart.
-- [ ] 3 The result header shows the token with its price, market cap, FDV and max supply.
+- [ ] 3 The result header shows the token with its price, market cap and max supply, and no FDV.
 - [ ] 3 The hero number is the yearly change of the sellable pile (red when it grows, green when it shrinks, grey under 1%), with the sentence under it giving the monthly amount and the ratio of what comes in to what goes out; the 1 to 10 pill with its word stands beside the card's title.
 - [ ] 3 The tank shows the sellable pile with a level that follows the month, a dashed "today" line and the change since in M; the vesting vault and the reserve pour in, the buyback pump leads to a flame (burned) and a vault (kept), and staking in and out is a dashed pipe marked "flat" when it is not measured.
 - [ ] 3 Every flow is dots whose number a second and speed follow its monthly amount, and every dot is the same amount of tokens.
@@ -166,8 +174,10 @@ Orders or trades; a judgement of whether a token is good; labels on wallets nobo
 - [ ] 6 Your spec says, for the 215 apps and the 33 chains, how many have every input, and for each of the others which input is missing and what you did about it.
 - [ ] 7 A token nobody has analysed opens the page at once, shows a progress line and fills in without a reload; the first result for a token with a contract on a chain you read comes within 30 seconds (or the time you chose, named in your spec); the token is then kept and refreshed.
 - [ ] 7 A token the app cannot analyse says which inputs it could not read and why, and is queued; no blank page, no invented number. Your spec names the chains you read and the order you cover the Gem Screener's tokens in.
-- [ ] 8 The Apps and Chains tables have a Supply column between Chart and Upside, with the Chart column's cell, header, tooltip and place; the pressure number in its band's colour, a dash where unknown, a dashed ring for a range; it is sortable; the default views, the gates and the picks are unchanged.
-- [ ] 9 A coin's and a chain's detail has the Supply pressure card directly under the Chart card: the hero number, the 1 to 10 pill, a 24-month curve with today's line, "Open in Supply Analyzer ↗" in a new tab with `rel="noopener"`, a tooltip of about 25 words, and no other sentence; a dash with the unknown inputs named in the tooltip where it is unknown.
+- [ ] 8 The Apps and Chains tables have a Supply column between Chart and Upside, with the Chart column's header, tooltip and place; its cell holds a small pie of the token's supply and the pressure number beside it in its band's colour, a dashed ring and a dash where unknown, a dashed ring around the pie for a range; it is sortable; the default views, the gates and the picks are unchanged.
+- [ ] 9 In a coin's detail one Supply card, in the same place and with the same name, replaces "Market cap & supply": chips for MCAP, the Dilution figure with its flag and the next unlock as one line; the pie with percentages and a legend of the slices that are not empty; the hero number, the 1 to 10 pill, a 24-month curve with today's line and "Open in Supply Analyzer ↗" in a new tab with `rel="noopener"`; a tooltip of about 25 words and no other sentence; the "supply sources disagree" tag stays under the pie where it applies; a dash with the unknown inputs named in the tooltip where it is unknown.
+- [ ] 9 On a chain the same card stands directly under the Chart card and the slim row (Market cap, Adoption) stays.
+- [ ] 9 The FDV tile, the "if all tokens were out" symbol and tooltip in the Upside cell, and the "x if all tokens were out" lines on the pick cards and in the detail's Upside tooltip are gone from the display; the Upside against the market cap, the gates, the picks and the API fields are unchanged.
 - [ ] 10 Where the Supply Analyzer knows a schedule, the Gem Screener's next unlock, its Dilution figure and its flag read it; Hyperliquid's detail no longer reads "0% new tokens a week" and "none in 90 days" unless the schedule says so; the benchmark's figure that sets the flag lines is read from it, and the red line stays at most 1% a week.
 - [ ] 11 The API has a route for one token and one for many; the record carries the inputs with value, unit, source and date, the unknown inputs by name, the monthly series, the slices, the yearly change, the pressure number with its range and the refresh time; the routes are in the public OpenAPI, in `llms.txt` with their fields and in the agent card.
 - [ ] 11 An MCP tool for one token and one for many exist, in the style of the Chart Analyzer's.
