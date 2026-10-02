@@ -36,6 +36,7 @@ import urllib.parse
 
 import requests
 
+import cycle
 import liquidity
 import themes
 import unlocks
@@ -99,8 +100,12 @@ class Ctx:
         if not msg.startswith("logo failed"):          # cosmetic, not data
             self.warnings.append(msg[:200])
 
-    def get(self, url, timeout=30, quiet_status=(400, 404), warn=True):
+    def get(self, url, timeout=30, quiet_status=(400, 404), warn=True, headers=None, raw=False):
         """GET with retries. Any final failure is logged.
+
+        `headers` go with this request only (API keys for optional sources — never
+        logged); `raw=True` returns the body bytes instead of parsed JSON (YouTube's
+        channel feeds are XML).
 
         It used to log only exceptions: three 429s in a row left last_err at
         None and returned None silently, so a rate-limited CoinGecko call looked
@@ -121,9 +126,9 @@ class Ctx:
         while attempt <= RETRIES or (last_status == 429 and n429 < len(waits_429)):
             attempt += 1
             try:
-                r = self.session.get(url, timeout=timeout)
+                r = self.session.get(url, timeout=timeout, headers=headers)
                 if r.status_code == 200:
-                    return r.json()
+                    return r.content if raw else r.json()
                 last_status = r.status_code
                 if r.status_code == 429 and n429 < len(waits_429):
                     ra = (r.headers.get("Retry-After") or "").strip()
@@ -2023,6 +2028,17 @@ def run(log=None, data_dir=None):
     except Exception as exc:
         ctx.warn("backtest_summary.json nejde přečíst: %s" % exc)
 
+    # The Altseason panel (cycle.py): its own inputs and history file. A failure
+    # keeps the previous snapshot's block, marked stale, never the refresh.
+    try:
+        cycle_block = cycle.build_cycle(ctx, prev, int(time.time()))
+        ctx.log("altseason cyklus: %s (%s)" % (cycle_block.get("index"), cycle_block.get("phase")))
+    except Exception as exc:
+        import traceback
+        ctx.warn("altseason cyklus selhal: %s" % exc)
+        ctx._log(traceback.format_exc())
+        cycle_block = dict((prev or {}).get("cycle") or {}, stale=True) if (prev or {}).get("cycle") else None
+
     # An app's TVL series was ~2 MB of the snapshot and no apps-view code path
     # ever drew it (TVL columns and charts exist only for chains). The /protocol
     # call still happens — that is where description, url and chains come from.
@@ -2061,6 +2077,7 @@ def run(log=None, data_dir=None):
         "sectors": {"apps": sectors_apps, "chains": sectors_chains},
         "themes": th["themes"],
         "altseason": th["altseason"],
+        "cycle": cycle_block,
         "theme_prices": th["theme_prices"],
         "coin_meta": th["coin_meta"],
         "theme_anomalies": th["theme_anomalies"],
@@ -2084,6 +2101,12 @@ def run(log=None, data_dir=None):
             ctx.log("záznam tipů: +%d coinů" % len(degen.get("shortlist") or []))
     except Exception as exc:
         ctx.warn("záznam tipů nejde zapsat: %s" % exc)
+    # the Altseason index's forward test: one line per closed week, same rule
+    try:
+        if cycle.append_ledger(ctx.data_dir, cycle_block, now_ts):
+            ctx.log("záznam altseason cyklu: týden %s" % time.strftime("%Y-%m-%d", time.gmtime(cycle_block["as_of"])))
+    except Exception as exc:
+        ctx.warn("záznam altseason cyklu nejde zapsat: %s" % exc)
     size_kb = os.path.getsize(path) / 1024
     ctx.log("wrote %s (%.0f KB) — %d apps, %d chains, %d app sectors, %d chain sectors"
             % (SNAPSHOT_NAME, size_kb, len(apps_scored), len(chains_scored),

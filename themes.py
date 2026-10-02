@@ -1155,7 +1155,11 @@ def build_themes(ctx, sectors_apps, now, prev_snapshot=None):
                     "coins": {g: grid[g] for g in used if g in grid},
                     "live": {g: live[g] for g in used if g in live}}
     idx_now = history[-1][1] if history else None
-    three_months_ago = next((h[1] for h in history if h[0] <= stamps[-1] - 13 * WEEK), None) if history else None
+    # newest point at least 13 weeks old — history runs oldest first, so walking it
+    # forward returned the OLDEST point instead (2026-09-22: the strip said "před 3
+    # měsíci 20 %" when the value 13 weeks back was 42 %)
+    three_months_ago = next((h[1] for h in reversed(history) if h[0] <= stamps[-1] - 13 * WEEK),
+                            None) if history else None
     altseason = {"index": idx_now, "history": history, "n": ALTSEASON_N,
                  "three_months_ago": three_months_ago, "universe": eligible_u, "alt50": alt50,
                  # today's mcaps, so the audit can re-rank every history point itself

@@ -20,3 +20,11 @@ unlocks_cache.json
 # the backtest's raw download cache; the lock proves the pre-registration
 backtest_cache/*
 !backtest_cache/prereg.lock
+
+# altseason cycle: vendor data stays out of the public repo (CMC/DeFiLlama terms,
+# Coin Metrics CC BY-NC); tools/cycle_seed.py rebuilds it
+cycle_cache/
+cycle_history.json*
+!backtest_cache/cycle_prereg.lock
+!backtest_cache/cycle_prereg_v2.lock
+!backtest_cache/cycle_prereg_v3.lock

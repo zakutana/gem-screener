@@ -142,7 +142,10 @@ market_then = sum(r["rev30d_6m_ago"] for r in SEC)
 mkt = market_now / market_then if market_then else None
 wrong = 0
 for r in SEC:
-    if not r["rev30d_6m_ago"]:
+    # a growth ratio needs a positive base: DeFiLlama reported Luck Games at
+    # -$23K six months back (2026-09-26), which made the ratio -14 and failed this
+    # check although the share arithmetic was right
+    if not r["rev30d_6m_ago"] or r["rev30d_6m_ago"] <= 0:
         continue
     own = r["rev30d"] / r["rev30d_6m_ago"]
     if (own > mkt) != (r["share_d6m_pp"] > 0) and abs(r["share_d6m_pp"]) > 0.01:
@@ -406,19 +409,23 @@ if "bitcoin" in uni:
 if "ethereum" not in uni:
     FAILS.append("ETH chybi v univerzu altseason indexu (konvence Blockchaincenter ho pocita)")
 hist = ALT.get("history") or []
-mcap_now = {}
-for th in THEMES_D:
-    for m in th.get("members") or []:
-        mcap_now[m["id"]] = m.get("mcap") or 0
 idx_bad = 0
-# the ranking inside each history point needs every coin's mcap; the audit only
-# has members' mcaps, so it verifies the COUNT logic on the stored top-50 of the
-# latest point and the header identity
 if hist:
     if abs(hist[-1][1] - (ALT.get("index") or -1)) > 1e-9:
         FAILS.append("posledni bod historie (%.1f) != cislo v pasu (%s)" % (hist[-1][1], ALT.get("index")))
     else:
         print("  posledni bod historie = cislo v pasu: %.1f %%" % hist[-1][1])
+    # "před 3 měsíci" = the NEWEST point at least 13 weeks before the last stamp. The
+    # first version walked the oldest-first history forward and showed the oldest
+    # point (20 % instead of 42 % on 2026-09-22); nothing checked it.
+    if STAMPS:
+        cut = STAMPS[-1] - 13 * 7 * 86400
+        want = next((h[1] for h in reversed(hist) if h[0] <= cut), None)
+        got = ALT.get("three_months_ago")
+        if (want is None) != (got is None) or (want is not None and abs(want - got) > 1e-9):
+            FAILS.append("three_months_ago %s != bod historie 13 tydnu zpet %s" % (got, want))
+        else:
+            print("  pred 3 mesici = bod historie 13 tydnu zpet: %s %%" % want)
     print("  historie: %d bodu, rozsah %.0f–%.0f %%" % (len(hist), min(h[1] for h in hist), max(h[1] for h in hist)))
     if len(hist) < 30:
         WARNS.append("altseason historie ma jen %d bodu" % len(hist))

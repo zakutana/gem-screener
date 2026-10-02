@@ -1531,6 +1531,25 @@ if ARCH is not None:
         "degen": set((D.get("degen") or {}).keys()),
         "theme keys": {th["key"] for th in THEMES_SNAP},
     }
+    _cy = D.get("cycle") or {}
+    if _cy:
+        _cc = _cy.get("components") or {}
+        _cs = _cy.get("series") or {}
+        _rp = (_cc.get("retail") or {}).get("parts") or {}
+        contract.update({
+            "cycle": set(_cy.keys()),
+            "cycle rules": set((_cy.get("rules") or {}).keys()),
+            "cycle series": set(_cs.keys()) | set((_cs.get("retail_raw") or {}).keys()),
+            "cycle components": set(_cc.keys()) | keys_of([c for c in _cc.values() if isinstance(c, dict)]),
+            "cycle lines": keys_of([L for L in ((_cc.get("othersd") or {}).get("line"), (_cc.get("btcd") or {}).get("line"),
+                                                 (_cc.get("btcd") or {}).get("lows_line")) if isinstance(L, dict)]),
+            "cycle retail parts": set(_rp.keys()) | keys_of([v for v in _rp.values() if isinstance(v, dict)])
+                                  | keys_of([m for v in _rp.values() if isinstance(v, dict) for m in v.get("movers") or []]),
+            "cycle volume": set((_cc.get("volume") or {}).keys()),
+            "cycle heat parts": keys_of(((_cc.get("btc_heat") or {}).get("parts") or {}).values()),
+            "cycle backtest": set((_cy.get("backtest") or {}).keys()),
+            "cycle hint": set((_cy.get("hint") or {}).keys()),
+        })
     missing = {part: sorted(k for k in ks if k not in words) for part, ks in contract.items()}
     missing = {part: ks for part, ks in missing.items() if ks}
     print("  klíčů v kontraktu: %d | nepopsaných: %d"
@@ -1538,6 +1557,480 @@ if ARCH is not None:
     for part, ks in missing.items():
         print("  NEPOPSÁNO (%s): %s" % (part, ", ".join(ks)))
         fail("docs", "ARCHITECTURE.md does not mention %s keys: %s" % (part, ", ".join(ks)))
+
+
+head("37. ALTSEASON CYKLUS v3 — index, pilíře, fáze, linie a verdikty přepočítané z uložených řad")
+# A second implementation of cycle.py v3 (ARCHITECTURE §13.8, PREREG_V3): rotation
+# (BTC.D's path from its 1-year high to the previous cycle's low, OTHERS.D's rise,
+# breadth; 4-week means from 3 of 4 weeks), every retail row's four-year log score
+# from the stored weekly samples, euphoria, the index, the phases, and both
+# TradingView lines by brute force (pivots, the hull over them tried pivot by pivot,
+# the status). Thresholds and the v3 lock hash are written HERE and must equal the
+# snapshot's, so a silent change of a threshold or of the registration fails this
+# section. What it cannot see: the raw vendor data before cleaning (the snapshot
+# carries the cleaned weekly series), so the anomalies are checked for consistency.
+import bisect as _bis
+CY = D.get("cycle")
+V3_ID = "altseason-cycle-v3"
+V3_LOCK_SHA = "7f4261689b356bb0eae55d862e44b87a46420ee9f9a4cd35ec4418bb8f4fd1b8"
+AUDIT_RULES = {"T": 75, "window": 208, "min_window": 104, "roll_min": 3,
+               "rot_floor_window": 312, "rot_floor_gap": 52, "rot_floor_min": 52, "rot_span_min": 25,
+               "rot_rise_full": 3, "rot_breadth_lo": 25, "rot_breadth_hi": 90, "rot_min_parts": 2,
+               "rot_weight": 2, "euph_weight": 1, "heat_max_age_days": 7,
+               "retail_window": 208, "retail_warmup": 52, "retail_span": 20, "retail_min_rows": 1,
+               "coinbase_days": 30, "coinbase_min_days": 20, "meme_start_usd": 5000000, "meme_max_age_days": 7,
+               "apps_max_age_days": 7,
+               "prehrate_euphoria": 70, "bezi_rotation": 60, "zacina_rotation": 30, "zacina_rise": 15,
+               "zacina_weeks": 13, "btc_sezona_heat": 50, "btc_sezona_rotation": 30,
+               "po_vrcholu_drop": 15, "po_vrcholu_weeks": 26, "po_vrcholu_min": 4, "po_vrcholu_usd_drop": 25,
+               "trend_window": 312, "trend_pivot": 4, "trend_break": 0.03, "trend_confirm": 2, "trend_back_weeks": 13,
+               "breadth_hi": 75, "breadth_lo": 25, "btcd_move_pp": 1.5, "heat_lo": 40, "heat_hi": 75,
+               "retail_lo": 35, "retail_hi": 70, "retail_rush": 25, "vol_lo": 0.8, "vol_mid": 1.5, "vol_hi": 2.5}
+if not CY:
+    warn("cycle", "snapshot has no cycle block (history missing or the step failed)")
+elif CY.get("history_missing"):
+    warn("cycle", "cycle history missing — only today's values, nothing to recompute")
+elif CY.get("version") != V3_ID:
+    fail("cycle", "cycle block version %r — this audit checks %s" % (CY.get("version"), V3_ID))
+else:
+    try:
+        json.dumps(CY, allow_nan=False)
+    except ValueError:
+        fail("cycle", "the cycle block holds NaN/Infinity — JSON.parse on the page would fail")
+    R = CY.get("rules") or {}
+    A = AUDIT_RULES
+    for k, v in A.items():
+        if R.get(k) != v:
+            fail("cycle", "rule %s = %r, the audit expects %r" % (k, R.get(k), v))
+    for k in sorted(set(R) - set(A)):
+        fail("cycle", "rule %s is not one the audit knows — add it here and to ARCHITECTURE §13.8" % k)
+    # the registration: the lock is the one committed on 2026-09-28, the summary's v3
+    # section and the snapshot carry its hash
+    try:
+        lock = json.load(io.open("backtest_cache/cycle_prereg_v3.lock", encoding="utf-8"))
+        if lock.get("sha256") != V3_LOCK_SHA or lock.get("id") != V3_ID:
+            fail("cycle", "backtest_cache/cycle_prereg_v3.lock is not the v3 registration (%s…)" % lock.get("sha256", "")[:12])
+    except (OSError, ValueError):
+        fail("cycle", "backtest_cache/cycle_prereg_v3.lock is missing — the v3 registration must be committed")
+    try:
+        s3 = json.load(io.open("cycle_backtest_summary.json", encoding="utf-8")).get("v3") or {}
+    except (OSError, ValueError):
+        s3 = {}
+    if not s3:
+        warn("cycle", "cycle_backtest_summary.json has no v3 section — run python cycle_backtest.py (rules are the defaults)")
+        if CY.get("prereg_sha256") is not None:
+            fail("cycle", "the snapshot names a v3 hash but the summary has no v3 section")
+    else:
+        if s3.get("prereg_id") != V3_ID or s3.get("prereg_sha256") != V3_LOCK_SHA:
+            fail("cycle", "summary v3 section is not the locked registration (%s)" % s3.get("prereg_id"))
+        if (s3.get("rules") or {}).get("T") != R.get("T"):
+            fail("cycle", "T in the snapshot (%r) is not the v3 summary's (%r)" % (R.get("T"), (s3.get("rules") or {}).get("T")))
+        if CY.get("prereg_sha256") != V3_LOCK_SHA:
+            fail("cycle", "the snapshot's prereg_sha256 is not the v3 lock")
+        print("  backtest v3 %s · T %s · zámek %s…" % (s3.get("verdict"), R.get("T"), V3_LOCK_SHA[:12]))
+    S = CY["series"]
+    WK = CY["weeks"]
+    n = len(WK)
+    C = CY["components"]
+
+    def m4(a):
+        """4-week mean from the values present, at least roll_min of the 4 weeks."""
+        out = [None] * n
+        for i in range(3, n):
+            got = [a[i - q] for q in range(4) if a[i - q] is not None]
+            if len(got) >= A["roll_min"]:
+                out[i] = sum(got) / len(got)
+        return out
+
+    def ptile(a, win, mn):
+        out = []
+        for i in range(n):
+            prev = sorted(x for x in a[max(0, i - win):i] if x is not None)
+            x = a[i]
+            if x is None or len(prev) < mn:
+                out.append(None)
+                continue
+            lo, hi = _bis.bisect_left(prev, x), _bis.bisect_right(prev, x)
+            out.append(100.0 * (lo + 0.5 * (hi - lo)) / len(prev))
+        return out
+
+    cl = lambda x: max(0.0, min(100.0, x))
+    # every dropped spike is missing from its series (the raw value is not in the
+    # snapshot, so this is what can be checked)
+    for an in CY.get("anomalies") or []:
+        if an.get("week") in WK and (S.get(an.get("series")) or [0] * n)[WK.index(an["week"])] is not None:
+            fail("cycle", "anomaly %s %s is still in the series" % (an.get("series"), an.get("week")))
+    # --- rotation: BTC.D's path from the 1-year high to the previous cycle's low
+    bd4, od4, br4 = m4(S["btcd"]), m4(S["othersd"]), m4(S["breadth"])
+    rot, p_rise, path, peak_w, floor_v, floor_w, rise, low_w = [], [], [], [], [], [], [], []
+    for i in range(n):
+        yr = [(j, bd4[j]) for j in range(i - 51, i + 1) if j >= 0 and bd4[j] is not None]
+        old = [(j, bd4[j]) for j in range(i - 311, i - 51) if j >= 0 and bd4[j] is not None]
+        F = Fj = P = Pj = None
+        if len(old) >= A["rot_floor_min"]:
+            F = min(v for _, v in old)
+            Fj = max(j for j, v in old if v == F)
+        if bd4[i] is not None and len(yr) >= 40 and F is not None:
+            P = max(v for _, v in yr)
+            Pj = min(j for j, v in yr if v == P)
+        d_ = 100.0 * (P - bd4[i]) / max(P - F, A["rot_span_min"]) if P is not None else None
+        oy = [(j, od4[j]) for j in range(i - 51, i + 1) if j >= 0 and od4[j] is not None]
+        r_ = lj = None
+        if od4[i] is not None and len(oy) >= 40:
+            lv = min(v for _, v in oy)
+            if lv > 0:
+                r_ = 100.0 * (od4[i] / lv - 1)
+                lj = min(j for j, v in oy if v == lv)
+        parts = [cl(d_) if d_ is not None else None,
+                 cl(100.0 * math.log(1 + r_ / 100.0) / math.log(A["rot_rise_full"])) if r_ is not None else None,
+                 cl(100.0 * (br4[i] - A["rot_breadth_lo"]) / (A["rot_breadth_hi"] - A["rot_breadth_lo"]))
+                 if br4[i] is not None else None]
+        path.append(d_)
+        peak_w.append(Pj)
+        floor_v.append(F)
+        floor_w.append(Fj)
+        rise.append(r_)
+        low_w.append(lj)
+        p_rise.append(parts[1])
+        xs = [p for p in parts if p is not None]
+        rot.append(sum(xs) / len(xs) if len(xs) >= A["rot_min_parts"] else None)
+    # --- BTC heat: trailing percentiles, unchanged from v1
+    hp = [ptile(S[k], A["window"], A["min_window"]) for k in ("mvrv", "puell", "mayer", "pi")]
+    heat = []
+    for i in range(n):
+        xs = [h[i] for h in hp if h[i] is not None]
+        heat.append(sum(xs) / len(xs) if len(xs) >= 3 else None)
+    # --- retail: each row's score from its stored weekly samples; the max over the
+    # samples of the last 208 weeks, found through the positions of the positive ones
+    RRAW = S.get("retail_raw") or {}
+    if sorted(RRAW) != ["apps", "coinbase", "degen", "upbit"]:
+        fail("cycle", "series.retail_raw rows %s, expected apps/coinbase/degen/upbit" % sorted(RRAW))
+    span = math.log(A["retail_span"])
+    rsc = {}
+    for key, xs in RRAW.items():
+        if len(xs) != n:
+            fail("cycle", "retail_raw.%s has %d weeks, the axis %d" % (key, len(xs), n))
+            continue
+        if key == "apps":
+            rsc[key] = [None if x is None else cl(x) for x in xs]
+            continue
+        pos = [i for i, x in enumerate(xs) if x is not None and x > 0]
+        out = [None] * n
+        for m, i in enumerate(pos):
+            if i < pos[0] + A["retail_warmup"]:
+                continue
+            j0 = _bis.bisect_left(pos, i - A["retail_window"] + 1)
+            top = max(xs[pos[j]] for j in range(j0, m + 1))
+            out[i] = 100.0 * max(0.0, min(1.0, 1 + math.log(xs[i] / top) / span))
+        rsc[key] = out
+    retail = []
+    for i in range(n):
+        xs = [rsc[k][i] for k in rsc if rsc[k][i] is not None]
+        retail.append(sum(xs) / len(xs) if len(xs) >= A["retail_min_rows"] else None)
+    euph = [(retail[i] + heat[i]) / 2 if retail[i] is not None and heat[i] is not None else None for i in range(n)]
+    idx = [(A["rot_weight"] * rot[i] + A["euph_weight"] * euph[i]) / (A["rot_weight"] + A["euph_weight"])
+           if rot[i] is not None and euph[i] is not None else None for i in range(n)]
+
+    # --- the TradingView lines by brute force
+    def bf_pivots(c, d, k):
+        out = set()
+        for j, x in enumerate(c):
+            if x is None:
+                continue
+            nb = [(i, c[i]) for i in range(j - k, j + k + 1) if 0 <= i < len(c) and i != j and c[i] is not None]
+            if all(d * x >= d * y for _, y in nb) and all(d * x > d * y for i, y in nb if i < j):
+                out.add(j)
+        return out
+
+    def bf_line(c, d, t, piv, latest=None):
+        """{status, anchor, touch, opp, slope, since, back}: every rule written out again."""
+        none = {"status": "bez_trendu", "anchor": None, "touch": None, "opp": None, "slope": None,
+                "since": None, "back": None}
+        win = [(i, c[i]) for i in range(max(0, t - A["trend_window"] + 1), t + 1) if c[i] is not None]
+        if not win:
+            return none
+        ext = max(d * v for _, v in win)
+        a = min(i for i, v in win if d * v == ext)
+        if a == t:
+            return none
+        cand = [(i, c[i]) for i in range(a + 1, t - A["trend_pivot"] + 1) if c[i] is not None]
+        if not cand:
+            return none
+        low = min(d * v for _, v in cand)
+        o = max(i for i, v in cand if d * v == low)
+        P = sorted(j for j in piv if a < j < o)
+        touch = None
+        for p in P:
+            sp = (c[p] - c[a]) / (p - a)
+            if all(d * c[q] <= d * (c[a] + sp * (q - a)) + 1e-9 for q in P):
+                touch = p
+                break
+        if touch is None:
+            return none
+        sl = (c[touch] - c[a]) / (touch - a)
+        ln = lambda x: c[a] + sl * (x - a)
+        if ln(t) <= 0:
+            return none
+        b = A["trend_break"]
+        after = [i for i in range(o + 1, t + 1) if c[i] is not None]
+        bey = {i: d * c[i] > d * ln(i) * (1 + d * b) for i in after}
+        k = A["trend_confirm"]
+        brks = [after[m] for m in range(k - 1, len(after)) if all(bey[after[m - q]] for q in range(k))]
+        brk = brks[-1] if brks else None
+        since = back = None
+        if brk is not None:
+            m = after.index(brk)
+            while m > 0 and bey[after[m - 1]]:
+                m -= 1
+            since = after[m]
+            back = next((i for i in after if i > brk and d * c[i] <= d * ln(i)), None)
+        if brk is not None and back is None:
+            st = "pruraz"
+        elif bey.get(t):
+            st = "pruraz_nepotvrzeny"
+        elif brk is not None and t - brk <= A["trend_back_weeks"]:
+            st = "zpet_pod"
+        elif latest is not None and ln(latest[0]) > 0 and d * latest[1] > d * ln(latest[0]) * (1 + d * b):
+            st = "pruraz_nepotvrzeny"
+        else:
+            st = "downtrend"
+        return {"status": st, "anchor": a, "touch": touch, "opp": o, "slope": sl, "since": since, "back": back}
+
+    od = S["othersd"]
+    piv_od = bf_pivots(od, 1.0, A["trend_pivot"])
+    wst, prev = [], None
+    for t in range(n):
+        if od[t] is not None:
+            prev = bf_line(od, 1.0, t, piv_od)["status"]
+        wst.append(prev)
+    brk = [i for i in range(n) if od[i] is not None and wst[i] == "pruraz" and (i == 0 or wst[i - 1] != "pruraz")]
+    if brk != list(S.get("breakouts") or []):
+        fail("cycle", "OTHERS.D breakout weeks %s, recomputed %s" % (S.get("breakouts"), brk))
+    brk_set = set(brk)
+
+    # --- phases, first match (v3: the exit phases also for an altseason under T;
+    # "Po vrcholu" only once OTHERS in dollars is 25 % off its half-year high)
+    T = A["T"]
+    ou4 = m4(S.get("others_usd") or [None] * n)
+    phase = []
+    for i in range(n):
+        I = idx[i]
+        if I is None:
+            phase.append(None)
+            continue
+        ro, eu, he = rot[i], euph[i], heat[i]
+        lo = max(0, i - A["po_vrcholu_weeks"])
+        n_on = len([p for p in phase[lo:i] if p == "bezi" or p == "prehrate"])
+        hi_i = [x for x in idx[lo:i] if x is not None]
+        hi_u = [x for x in ou4[lo:i + 1] if x is not None]
+        fell = bool(hi_u) and ou4[i] is not None and ou4[i] <= max(hi_u) * (1 - A["po_vrcholu_usd_drop"] / 100.0)
+        back = rot[i - A["zacina_weeks"]] if i >= A["zacina_weeks"] else None
+        if n_on >= A["po_vrcholu_min"] and hi_i and I <= max(hi_i) - A["po_vrcholu_drop"] and fell:
+            ph = "po_vrcholu"
+        elif eu >= A["prehrate_euphoria"] and (I >= T or ro >= A["bezi_rotation"]):
+            ph = "prehrate"
+        elif ro >= A["bezi_rotation"] or I >= T:
+            ph = "bezi"
+        elif ro >= A["zacina_rotation"] and ((back is not None and ro - back >= A["zacina_rise"])
+                                             or any(i - A["zacina_weeks"] < j <= i for j in brk_set)):
+            ph = "zacina"
+        elif he >= A["btc_sezona_heat"] and ro < A["btc_sezona_rotation"]:
+            ph = "btc_sezona"
+        else:
+            ph = "zima"
+        phase.append(ph)
+
+    def bad(mine, key):
+        st = S.get(key) or []
+        if len(st) != n:
+            return n
+        return sum(1 for i in range(n) if (mine[i] is None) != (st[i] is None)
+                   or (mine[i] is not None and abs(mine[i] - st[i]) > 0.0501))
+    bads = {k: bad(v, k) for k, v in (("index", idx), ("rotation", rot), ("euphoria", euph), ("retail", retail),
+                                      ("heat", heat))}
+    bad_p = sum(1 for i in range(n) if phase[i] != (S.get("phase") or [None] * n)[i])
+    print("  %d týdnů · neshod indexu %d, rotace %d, euforie %d, retailu %d, BTC cyklu %d · neshod fáze %d · dnes %s (%s)"
+          % (n, bads["index"], bads["rotation"], bads["euphoria"], bads["retail"], bads["heat"], bad_p,
+             CY.get("index"), CY.get("phase")))
+    for k, v in bads.items():
+        if v:
+            fail("cycle", "%d weekly %s values disagree with a recomputation" % (v, k))
+    if bad_p:
+        fail("cycle", "%d weekly phases disagree with a recomputation" % bad_p)
+    if CY.get("index") != S["index"][-1] or CY.get("phase") != S["phase"][-1]:
+        fail("cycle", "headline index/phase is not the last week")
+    for k in ("rotation", "euphoria", "heat"):
+        if CY.get(k) != S[k][-1]:
+            fail("cycle", "headline %s is not the last week" % k)
+    # --- both lines as of the newest close, with the newest daily point
+    for key, d, series in (("othersd", 1.0, od), ("btcd", -1.0, S["btcd"])):
+        comp = C.get(key) or {}
+        t = max((i for i in range(n) if series[i] is not None), default=None)
+        if t is None:
+            continue
+        dayp = comp.get("day")
+        latest = ((n - 1) + (dayp - WK[-1]) / (7 * DAY), comp["value"]) if (dayp and dayp > WK[-1]
+                                                                             and comp.get("value") is not None) else None
+        want = bf_line(series, d, t, piv_od if key == "othersd" else bf_pivots(series, d, A["trend_pivot"]), latest)
+        got = comp.get("line")
+        name = "OTHERS.D" if key == "othersd" else "BTC.D"
+        if want["anchor"] is None:
+            if got is not None:
+                fail("cycle", "%s: a stored line where the recomputation finds none" % name)
+        elif not isinstance(got, dict):
+            fail("cycle", "%s: the line is missing (recomputed: anchor %s, %s)" % (name, WK[want["anchor"]], want["status"]))
+        else:
+            wk = lambda i: WK[i] if i is not None else None
+            diffs = [f for f, a_, b_ in (("anchor", got.get("anchor"), wk(want["anchor"])), ("touch", got.get("touch"), wk(want["touch"])),
+                                        ("opp", got.get("opp"), wk(want["opp"])), ("status", got.get("status"), want["status"]),
+                                        ("since", got.get("since"), wk(want["since"])), ("back", got.get("back"), wk(want["back"])))
+                     if a_ != b_]
+            if got.get("slope_week") is None or abs(got["slope_week"] - want["slope"]) > 5e-6:
+                diffs.append("slope")
+            # the numbers the page prints (a +0,5 pp line_now passed the date checks above)
+            a_, sl_ = want["anchor"], want["slope"]
+            ln_ = lambda x: series[a_] + sl_ * (x - a_)
+            close = lambda g, w, tol: (g is None) == (w is None) and (w is None or abs(g - w) <= tol)
+            for f, w, tol in (("anchor_v", series[a_], 0.0011), ("touch_v", series[want["touch"]], 0.0011),
+                              ("opp_v", series[want["opp"]], 0.0011), ("line_now", ln_(t), 0.002),
+                              ("dist_pct", (series[t] / ln_(t) - 1) * 100, 0.11),
+                              ("since_v", series[want["since"]] if want["since"] is not None else None, 0.0011),
+                              ("latest_line", ln_(latest[0]) if latest else None, 0.002),
+                              ("latest_dist_pct", (latest[1] / ln_(latest[0]) - 1) * 100
+                               if latest and ln_(latest[0]) > 0 else None, 0.11)):
+                if not close(got.get(f), w, tol):
+                    diffs.append(f)
+            if got.get("week") != WK[t]:
+                diffs.append("week")
+            print("  linie %s: kotva %s, dotek %s, dno/vrchol %s → %s%s (přepočet %s)"
+                  % (name, datetime.datetime.utcfromtimestamp(WK[want["anchor"]]).strftime("%Y-%m-%d"),
+                     datetime.datetime.utcfromtimestamp(WK[want["touch"]]).strftime("%Y-%m-%d"),
+                     datetime.datetime.utcfromtimestamp(WK[want["opp"]]).strftime("%Y-%m-%d"), got.get("status"),
+                     (" od %s" % datetime.datetime.utcfromtimestamp(got["since"]).strftime("%Y-%m-%d")) if got.get("since") else "",
+                     "sedí" if not diffs else "NESEDÍ: " + ", ".join(diffs)))
+            if diffs:
+                fail("cycle", "%s line differs from the brute-force recomputation: %s" % (name, ", ".join(diffs)))
+        if key == "othersd" and comp.get("verdict") != want["status"]:
+            fail("cycle", "OTHERS.D verdict %s, the recomputed line says %s" % (comp.get("verdict"), want["status"]))
+    # --- verdicts from their values
+    b = C["btcd"]
+    want = None if b.get("chg13_pp") is None else ("klesa" if b["chg13_pp"] <= -A["btcd_move_pp"]
+                                                  else "roste" if b["chg13_pp"] >= A["btcd_move_pp"] else "bokem")
+    if want != b.get("verdict"):
+        fail("cycle", "BTC.D verdict %s, expected %s" % (b.get("verdict"), want))
+    ww = "podpora_prolomena" if (b.get("line") or {}).get("status") == "pruraz" else b.get("verdict")
+    if ww != b.get("word"):
+        fail("cycle", "BTC.D tile word %s, expected %s" % (b.get("word"), ww))
+    # the rotation's parts in the numbers the page prints
+    L_ = n - 1
+    bp = b.get("path")
+    if (bp is None) != (path[L_] is None):
+        fail("cycle", "BTC.D path %s, recomputed %s" % (bp, path[L_]))
+    elif bp is not None:
+        diffs = [f for f, g, w_, tol in (("pct", bp.get("pct"), path[L_], 0.051), ("score", bp.get("score"), cl(path[L_]), 0.051),
+                                         ("peak", bp.get("peak"), bd4[peak_w[L_]], 0.0051), ("floor", bp.get("floor"), floor_v[L_], 0.0051),
+                                         ("now", bp.get("now"), bd4[L_], 0.0051))
+                 if g is None or abs(g - w_) > tol]
+        diffs += [f for f, g, w_ in (("peak_week", bp.get("peak_week"), WK[peak_w[L_]]),
+                                     ("floor_week", bp.get("floor_week"), WK[floor_w[L_]])) if g != w_]
+        if diffs:
+            fail("cycle", "BTC.D path differs from the recomputation: %s" % ", ".join(diffs))
+        else:
+            print("  BTC.D cesta %.1f %% z ročního maxima %.2f %% k minulému dnu %.2f %% (přepočet sedí)"
+                  % (path[L_], bd4[peak_w[L_]], floor_v[L_]))
+    for P, got in (CY.get("rotation_at_events") or {}).items():
+        j = WK.index(CY["events"][P]) if CY["events"].get(P) in WK else None
+        want = {"path": path[j], "rise": rise[j], "breadth": br4[j]} if j is not None else {}
+        for f in ("path", "rise", "breadth"):
+            w_, g = want.get(f), got.get(f)
+            if (w_ is None) != (g is None) or (w_ is not None and abs(round(w_) - g) > 0.51):
+                fail("cycle", "rotation at %s: %s %s, recomputed %s" % (P, f, g, w_))
+    oc = C["othersd"]
+    if (oc.get("rise_pct") is None) != (rise[L_] is None) or (rise[L_] is not None and (
+            abs(oc["rise_pct"] - rise[L_]) > 0.051 or oc.get("low_week") != WK[low_w[L_]])):
+        fail("cycle", "OTHERS.D rise %s (%s), recomputed %s" % (oc.get("rise_pct"), oc.get("low_week"), rise[L_]))
+    if (oc.get("rise_score") is None) != (p_rise[L_] is None) or (p_rise[L_] is not None and abs(oc["rise_score"] - p_rise[L_]) > 0.051):
+        fail("cycle", "OTHERS.D rise score %s, recomputed %s" % (oc.get("rise_score"), p_rise[L_]))
+    br = C["breadth"]
+    want = None if br.get("value") is None else ("alty_vedou" if br["value"] >= A["breadth_hi"]
+                                                else "btc_vede" if br["value"] <= A["breadth_lo"] else "smisene")
+    if want != br.get("verdict"):
+        fail("cycle", "breadth verdict %s, expected %s" % (br.get("verdict"), want))
+    h = C["btc_heat"]
+    hv = heat[-1]
+    want = None if hv is None else ("brzy" if hv < A["heat_lo"] else "polovina" if hv < A["heat_hi"] else "prehraty")
+    if want != h.get("verdict"):
+        fail("cycle", "BTC cycle verdict %s, expected %s" % (h.get("verdict"), want))
+    rt = C["retail"]
+    if rt.get("value") != S["retail"][-1]:
+        fail("cycle", "retail value %s is not the newest week of its series (%s)" % (rt.get("value"), S["retail"][-1]))
+    for k in ("coinbase", "upbit", "degen", "apps"):
+        p = (rt.get("parts") or {}).get(k)
+        mine = rsc.get(k, [None])[-1]
+        if p is None:
+            if mine is not None:
+                fail("cycle", "retail row %s is scored %.1f but missing from the table" % (k, mine))
+        elif (p.get("score") is None) != (mine is None) or (mine is not None and abs(p["score"] - mine) > 0.0501):
+            fail("cycle", "retail row %s score %s, recomputed %s" % (k, p.get("score"), mine))
+    if rt.get("n_scored") != sum(1 for k in rsc if rsc[k][-1] is not None):
+        fail("cycle", "retail n_scored %s is not the number of scored rows" % rt.get("n_scored"))
+    for k in ("stables", "traffic", "ai"):
+        if ((rt.get("parts") or {}).get(k) or {}).get("score") is not None:
+            fail("cycle", "retail fact %s carries a score — facts are never scored" % k)
+    want = None if rt.get("value") is None else ("spi" if rt["value"] < A["retail_lo"]
+                                                else "probouzi" if rt["value"] < A["retail_hi"] else "hrne")
+    if want != rt.get("verdict"):
+        fail("cycle", "retail verdict %s, expected %s" % (rt.get("verdict"), want))
+    rs_ = S["retail"]
+    tempo = rs_[-1] - rs_[-5] if n >= 5 and rs_[-1] is not None and rs_[-5] is not None else None
+    if (tempo is None) != (rt.get("tempo") is None) or (tempo is not None and abs(tempo - rt["tempo"]) > 0.11):
+        fail("cycle", "retail tempo %s, recomputed %s" % (rt.get("tempo"), tempo))
+    tw = None if rt.get("tempo") is None else ("naval" if rt["tempo"] >= A["retail_rush"] else "postupne" if rt["tempo"] >= 8
+                                               else "odliv" if rt["tempo"] <= -8 else "stoji")
+    if tw != rt.get("tempo_word"):
+        fail("cycle", "retail tempo word %s, expected %s" % (rt.get("tempo_word"), tw))
+    if any(x is not None and not (0 <= x <= 100) for x in rs_):
+        fail("cycle", "retail history outside 0-100")
+    vo = C.get("volume") or {}
+    if vo.get("ratio_1y") is not None:
+        r_ = vo["ratio_1y"]
+        want = "slaby" if r_ < A["vol_lo"] else "normalni" if r_ < A["vol_mid"] else "zvyseny" if r_ < A["vol_hi"] else "extremni"
+        if want != vo.get("verdict"):
+            fail("cycle", "volume verdict %s, expected %s" % (vo.get("verdict"), want))
+    # the BTC.D line from the 2018 altseason low through the 2022 low, recomputed
+    ll = C["btcd"].get("lows_line")
+    ev = CY.get("events") or {}
+    bd_ = S["btcd"]
+    y22 = sorted((bd_[i], i) for i, w in enumerate(WK) if 1640995200 <= w <= 1672444800 and bd_[i] is not None)
+    if ev.get("P1") and y22 and not ll:
+        fail("cycle", "BTC.D lows line is missing although P1 and the 2022 low exist")
+    if ll and ev.get("P1") and y22:
+        i1, i2 = WK.index(ev["P1"]), y22[0][1]
+        if (ll.get("t0"), ll.get("t1")) != (WK[i1], WK[i2]):
+            fail("cycle", "BTC.D lows line points %s/%s, expected P1 and the 2022 low" % (ll.get("t0"), ll.get("t1")))
+        want = bd_[i2] + (bd_[i2] - bd_[i1]) / (i2 - i1) * (n - 1 - i2)
+        if abs(want - ll["line_now"]) > 0.011:
+            fail("cycle", "BTC.D lows line %s, recomputed %.2f" % (ll["line_now"], want))
+        else:
+            print("  linie minim BTC.D dnes %.2f %% (přepočet sedí)" % want)
+    # every data value the page translates has an entry
+    try:
+        TPL = io.open("template.html", encoding="utf-8").read()
+        ph_keys = set(re.findall(r"^  '([a-z_]+)': \{", re.search(r"var ALT_PHASE = \{(.*?)\n\};", TPL, re.S).group(1), re.M))
+        vd_keys = set(re.findall(r"^  '([a-z_]+)': \{", re.search(r"var CYCLE_VERDICT = \{(.*?)\n\};", TPL, re.S).group(1), re.M))
+        need_ph = {p for p in S["phase"] if p}
+        need_vd = {c.get("verdict") for c in (C["btcd"], C["othersd"], C["breadth"], C["btc_heat"], rt, vo) if c.get("verdict")}
+        if C["btcd"].get("word"):
+            need_vd.add(C["btcd"]["word"])
+        need_vd |= {L.get("status") for L in ((C["othersd"].get("line") or {}), (C["btcd"].get("line") or {})) if L.get("status")}
+        if rt.get("tempo_word"):
+            need_vd.add(rt["tempo_word"])
+        if need_ph - ph_keys:
+            fail("cycle", "phases with no ALT_PHASE text: %s" % ", ".join(sorted(need_ph - ph_keys)))
+        if need_vd - vd_keys:
+            fail("cycle", "verdicts with no CYCLE_VERDICT text: %s" % ", ".join(sorted(need_vd - vd_keys)))
+    except (OSError, AttributeError):
+        fail("cycle", "ALT_PHASE / CYCLE_VERDICT not found in template.html")
 
 
 head("VERDICT")
