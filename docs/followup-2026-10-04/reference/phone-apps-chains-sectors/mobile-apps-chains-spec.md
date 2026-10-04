@@ -1,4 +1,4 @@
-> **Note (2026-10-04):** items [19] to [22] of `../../SPEC.md` win where this differs: the card face also shows the Degen meter (item [20]), and the pinned header plus filters take at most 110 px (item [22]).
+> **Note (2026-10-04):** items [19] to [22] of `../../SPEC.md` win where this differs: on Apps the card face also shows the Degen meter (item [20]), and the pinned header plus filters take at most 110 px (item [22]). Items 19 to 22 change nothing above 640 px: every desktop difference after this request comes from items 1 to 18, and all CSS of items 19 to 22 sits inside @media (max-width:640px) (this replaces the "pixel-identical" regression check below). The fund tray is item 12's tray; ignore the #pickBar/#pickFloat rules and the Mobile audit section.
 
 # Gem Screener on a phone: Apps, Chains, Sectors (spec)
 

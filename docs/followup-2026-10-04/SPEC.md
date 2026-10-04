@@ -8,9 +8,9 @@
 > 1. **Goals, not methods.** How you build it is your call. Where an item gives a rule or a number, it is the owner's decision unless the item says it is a default.
 > 2. **Every number is read on 2026-10-04**, between 16:50 and 17:10 UTC, from the live page (its snapshot of 08:47 UTC, at 1360 × 900 and at 390 × 844), from its public API (`/api/v1/gem-screener`, `/status`, `/picks`, `/funds`) and from the fund pages. They move with every refresh; they are there so you can check that a change took effect, not as the requirement.
 > 3. **English only**, degen-friendly: the number first, plain short words.
-> 4. **Keep the look.** Change only what an item names. **On a phone, desktop stays exactly as it is:** items 19 to 22 apply at 640 px and below only.
+> 4. **Keep the look.** Change only what an item names. **Items 19 to 22 change nothing above 640 px:** they apply at 640 px and below only.
 > 5. **This spec starts from the page as it is live on 2026-10-04**: after ET-28821 (shipped 2026-10-01, 23:40 UTC) and ET-28934, the Supply Analyzer, which wired the Supply card and the Supply column into the page (shipped 2026-10-04, 08:38 UTC).
-> 6. **It is filed in three requests**, because the platform takes one open request per app: items 1 to 8 first, items 9 to 18 when the first has shipped, items 19 to 22 when the second has shipped. Each request builds its own items, to the checklist lines with those numbers.
+> 6. **It is filed as one request** covering items 1 to 22. Build order inside it: items 1 to 16, then 19 to 22 on top of them (they reuse items 5, 8, 11 and 12); items 17 and 18 are backend work in parallel. The success lines of items 17 and 18 are checked over the seven days after shipping; they do not hold the other items.
 > 7. **The files are in this folder.** `reference/` holds a mockup per topic (an HTML page, its picture and a short spec): they are inspiration, not literal. Where a reference spec differs from an item here, the item wins; the reference specs that differ say so in their first line. There is no `assets/` folder this time: nothing here is ready to drop in.
 
 ## Reference files (`reference/`)
@@ -29,21 +29,21 @@
 
 ## The rules that hold for every item
 
-These are the owner's hard rules, as each request carries them.
+These are the owner's hard rules.
 
 - **No new columns are added to any table** (Apps, Chains, Sectors). Everything here changes existing elements only.
 - **Keep every existing state and text**: no fund yet, new with no return yet, loading; and the data the page already shows.
-- **No new data, per request.** Items 1 to 8 use the data the page already loads: no new data source. Items 9 to 17 add no new data field (item 17 may change where existing data comes from, as it asks). Item 18 is the one exception: it needs the funds' rebalance record it asks for. Items 19 to 22 add no new data.
-- **Honest colour.** The stage (hot, emerging, fading, falling) colours only the card edge and the pill. The return colours only its own number, green or red by the existing rounding rule. A hot sector whose fund is down still shows a red negative number with a real minus sign. Never hide, mute, reorder by return, or invent data (no made-up sparklines). Colour is never the only cue.
-- **Accessibility:** no interactive element nested in another, visible keyboard focus, AA contrast, tooltips on hover, focus and tap, reduced motion respected; nothing loops.
+- **No new data.** Items 1 to 8 use the data the page already loads: no new data source. Items 9 to 17 add no new data field (item 17 may change where existing data comes from, as it asks). Item 18 is the one exception: it needs the funds' rebalance record it asks for. Items 19 to 22 add no new data.
+- **Honest colour.** The stage colour marks only stage elements (a card edge, the pill, a stage group heading, item 15's corner tint) and never a return. The return colours only its own number, green or red by the existing rounding rule. A hot sector whose fund is down still shows a red negative number with a real minus sign. Never hide, mute, reorder by return, or invent data (no made-up sparklines). Colour is never the only cue.
+- **Accessibility:** no interactive element nested in another, visible keyboard focus, AA contrast, tooltips on hover, focus and tap, reduced motion respected; nothing this request adds loops.
 - **The page's own colours and fonts.** The single deliberate exception is the yellow launch chip of item 11.
-- **Request 1 (items 1 to 8), scope on the Top Picks tab:** only the Hot sectors block with the Top Picks fund bar (items 1 to 4) and the Degen meter on the cards (item 5) change. Nothing else on the Top Picks tab changes: the Altseason Index, the Degen Picks funnel and the pick cards keep their layout. Items 6 to 8 apply to the coin detail and the Apps project cell only.
-- **Requests 1 and 2, phone (390 px):** cards stack, no horizontal scroll, nothing pushed off screen; the flagship becomes name, number, then a full-width button.
-- **Request 3 (items 19 to 22):** the desktop layout (above 640 px) must remain exactly as it is today: no change to its CSS, DOM order or behaviour. All phone rules apply at 640 px and below only. No new data and no change to any number or label that exists today; negative numbers keep their minus sign. The pick checkboxes and the fund tray keep working on a phone.
+- **Items 1 to 8, scope on the Top Picks tab:** only the Hot sectors block with the Top Picks fund bar (items 1 to 4) and the Degen meter on the cards (item 5) change. Nothing else on the Top Picks tab changes: the Altseason Index, the Degen Picks funnel and the pick cards keep their layout. Items 6 to 8 apply to the coin detail and the Apps project cell only.
+- **Items 1 to 18, phone (390 px):** cards stack, no horizontal scroll, nothing pushed off screen; the flagship becomes name, number, then a full-width button.
+- **Items 19 to 22:** they change nothing above 640 px: every desktop difference after this request comes from items 1 to 18, and all CSS of items 19 to 22 sits inside `@media (max-width:640px)`. All phone rules apply at 640 px and below only. No new data and no change to any number or label that exists today; negative numbers keep their minus sign. The pick controls and the fund tray keep working on a phone.
 
 ---
 
-# Request 1: Top Picks and the coin detail (items 1 to 8)
+# Items 1 to 8: Top Picks and the coin detail
 
 Why: today the Hot sectors block and the "Gem Screener Top Picks (CyMetica-managed)" fund bar under it are plain text lines. Next to the Altseason Index panel above and the Degen Picks funnel below they look unfinished, and a visitor cannot read them in three seconds.
 
@@ -61,7 +61,7 @@ Reference: `reference/hot-sectors/`.
 
 Reference: `reference/hot-sectors/`.
 
-**[4] The Top Picks fund bar becomes the flagship of the panel.** Live: "Gem Screener Top Picks (CyMetica-managed) −2.0% since launch the Degen picks at equal weight · rebalanced weekly Fund performance →", one line. The owner wants it the same anatomy as a sector card, **one size larger, with the one solid button in the block.** At 390 px it becomes name, number, then a full-width button.
+**[4] The Top Picks fund bar becomes the flagship of the panel.** Live: "Gem Screener Top Picks (CyMetica-managed) −2.0% since launch the Degen picks at equal weight · rebalanced weekly Fund performance →", one line; its fund page says "This fund has not bought its assets yet". The owner wants it the same anatomy as a sector card, **one size larger, with the one solid button in the block.** At 390 px it becomes name, number, then a full-width button. **While the fund page says the fund has not bought its assets yet, the flagship shows "not invested yet" in place of the return.**
 
 Reference: `reference/hot-sectors/`.
 
@@ -69,7 +69,7 @@ Reference: `reference/hot-sectors/`.
 
 **[5] The Degen meter keeps what it measures and its scale becomes readable.** It stays a risk level 1 to 10, higher is riskier. Live, on a Top Picks pick card (Collector Crypt) the meter is a lone "4" at the left and ten small segments (272 × 24 px), with no "/10", no name and no end labels; the empty segments are all one grey (`rgba(111,129,153,.16)`), so the zones show only once filled. In the Apps table it is the same: "6" and ten segments, 126 px wide, no "/10". The owner wants:
 
-- **On the cards:** a full-width bar labelled "Degen meter", the value "4/10" at the end of the fill and **no band word above it (no "Spicy" label)**, end labels "Blue chip" and "Casino", empty segments faintly tinted by their zone, and the existing tooltip.
+- **On the cards:** a full-width bar labelled "Degen meter", the value "4/10" at the right end of the bar and **no band word above it (no "Spicy" label)**, end labels "Blue chip" and "Casino", empty segments faintly tinted by their zone, and the existing tooltip.
 - **In the Apps table:** the compact bar followed by "N/10".
 
 Reference: `reference/degen-meter/` (its spec still draws a band word; this item wins).
@@ -84,6 +84,8 @@ Reference: `reference/degen-meter/` (its spec still draws a band word; this item
 - **Pie:** hovering or tapping a slice or a legend row highlights both and shows a short line such as "Free to sell · 33.5M · 6% · can be sold now".
 - **Four states stay supported:** measured, range, unknown, sources disagree. **Red stays red.**
 
+Item 6 changes presentation only. Slice names, figures and states come from the Supply Analyzer as it is after the fixes in progress; the examples are Pharaoh Exchange on 2026-10-04 and will change.
+
 Reference: `reference/supply-card/`.
 
 ## 4. Guardians
@@ -97,7 +99,7 @@ Reference: `reference/supply-card/`.
   - **Price run**: how far the price already ran;
   - **Security**: audit and past hacks, the worse of the two;
   - **Team**: who ships it.
-- **One summary line** such as "2 red · 1 caution · 3 clear".
+- **One summary line**, counting each state that occurs, e.g. "2 red · 1 caution · 2 clear · 1 not checked".
 - **All numbers and explanations live only in each guardian's tooltip.**
 - **The icons and rings the Checks block has today**; no characters or mascots.
 - **A guardian never shows green without data** (a dashed ring instead).
@@ -110,18 +112,18 @@ Reference: `reference/guardians/` (`before-checks.png` is today's block; where i
 
 **[8] Apps table, project cell: no marks but one, a green single-circle smiley for projects that share rewards.** Live, the project cell holds the logo, the name and the symbol, and on 13 of the 113 rows under "All by upside" a round (i) "Supply sources disagree" icon next to the name; the page's code can also put a red "No holder share" mark there (none showed today). The owner wants:
 
-- **Remove the round (i) badge next to the name and every other mark in that cell**, such as the red "No holder share" mark, because the Guardians in the detail (item 7) now cover them. The row and the name still open the detail.
+- **Remove the round (i) badge next to the name and every other mark in that cell**, such as the red "No holder share" mark, because the Guardians (item 7) and the Supply card (item 6) now cover them. The row and the name still open the detail.
 - **Exactly one badge may appear in this cell:** a small, refined **green smiley** in the style of the page's icons: **one single circle outline that is the face itself, with two eyes and a smile, not a face inside a second ring** (one circle, not two), shown only for projects that share rewards with their community.
-- It uses the figure the page already has (the holders' share of revenue behind the "Holders share" check), **shows only when that check is green**, and its tooltip gives the share in one short line ("Holders get 40% of revenue").
+- It uses the figure the page already has (the holders' share of revenue behind the Holders paid guardian (check `reaches_you`)), **shows only when that check is green**, and its tooltip gives the share in one short line ("Holders get 40% of revenue").
 - When a project does not share, or there is no data, or its holders get little, **the cell shows nothing at all.** It sits in the existing project cell, not in a new column.
 
-Today that check (`reaches_you` in each app's record) is green on 36 of the 211 apps, caution on 27, red on 98 and not checked on 50: the smiley would show on those 36 only.
+Today that check (`reaches_you` in each app's record) is green on 36 of 211 records in `/api/v1/gem-screener`, caution on 27, red on 98 and not checked on 50: the smiley would show on those 36 only.
 
 Reference: `reference/project-cell/`.
 
 ---
 
-# Request 2: Sectors, Apps and Chains, data and funds (items 9 to 18)
+# Items 9 to 18: Sectors, Apps and Chains, data and funds
 
 Why: these are the points where the tabs behave differently from what their own captions say, or where the page is hard to read at a glance; plus the data reliability behind the page, and the funds the page names.
 
@@ -129,15 +131,14 @@ Why: these are the points where the tabs behave differently from what their own 
 
 **[9] Sectors tab, bubble chart: one click with a mouse, two steps on touch, and a caption that tells the truth.** Live, the caption under the chart reads "Bubble size = market cap. Tail = where it stood 4 weeks ago. Click a bubble for the sector." The page's code already opens the sector on one click on a device that can hover (a comment names ET-29257), and a click on a bubble at 1360 px opened the sector's panel; on touch the first tap shows the card and the second opens the detail (ET-28990 #3), under the same caption. The owner wants:
 
-- **With a mouse** (a device that can hover), one click on a bubble opens that sector's detail panel, since the hover already shows the card.
-- **On touch**, today's two steps stay: the first tap shows the card, the second opens the detail.
-- **The caption "Click a bubble for the sector" matches whichever behaviour a visitor gets.**
+- One click with a mouse (ET-29257) and the two taps on touch (ET-28990 #3) already work: keep both exactly as they are.
+- Change only the caption on touch: "Tap a bubble for its card, tap again to open the sector"; with a mouse keep "Click a bubble for the sector".
 
 Reference: none; check on the live page.
 
 ## 7. The year in a chart
 
-**[10] Apps and Chains, "The year in a chart" follows the filter above it.** Live on Apps: switching the filter changes the project list (75 rows under Vetted only, 7 under Degen picks, 113 under All by upside) but the chart and its caption stay the same: title "Top 10 by upside: their year", caption "Top 10 by upside of 87 vetted.", first line Pharaoh Exchange, also under Degen picks, where Pharaoh Exchange is not one of the 7. On Chains the caption is "Top 10 by upside of 24 vetted." The owner wants the chart to redraw for the selected filter (Vetted only, Degen picks, All by upside), **with the title and caption saying what it now shows** (for Degen picks, the 7 picks).
+**[10] Apps and Chains, "The year in a chart" follows the filter above it.** Live on Apps: switching the filter changes the project list (75 rows under Vetted only, 7 under Degen picks, 113 under All by upside) but the chart and its caption stay the same: title "Top 10 by upside: their year", caption "Top 10 by upside of 87 vetted.", first line Pharaoh Exchange, also under Degen picks, where Pharaoh Exchange is not one of the 7. On Chains the caption is "Top 10 by upside of 24 vetted." The owner wants the chart to redraw for the selected filter (Vetted only, Degen picks, All by upside; on Chains, Vetted only and All, its only two), **with the title and caption saying what it now shows** (for Degen picks, the 7 picks).
 
 Reference: none; check on the live page.
 
@@ -157,7 +158,7 @@ Reference: `reference/launch-chip/` (the mock's alternative B is the yellow one;
 - **It appears as soon as the first project is ticked**, with one short entrance plus a brief highlight (reduced motion respected).
 - **It never scrolls out of view:** on desktop it sticks to the top of the table, right under the sticky header, when the visitor scrolls down; on phones it docks to the bottom of the window.
 - **It shows** a progress ring "N of 30", the picked projects as chips with logos, a clear button "Launch a fund with these N", and "Clear".
-- **At 30** the ring turns the caution blue, a line says "30 is the limit: remove one to add another", and the remaining + buttons are disabled.
+- **At 30** the ring turns the caution blue, a line says "30 is the limit: remove one to add another", and the pick control of every unpicked project is disabled.
 - **It never covers table rows** (bottom padding) and works at 390 px.
 
 Reference: `reference/fund-picks-tray/`.
@@ -196,7 +197,7 @@ Reference: none; check on the live page.
 
 - **Every data source the Gem Screener uses is reviewed.** Where one depends on a free public API with rate limits, switch to the most reliable source you have available, for example a paid or internal feed, so that stale prices and fallbacks become rare.
 - **You do not need to say publicly which sources you use.**
-- **Success:** the warning ("… not refreshed …", "… prices via DeFiLlama") almost never shows, and a snapshot refresh does not fail its own audit and leave the page hours old.
+- **Success:** the warning ("… not refreshed …", "… prices via DeFiLlama") almost never shows, and a snapshot refresh does not fail its own audit and leave the page hours old, without loosening, skipping or bypassing the audit: fix what it catches.
 
 Reference: none; check `/api/v1/gem-screener/status` and the page's status line over several days.
 
@@ -212,23 +213,24 @@ Reference: none; check `/api/v1/gem-screener/status` and the page's status line 
 The owner wants:
 
 - **(a) The Top Picks fund's holdings equal the current Degen picks** (equal weight) after each weekly rebalance, and the page shows **the date of the last rebalance and the next one, with what was swapped in and out** (a small rebalance history on the fund page).
-- **(b) The same for the three sector funds** (Gem Screener AI, L2, RWA): **holdings are that sector's current leading coins as the Hot sectors card says**, with the last and next rebalance date.
+- **(b) The Hot sectors card's tooltip and the sector fund page name the same list, the coins the fund holds, and say the rule that picks them; with the last and next rebalance date** (Gem Screener AI, L2, RWA).
 - **(c) A rebalance waiting for approval says so.** If a rebalance is waiting for the human approval the governance text mentions, the fund page and the Top Picks card say so ("rebalance proposed, waiting for approval since <date>") instead of showing old holdings as current.
-- **(d) Success is checkable:** on any day, a fund's holdings differ from the current picks (or the sector's leaders) by at most what a pending, dated, disclosed rebalance explains.
+- **(d) Success is checkable:** on any day, a fund's holdings differ from the current picks (or the list its sector card names) by at most what a pending, dated, disclosed rebalance explains.
+- **(e) A fund that has not invested says so:** while a fund page says the fund has not bought its assets yet, that page and the fund's card on Top Picks show "not invested yet" in place of a return.
 
 Reference: none; check the fund pages against `/api/v1/gem-screener/picks` and the Hot sectors cards.
 
 ---
 
-# Request 3: the Gem Screener on a phone (items 19 to 22)
+# Items 19 to 22: the Gem Screener on a phone
 
-Why: on a phone the Apps, Chains and Sectors tabs are hard to use. Read at 390 × 844 px on 2026-10-04: on Apps the pinned header and controls take 263 px, the year chart (864 px tall) comes first and the first pick row starts at 1,215 px; the table is 1,330 px wide in a 356 px box, so only 2 of its 12 columns are fully in view. Chains: 227 px pinned, first row at 1,197 px, table 1,335 px wide, 2 of 11 columns in view. Sectors: the first table row is at 1,485 px, below the rotation map, and the table is 873 px wide in the same 356 px box; the map (312 × 476 px) sits in a box that scrolls on its own (`overflow: auto`) and fits at 390 px today. Every rule here applies at **640 px and below only**; desktop stays exactly as it is.
+Why: on a phone the Apps, Chains and Sectors tabs are hard to use. Read at 390 × 844 px on 2026-10-04: on Apps the pinned header and controls take 263 px, the year chart (864 px tall) comes first and the first pick row starts at 1,215 px; the table is 1,330 px wide in a 356 px box, so only 2 of its 12 columns are fully in view. Chains: 227 px pinned, first row at 1,197 px, table 1,335 px wide, 2 of 11 columns in view. Sectors: the first table row is at 1,485 px, below the rotation map, and the table is 873 px wide in the same 356 px box; the map (312 × 476 px) sits in a box that scrolls on its own (`overflow: auto`) and fits at 390 px today. Every rule here applies at **640 px and below only**; items 19 to 22 change nothing above 640 px.
 
-**[19] Every tab shows its picks on the first screen; charts open on request.** The owner wants the picks on the first screen of every tab. The charts open on request, behind a clear "Year in a chart" / "Rotation map" control, **fit the screen and never pan inside the page.**
+**[19] Apps, Chains and Sectors show their picks on the first screen; charts open on request.** Apps, Chains and Sectors show their picks (on Sectors, the first sector card) on the first screen; Top Picks keeps its layout. The charts open on request, behind a clear "Year in a chart" / "Rotation map" control, **fit the screen and never pan inside the page.**
 
 Reference: `reference/phone-apps-chains-sectors/`.
 
-**[20] Apps and Chains: one card per project, readable without sideways scrolling.** The owner wants one card per project. **The card face shows the Degen meter, Upside, Revenue 30d, Market Cap and Trajectory; the other columns sit behind a "more" control.** Sorting and filters stay one tap away: one control, one sheet.
+**[20] Apps and Chains: one card per project, readable without sideways scrolling.** The owner wants one card per project. **The card face shows the Degen meter, Upside, Revenue 30d, Market Cap and Trajectory; the other columns sit behind a "more" control.** On Chains the face shows Upside, Adoption (the table's own cell, in place of Revenue 30d), Market Cap and Trajectory; Chains has no Degen meter. Sorting and filters stay one tap away: one control, one sheet.
 
 Reference: `reference/phone-apps-chains-sectors/` (its spec lists the card face without the Degen meter; this item wins).
 
@@ -236,7 +238,7 @@ Reference: `reference/phone-apps-chains-sectors/` (its spec lists the card face 
 
 Reference: `reference/phone-apps-chains-sectors/`.
 
-**[22] The pinned header plus filters take at most 110 px; every tap target is at least 44 px.** Live at 390 px: 263 px pinned on Apps, 227 px on Chains, 126 px on Sectors and Top Picks; the tabs are 35 px tall, Legend 68 × 29 px, the (i) buttons 16 × 16 px.
+**[22] The pinned header plus filters take at most 110 px; every tap target is at least 44 px.** Live at 390 px: 263 px pinned on Apps, 227 px on Chains, 126 px on Sectors and Top Picks; the tabs are 35 px tall, Legend 68 × 29 px, the (i) buttons 16 × 16 px. The 110 px are the pinned header plus filters (the fund tray docked at the bottom, item 12, is not counted). The 44 px include every element items 1 to 18 add (Fund button, launch chip, tray chips, smiley, estimate tag, guardian rows): enlarge the hit area, not the drawing.
 
 Reference: `reference/phone-apps-chains-sectors/`.
 
@@ -244,45 +246,46 @@ Reference: `reference/phone-apps-chains-sectors/`.
 
 ## Checklist (one line each; done when all are true)
 
-### Request 1
+### Items 1 to 8
 
 - [ ] 1 On Top Picks, the Hot sectors cards and the Top Picks fund bar sit inside one framed panel, with the same visual weight and frame style as the Altseason Index.
 - [ ] 1 Nothing else on the Top Picks tab moved: the Altseason Index, the Degen Picks funnel and the pick cards keep their layout.
 - [ ] 2 Each sector card reads name, then number, then action: the sector name large, the HOT pill, the fund's return since launch as the biggest text on the card, and a clear "Fund" button.
-- [ ] 2 The stage colours only the card edge and the pill; the return colours only its own number by the existing rounding rule; a negative return is red with a real minus sign, as large as a positive one; no card is hidden, muted or reordered by return; no sparkline is drawn.
+- [ ] 2 The stage colours only stage elements and never a return; the return colours only its own number by the existing rounding rule; a negative return is red with a real minus sign, as large as a positive one; no card is hidden, muted or reordered by return; no sparkline is drawn.
 - [ ] 2 The states "no fund yet", "new, no return yet" and loading still show.
 - [ ] 3 The trend signals show their words next to the icon ("Already leading", "Beaten down but turning"); their tooltips are unchanged.
 - [ ] 4 The Top Picks fund bar has the anatomy of a sector card, one size larger, and carries the one solid button of the block.
+- [ ] 4 While the fund page says the fund has not bought its assets yet, the flagship shows "not invested yet" in place of the return.
 - [ ] 4 At 390 px the cards stack with no horizontal scroll and nothing pushed off screen, and the flagship reads name, number, then a full-width button.
-- [ ] 5 On a pick card the Degen meter is a full-width bar labelled "Degen meter", with the value "N/10" at the end of the fill, no band word ("Spicy" or other) above it, the end labels "Blue chip" and "Casino", and the existing tooltip.
+- [ ] 5 On a pick card the Degen meter is a full-width bar labelled "Degen meter", with the value "N/10" at the right end of the bar, no band word ("Spicy" or other) above it, the end labels "Blue chip" and "Casino", and the existing tooltip.
 - [ ] 5 The empty segments are faintly tinted by their zone (green, blue, red), so the whole scale is visible before it fills.
 - [ ] 5 In the Apps table the meter is the compact bar followed by "N/10"; the level it shows is the same as before.
 - [ ] 6 The Supply tooltip is a title, one line ("Sellable tokens grow … a year (estimate)") and one small line ("1 = most new supply · N parts not measured").
 - [ ] 6 The Supply card shows the big figure with a small "estimate" tag, the pressure badge ("1/10 Flooding · 1 = most new supply"), one plain sentence, then the pie and the curve.
 - [ ] 6 What could not be measured, the assumptions, sources that disagree, the formula and the date are behind one expand, "What we could not measure (N)"; nothing that was on the card is lost.
 - [ ] 6 Hovering or tapping a pie slice or a legend row highlights both and shows a short line ("Free to sell · 33.5M · 6% · can be sold now").
-- [ ] 6 The measured, range, unknown and sources-disagree states all still show; red stays red.
+- [ ] 6 The measured, range, unknown and sources-disagree states all still show; red stays red; the figures and slice names are the Supply Analyzer's.
 - [ ] 7 The coin detail's Checks block is titled "Guardians" and has six rows: Rug power, Holders paid, Thin liquidity, Price run, Security, Team; each shows only its short name and the existing icon ring with a state mark (check, !, x, ?, dash).
-- [ ] 7 One summary line counts them ("2 red · 1 caution · 3 clear"); every number and explanation is in the guardian's tooltip (hover, focus, tap), not on the row.
+- [ ] 7 One summary line counts each state that occurs ("2 red · 1 caution · 2 clear · 1 not checked"); every number and explanation is in the guardian's tooltip (hover, focus, tap), not on the row.
 - [ ] 7 Security shows the worse of audit and past hacks; a guardian without data never shows green (dashed ring).
 - [ ] 7 Growing, Price vs revenue, New tokens and Revenue cover are not in the block; Hidden supply, Insider flow and Whales are not in it either; no table gained a column.
 - [ ] 8 The Apps project cell has no (i) badge, no "No holder share" mark and no other mark; the row and the name still open the detail.
-- [ ] 8 The only badge in the cell is a green smiley drawn as one single circle that is the face (two eyes, a smile, no second ring), shown only when the Holders share check is green (36 of 211 apps on 2026-10-04's data).
+- [ ] 8 The only badge in the cell is a green smiley drawn as one single circle that is the face (two eyes, a smile, no second ring), shown only when the Holders paid guardian (check `reaches_you`) is green (36 of 211 records in `/api/v1/gem-screener` on 2026-10-04).
 - [ ] 8 The smiley's tooltip is one line with the share ("Holders get 40% of revenue"); a project that does not share, has no data or whose holders get little shows nothing in the cell.
 
-### Request 2
+### Items 9 to 18
 
-- [ ] 9 With a mouse, one click on a bubble in the Sectors chart opens that sector's detail panel.
-- [ ] 9 On touch, the first tap on a bubble shows its card and the second opens the detail.
-- [ ] 9 The chart's caption says what a click or tap does on the device the visitor uses.
-- [ ] 10 On Apps and Chains, switching between Vetted only, Degen picks and All by upside redraws "The year in a chart" for that selection.
+- [ ] 9 With a mouse, one click on a bubble in the Sectors chart still opens that sector's detail panel.
+- [ ] 9 On touch, the first tap on a bubble still shows its card and the second opens the detail.
+- [ ] 9 On touch the caption reads "Tap a bubble for its card, tap again to open the sector"; with a mouse it reads "Click a bubble for the sector".
+- [ ] 10 On Apps, switching between Vetted only, Degen picks and All by upside redraws "The year in a chart" for that selection; on Chains, switching between Vetted only and All does the same.
 - [ ] 10 The chart's title and caption say what it shows; under Degen picks it shows the picks (7 on 2026-10-04) and no project that is not one of them.
 - [ ] 11 The Memecoins row in Sectors has a chip "Launch your own memecoin" with a rocket disc and an external-link arrow: dark chip, yellow outline, yellow disc, yellow label; it opens https://cymetica.com/launchpad in a new tab.
 - [ ] 11 Yellow appears nowhere else on the page; under 560 px the chip reads "Launch" and its accessible name is still "Launch your own memecoin".
 - [ ] 12 On Apps and Chains, ticking the first project brings in the fund picks tray with one short entrance and a brief highlight; with reduced motion there is no motion.
 - [ ] 12 On desktop the tray sticks to the top of the table, right under the sticky header, while the table scrolls; on a phone it docks to the bottom of the window.
 - [ ] 12 The tray shows a ring "N of 30", the picks as chips with logos, "Launch a fund with these N" and "Clear"; it never covers a table row, and works at 390 px.
-- [ ] 12 At 30 picks the ring is the caution blue, the line "30 is the limit: remove one to add another" shows, and the remaining + buttons are disabled.
+- [ ] 12 At 30 picks the ring is the caution blue, the line "30 is the limit: remove one to add another" shows, and the pick control of every unpicked project is disabled.
 - [ ] 13 Both Benchmark shields (Apps and Chains) have the shield's original width-to-height ratio (92 : 110), at the smaller size asked for (about 78 px tall); the text and the icon are not distorted.
 - [ ] 14 On Apps and Chains every header and its values line up in one visual column (centred, or each column aligned consistently); no column's width or content changed.
 - [ ] 15 The rotation chart's plot area has a soft tint in each corner in its stage colour (Hot green top right, Emerging cyan top left, Fading blue bottom right, Falling red bottom left) at about 6 % opacity, fading toward the centre.
@@ -290,22 +293,23 @@ Reference: `reference/phone-apps-chains-sectors/`.
 - [ ] 16 "Talked about" shows only the percentage and a plain, neutral-coloured arrow; the points figure is in the tooltip.
 - [ ] 16 A sector talked about by fewer than 20 people shows "too few".
 - [ ] 17 Every data source of the Gem Screener is reviewed, and those on rate-limited free public APIs are moved to the most reliable source available (which ones need not be public).
-- [ ] 17 Over the days after the build, the page's "not refreshed" / "prices via DeFiLlama" warning almost never shows, and `/status` shows no refresh that failed its audit and left the page hours old.
+- [ ] 17 Over the seven days after shipping, the page's "not refreshed" / "prices via DeFiLlama" warning almost never shows, and `/status` shows no refresh that failed its audit and left the page hours old, without the audit having been loosened, skipped or bypassed.
 - [ ] 18 The Top Picks fund holds the current Degen picks at equal weight after each weekly rebalance.
 - [ ] 18 The Top Picks fund page shows the date of the last and the next rebalance and a small history of what was swapped in and out.
-- [ ] 18 Gem Screener AI, L2 and RWA hold their sector's current leading coins as the Hot sectors card says, and show their last and next rebalance date.
+- [ ] 18 For Gem Screener AI, L2 and RWA, the Hot sectors card's tooltip and the fund page name the same list (the coins the fund holds) and the rule that picks them, with the last and next rebalance date.
 - [ ] 18 A rebalance waiting for approval shows on the fund page and on the Top Picks card as "rebalance proposed, waiting for approval since <date>", not as current holdings.
-- [ ] 18 On any day, a fund's holdings differ from the current picks (or its sector's leaders) by at most what a pending, dated, disclosed rebalance explains.
+- [ ] 18 While a fund page says the fund has not bought its assets yet, that page and the fund's card on Top Picks show "not invested yet" in place of a return.
+- [ ] 18 Over the seven days after shipping, a fund's holdings differ from the current picks (or the list its sector card names) by at most what a pending, dated, disclosed rebalance explains.
 
-### Request 3
+### Items 19 to 22
 
-- [ ] 19 At 390 px, on Apps, Chains and Sectors, picks are on the first screen without scrolling.
+- [ ] 19 At 390 px, Apps, Chains and Sectors show their picks (on Sectors, the first sector card) on the first screen without scrolling; Top Picks keeps its layout.
 - [ ] 19 The charts open on request ("Year in a chart" / "Rotation map"), fit the screen and do not pan inside the page.
-- [ ] 20 On a phone, Apps and Chains show one card per project with no sideways scrolling; the face shows the Degen meter, Upside, Revenue 30d, Market Cap and Trajectory, and the other columns are behind "more".
+- [ ] 20 On a phone, Apps and Chains show one card per project with no sideways scrolling; the face shows the Degen meter, Upside, Revenue 30d, Market Cap and Trajectory (Chains: Adoption, no meter), and the other columns are behind "more".
 - [ ] 20 Sorting and filters are one tap away, in one control that opens one sheet.
 - [ ] 21 On a phone, Sectors shows the sectors as cards grouped by stage, each with 3M and 1M against the median sector and the fundamentals.
 - [ ] 21 On the map, the first tap on a bubble shows its card and the second opens the sector.
-- [ ] 22 At 390 px the pinned header plus filters take at most 110 px on every tab.
-- [ ] 22 Every tap target at 640 px and below is at least 44 px.
-- [ ] 22 The pick checkboxes and the fund tray work on a phone; negative numbers keep their minus sign; nothing loops; reduced motion is respected; no number or label changed.
-- [ ] 22 Above 640 px the page is unchanged: the same CSS, DOM order and behaviour as before this request.
+- [ ] 22 At 390 px the pinned header plus filters take at most 110 px on every tab (the fund tray docked at the bottom, item 12, is not counted).
+- [ ] 22 Every tap target at 640 px and below is at least 44 px, including every element items 1 to 18 add (Fund button, launch chip, tray chips, smiley, estimate tag, guardian rows).
+- [ ] 22 The pick controls and the fund tray work on a phone; negative numbers keep their minus sign; nothing this request adds loops; reduced motion is respected; no number or label changed.
+- [ ] 22 Items 19 to 22 change nothing above 640 px: every desktop difference after this request comes from items 1 to 18, and all CSS of items 19 to 22 sits inside @media (max-width:640px).
