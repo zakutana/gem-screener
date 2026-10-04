@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Project Cell Badge</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--paper:#0a0e17; --surface:#0d1520; --surface-2:#111a28; --ink:#E6EDF7; --ink-2:#A9B8CC; --muted:#6F8199; --text-heading:#F3F7FC;
+  --accent:#00cfff; --good:#00ff88; --rule:rgba(0,150,255,.15); --rule-soft:rgba(0,150,255,.08); --focus:#00cfff}
+*{box-sizing:border-box}
+html,body{margin:0; background:var(--paper)}
+body{color:var(--ink); font-family:"IBM Plex Sans",system-ui,sans-serif; font-size:15px; -webkit-font-smoothing:antialiased; padding:22px 32px 30px}
+.mk-h{display:flex; align-items:baseline; gap:14px; margin:0 0 14px}
+.mk-h b{font-family:"Archivo Black",sans-serif; font-weight:400; font-size:22px; color:var(--text-heading)}
+.mk-h span{font:500 12px "IBM Plex Mono",monospace; color:var(--muted)}
+.mk-lbl{display:inline-block; font:700 11px "IBM Plex Mono",monospace; letter-spacing:.14em; text-transform:uppercase; padding:3px 9px; border-radius:6px; margin:0 8px 8px 0}
+.mk-lbl.before{color:var(--muted); border:1px solid var(--rule)} .mk-lbl.after{color:var(--paper); background:var(--accent)}
+.mk-cap{font:500 11.5px "IBM Plex Mono",monospace; color:var(--muted)}
+.mk-sep{height:1px; background:var(--rule); margin:20px 0 16px}
+.grid{display:grid; grid-template-columns:1fr 1fr; gap:26px; align-items:start}
+.tw{border:1px solid var(--rule); border-radius:8px; background:var(--surface)}
+table{border-collapse:collapse; width:100%; font-size:14px}
+td{padding:10px 12px; border-bottom:1px solid var(--rule-soft); vertical-align:middle; color:var(--muted); white-space:nowrap}
+tr:last-child td{border-bottom:0}
+.th td{font:600 10.5px "IBM Plex Mono",monospace; letter-spacing:.07em; text-transform:uppercase; background:var(--surface-2)}
+.namecell{display:inline-flex; align-items:center; gap:10px}
+.logo{width:26px; height:26px; border-radius:50%; display:grid; place-items:center; font:700 9.5px "IBM Plex Mono",monospace; color:var(--ink-2); background:#1d2a3c}
+.txt{display:flex; flex-direction:column; gap:1px} .nmrow{display:flex; align-items:center}
+.nm{font-weight:600; color:var(--ink); font-size:14px} .sym{font:11px "IBM Plex Mono",monospace; color:var(--muted)}
+.oldi{display:inline-grid; place-items:center; width:18px; height:18px; margin-left:6px; border-radius:50%; border:1.3px solid var(--muted); color:var(--muted); font:700 10px "IBM Plex Mono",monospace}
+
+/* ===== AFTER: the smiley is the only circle ===== */
+.hsb{position:relative; display:inline-flex; margin-left:8px; color:var(--good); cursor:help; border-radius:50%; flex:none}
+.hsb svg{display:block; width:22px; height:22px; fill:none; stroke:currentColor; stroke-width:1.6; stroke-linecap:round; stroke-linejoin:round}
+.hsb svg .face{fill:rgba(0,255,136,.10); transition:fill .12s}
+.hsb svg .eye{fill:currentColor; stroke:none}
+.hsb:hover svg .face, .hsb:focus-visible svg .face, .hsb.is-hover svg .face{fill:rgba(0,255,136,.22)}
+.hsb:focus-visible{outline:2px solid var(--focus); outline-offset:2px}
+.hsb .tip{position:absolute; left:50%; bottom:calc(100% + 9px); transform:translateX(-50%); white-space:nowrap; z-index:5; display:none;
+  background:var(--surface); border:1px solid rgba(0,255,136,.45); border-radius:9px; padding:6px 10px; box-shadow:0 10px 26px rgba(0,0,0,.55);
+  font:600 12.5px "IBM Plex Sans",sans-serif; color:var(--ink)}
+.hsb.is-hover .tip, .hsb:hover .tip, .hsb:focus-visible .tip{display:block}
+@media (prefers-reduced-motion:reduce){ .hsb svg .face{transition:none} }
+.zoom{display:flex; gap:26px; align-items:center; margin-top:10px; font:500 11px "IBM Plex Mono",monospace; color:var(--muted)}
+.zoom span{display:flex; align-items:center; gap:10px}
+.zoom .hsb{margin:0}
+.big svg{width:64px; height:64px; stroke-width:1.6}
+.phone{width:390px; border:1px solid var(--rule); border-radius:22px; padding:14px 16px 16px}
+</style>
+</head>
+<body>
+<div class="mk-h"><b>Project cell · one badge</b><span>Apps table · rows from the live snapshot · the smiley only where the Holders share check is green (coin API: Lido "Directly", 70% of revenue)</span></div>
+
+<div class="grid">
+  <div><span class="mk-lbl before">Before · live</span><span class="mk-cap">(i) = "supply sources disagree"; other rows carry more marks</span>
+    <div class="tw"><table id="before"></table></div></div>
+  <div><span class="mk-lbl after">After · desktop, Lido hovered</span><span class="mk-cap">one circle: the face is the ring</span>
+    <div class="tw"><table id="after"></table></div>
+    <div class="zoom"><span>rest <span class="hsb" id="z1"></span></span><span>hover <span class="hsb is-hover" id="z2" style="pointer-events:none"></span></span><span>×3 <span class="hsb big" id="z3"></span></span>
+      <span>Aave 0%, Stargate no data, Pharaoh not scanned: no badge</span></div></div>
+</div>
+
+<div class="mk-sep"></div>
+<span class="mk-lbl after">Phone 390</span>
+<div class="phone"><div class="tw"><table id="phone"></table></div></div>
+
+<script>
+var SMILE = '<svg viewBox="0 0 24 24" aria-hidden="true"><circle class="face" cx="12" cy="12" r="10.2"/><circle class="eye" cx="8.8" cy="9.8" r="1.35"/><circle class="eye" cx="15.2" cy="9.8" r="1.35"/><path d="M7.9 14.2c1 1.6 2.4 2.4 4.1 2.4s3.1-.8 4.1-2.4"/></svg>';
+var ROWS = [
+  {logo:'LI', name:'Lido', sym:'LDO', share:'70', badge:true, before:''},
+  {logo:'AA', name:'Aave', sym:'AAVE', badge:false, before:''},
+  {logo:'ST', name:'Stargate Finance', sym:'STG', badge:false, before:'<span class="oldi">i</span>'},
+  {logo:'PH', name:'Pharaoh Exchange', sym:'PHAR', badge:false, before:'<span class="oldi">i</span>'}
+];
+function badge(r, hover){
+  return '<span class="hsb' + (hover ? ' is-hover' : '') + '" tabindex="0" role="img" aria-label="Shares revenue with holders: ' + r.share + '% of revenue">' + SMILE +
+    '<span class="tip" role="tooltip">Holders get ' + r.share + '% of revenue</span></span>';
+}
+function table(v, phone){
+  var head = '<tr class="th"><td># Project</td>' + (phone ? '<td>Upside</td>' : '<td>Degen meter</td><td>Market cap</td>') + '</tr>';
+  return head + ROWS.map(function(r, i){
+    var extra = v === 'before' ? r.before : (r.badge ? badge(r, v === 'after' && i === 0) : '');
+    return '<tr' + (v === 'after' && i === 0 ? ' style="height:84px"' : '') + '><td style="vertical-align:bottom"><span class="namecell"><span class="logo">' + r.logo + '</span><span class="txt"><span class="nmrow"><span class="nm">' + r.name + '</span>' + extra +
+      '</span><span class="sym">' + r.sym + '</span></span></span></td>' + (phone ? '<td>…</td>' : '<td>…</td><td>…</td>') + '</tr>';
+  }).join('');
+}
+document.getElementById('before').innerHTML = table('before');
+document.getElementById('after').innerHTML = table('after');
+document.getElementById('phone').innerHTML = table('phone', true);
+['z1','z2','z3'].forEach(function(id){ document.getElementById(id).innerHTML = SMILE; });
+</script>
+</body>
+</html>

@@ -1,0 +1,270 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Supply Card Redesign</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#0a0e17; --surface:#0d1520; --surface-2:#111a28; --surface-sunk:#070b12;
+  --ink:#E6EDF7; --ink-2:#A9B8CC; --muted:#6F8199; --text-heading:#F3F7FC;
+  --accent:#00cfff; --accent-soft:rgba(0,207,255,.14); --accent-ink:#7FE6FF; --band-blue:#3b82f6;
+  --gem:#00ff88; --good:#00ff88; --bad:#ff4444; --caution:#3b82f6; --warn:var(--caution);
+  --rule:rgba(0,150,255,.15); --rule-soft:rgba(0,150,255,.08); --focus:#00cfff;
+}
+*{box-sizing:border-box}
+html,body{margin:0; background:var(--paper)}
+body{color:var(--ink); font-family:"IBM Plex Sans",system-ui,sans-serif; font-size:15px; line-height:1.48; -webkit-font-smoothing:antialiased; padding:22px 32px 30px}
+:focus-visible{outline:2px solid var(--focus); outline-offset:2px; border-radius:3px}
+/* mock chrome */
+.mk-h{display:flex; align-items:baseline; gap:14px; margin:0 0 14px}
+.mk-h b{font-family:"Archivo Black",sans-serif; font-weight:400; font-size:22px; color:var(--text-heading)}
+.mk-h span{font:500 12px "IBM Plex Mono",monospace; color:var(--muted)}
+.mk-lbl{display:inline-block; font:700 11px "IBM Plex Mono",monospace; letter-spacing:.14em; text-transform:uppercase; padding:3px 9px; border-radius:6px; margin:0 8px 8px 0}
+.mk-lbl.before{color:var(--muted); border:1px solid var(--rule)} .mk-lbl.after{color:var(--paper); background:var(--accent)}
+.mk-cap{font:500 11.5px "IBM Plex Mono",monospace; color:var(--muted); display:block; margin:0 0 6px}
+.mk-sep{height:1px; background:var(--rule); margin:20px 0 16px}
+.row{display:flex; gap:24px; align-items:flex-start}
+.col{display:flex; flex-direction:column; gap:4px; min-width:0}
+
+/* the page's floating tooltip (#tip) */
+.tip{background:var(--surface); color:var(--ink-2); padding:12px 14px; border-radius:12px; border:1px solid rgba(0,150,255,.35);
+  font-size:14px; line-height:1.45; box-shadow:0 10px 30px rgba(0,0,0,.55); max-width:300px}
+.tip b{color:var(--ink); font-size:15px; display:block}
+.tip .pk{display:block; margin-top:6px; font:11px "IBM Plex Mono",monospace; color:var(--muted)}
+
+/* BEFORE card (live CSS, recreated) */
+.xcard{border:1px solid var(--rule); border-radius:10px; background:var(--surface-2); padding:18px 20px; width:640px}
+.xhead{display:flex; align-items:center; justify-content:space-between}
+.xk{font-size:13px; letter-spacing:.08em; text-transform:uppercase; color:var(--muted); font-weight:600}
+.xi{width:18px; height:18px; border:1px solid var(--muted); border-radius:50%; display:grid; place-items:center; font:700 10px "IBM Plex Mono",monospace; color:var(--muted)}
+.supstats{display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:10px; margin-top:12px}
+.supstat{border:1px solid var(--rule); border-radius:8px; padding:10px 12px; background:var(--surface)}
+.supstat .sv{font:700 24px "IBM Plex Mono",monospace; color:var(--ink)} .supstat .sl{font-size:14px; color:var(--ink-2)}
+.supstat.v-bad{border-color:var(--bad)} .supstat.v-bad .sv{color:var(--bad)} .supstat.v-na .sv{color:var(--muted); font-size:20px}
+.supstat.v-good .sv{color:var(--good)}
+.old .sarow{display:grid; grid-template-columns:112px minmax(0,1fr); gap:14px 18px; align-items:center; margin-top:12px}
+.old .sahero{display:flex; align-items:baseline; gap:10px; flex-wrap:wrap}
+.old .sahero b{font:700 34px/1 "IBM Plex Mono",monospace; color:var(--bad); border-bottom:2px dashed currentColor}
+.old .sahero .sl{font-size:16px; color:var(--ink-2)}
+.old .sapill{display:inline-flex; align-items:center; min-height:26px; padding:0 10px; border-radius:999px; border:1.5px solid var(--bad); font-size:12px; font-weight:700; letter-spacing:.08em; text-transform:uppercase}
+.old .sasay{margin:8px 0 0; font-size:16px} .old .saunk{margin:6px 0 0; font-size:16px; color:var(--muted)}
+.old .salegend{list-style:none; margin:10px 0 0; padding:0; font-size:15px; color:var(--ink-2); display:grid; grid-template-columns:1fr 1fr; gap:2px 12px}
+.old .salegend i{display:inline-block; width:9px; height:9px; border-radius:2px; margin-right:6px}
+.old .salink{display:inline-block; margin-top:10px; font-weight:700; color:var(--accent)}
+.old .suptag{display:inline-block; margin-top:10px; font:600 11px "IBM Plex Mono",monospace; letter-spacing:.1em; text-transform:uppercase; color:var(--ink-2); border:1px solid var(--muted); border-radius:4px; padding:3px 8px}
+.curve{display:block; width:100%; height:64px} .curve .l{fill:none; stroke:var(--accent); stroke-width:1.8} .curve .a{fill:rgba(0,207,255,.12)} .curve text{fill:var(--muted); font:10px "IBM Plex Mono",monospace}
+
+/* ================= AFTER (see supply-card-spec.md) ================= */
+.sa2 .supstats{gap:8px} .sa2 .supstat{padding:9px 11px} .sa2 .supstat .sv{font-size:22px}
+.sa-hero{display:grid; grid-template-columns:minmax(0,1fr) auto; gap:2px 14px; align-items:center; margin-top:16px}
+.sa-fig{display:flex; align-items:center; gap:10px; flex-wrap:wrap}
+.sa-fig b{font:700 34px/1.05 "IBM Plex Mono",monospace; letter-spacing:-.02em; font-variant-numeric:tabular-nums}
+.sa-hero.red .sa-fig b{color:var(--bad)} .sa-hero.green .sa-fig b{color:var(--good)} .sa-hero.grey .sa-fig b{color:var(--muted)}
+.sa-unit{font-size:14px; color:var(--ink-2)}
+.sa-est{appearance:none; cursor:help; font:600 11px "IBM Plex Mono",monospace; letter-spacing:.06em; color:var(--ink-2);
+  background:transparent; border:1px dashed var(--muted); border-radius:99px; padding:2px 9px}
+.sa-est:hover, .sa-est:focus-visible{border-color:var(--accent); color:var(--ink)}
+.sa-press{grid-row:1 / span 2; grid-column:2; display:flex; flex-direction:column; align-items:center; justify-content:center; gap:1px;
+  min-width:108px; padding:8px 12px; border-radius:10px; border:1.5px solid var(--accent); cursor:help; background:var(--surface)}
+.sa-press .pn{font:700 26px/1 "IBM Plex Mono",monospace; color:var(--ink)} .sa-press .pn small{font-size:13px; color:var(--muted); font-weight:500}
+.sa-press .pb{font:700 10.5px "IBM Plex Mono",monospace; letter-spacing:.1em; text-transform:uppercase}
+.sa-press .ps{font:500 10px "IBM Plex Mono",monospace; color:var(--muted); white-space:nowrap}
+.sa-press.Flooding{border-color:var(--bad)} .sa-press.Flooding .pb, .sa-press.Flooding .pn{color:var(--bad)}
+.sa-press.Balanced{border-color:var(--warn)} .sa-press.Balanced .pb, .sa-press.Balanced .pn{color:var(--warn)}
+.sa-press.Squeezing{border-color:var(--good)} .sa-press.Squeezing .pb, .sa-press.Squeezing .pn{color:var(--good)}
+.sa-press.unknown{border-color:var(--muted); border-style:dashed} .sa-press.unknown .pb, .sa-press.unknown .pn{color:var(--muted)}
+.sa-press.range{border-style:dashed}
+.sa-say{margin:10px 0 0; font-size:15px; color:var(--ink)}
+.sa-viz{display:grid; grid-template-columns:auto minmax(0,1fr) minmax(0,1.1fr); gap:12px 16px; align-items:center; margin-top:14px;
+  padding-top:12px; border-top:1px solid var(--rule-soft)}
+.sa-pie{position:relative; width:84px; height:84px}
+.sa-pie svg{display:block; overflow:visible} .sa-pie path, .sa-pie circle.s{cursor:pointer; transition:opacity .12s, transform .12s; transform-origin:42px 42px}
+.sa-pie.has-hl .s:not(.hl){opacity:.35} .sa-pie .s.hl{transform:scale(1.06)}
+.sa-leg{list-style:none; margin:0; padding:0; display:grid; gap:2px; font-size:13px; color:var(--ink-2)}
+.sa-leg li{display:flex; align-items:center; gap:7px; padding:3px 6px; border-radius:6px; cursor:default; white-space:nowrap}
+.sa-leg li i{width:10px; height:10px; border-radius:2px; flex:none}
+.sa-leg li .v{margin-left:auto; padding-left:8px; font:600 12.5px "IBM Plex Mono",monospace; color:var(--ink)}
+.sa-leg li.hl{background:var(--accent-soft); color:var(--ink)}
+.sa-ctit{font:500 10.5px "IBM Plex Mono",monospace; letter-spacing:.08em; text-transform:uppercase; color:var(--muted); margin:0 0 2px}
+.sl-tip{position:absolute; z-index:5; left:-4px; bottom:calc(100% + 8px); width:230px; background:var(--surface); border:1px solid rgba(0,150,255,.35); border-radius:10px;
+  padding:8px 11px; box-shadow:0 10px 30px rgba(0,0,0,.55); font-size:13px; color:var(--ink-2); pointer-events:none}
+.sl-tip b{color:var(--ink); font-weight:700} .sl-tip .m{display:block; margin-top:2px; font:12.5px "IBM Plex Mono",monospace; color:var(--ink)}
+.sl-tip[hidden]{display:none}
+.sa-more{margin-top:12px; border:1px solid var(--rule-soft); border-radius:8px; background:var(--surface)}
+.sa-more > summary{list-style:none; cursor:pointer; display:flex; align-items:center; gap:8px; padding:9px 12px; min-height:40px;
+  font:600 13px "IBM Plex Sans",sans-serif; color:var(--ink-2)}
+.sa-more > summary::-webkit-details-marker{display:none}
+.sa-more > summary::before{content:"▸"; color:var(--accent); transition:transform .12s}
+.sa-more[open] > summary::before{transform:rotate(90deg)}
+.sa-more > summary .n{font:700 11px "IBM Plex Mono",monospace; color:var(--ink); background:var(--rule); border-radius:99px; padding:1px 7px}
+.sa-more > summary .dis{margin-left:auto; font:600 10.5px "IBM Plex Mono",monospace; letter-spacing:.08em; text-transform:uppercase; color:var(--ink-2);
+  border:1px solid var(--muted); border-radius:4px; padding:2px 7px}
+.sa-more > summary:hover{color:var(--ink)}
+.sa-more dl{margin:0; padding:2px 12px 12px; display:grid; grid-template-columns:auto 1fr; gap:7px 14px; font-size:13px; color:var(--ink-2)}
+.sa-more dt{font:600 10.5px "IBM Plex Mono",monospace; letter-spacing:.08em; text-transform:uppercase; color:var(--muted); padding-top:2px}
+.sa-more dd{margin:0}
+.chip{display:inline-block; font:12px "IBM Plex Mono",monospace; color:var(--ink); border:1px dashed var(--muted); border-radius:99px; padding:0 8px; margin:0 4px 4px 0}
+.sa-foot{display:flex; align-items:center; gap:12px; margin-top:12px}
+.sa-foot a{font-weight:700; color:var(--accent); text-decoration:none} .sa-foot a:hover{text-decoration:underline}
+@media (prefers-reduced-motion:reduce){ *{transition:none !important; animation:none !important} }
+/* phone (ship as @media (max-width:560px)) */
+.phone{width:390px; border:1px solid var(--rule); border-radius:22px; padding:14px 16px 16px; flex:none}
+.phone .xcard{width:100%; padding:14px} .phone .supstat{padding:8px 9px} .phone .supstat .sv{font-size:18px} .phone .supstat .sl{font-size:12px}
+.phone .sa-fig b{font-size:24px; white-space:nowrap} .phone .sa-press{min-width:88px; padding:6px 8px} .phone .sa-press .pn{font-size:22px}
+.phone .sa-viz{grid-template-columns:auto minmax(0,1fr)} .phone .sa-curve{grid-column:1 / -1}
+/* column tooltip mock */
+.cell{display:inline-flex; align-items:center; gap:6px; font:700 14px "IBM Plex Mono",monospace; color:var(--bad); padding:6px 10px; border:1px solid var(--rule); border-radius:8px; margin-bottom:8px}
+</style>
+</head>
+<body>
+<div class="mk-h"><b>Supply · tooltip + card</b><span>values from the live Supply Analyzer feed the page reads (/api/v1/supply-analyzer/batch/gem-screener, 4 Oct 2026) and the page's snapshot</span></div>
+
+<!-- ============ TOOLTIP ============ -->
+<div class="row">
+  <div class="col"><span><span class="mk-lbl before">Before · Supply column tooltip</span></span>
+    <div class="tip" style="width:330px;max-width:330px"><b>Supply pressure unknown</b>The sellable pile changes ? a year.<br>Unknown: vesting schedule, emissions, staking, staking flow, buybacks, burns (an unknown outflow counts as 0, an unknown inflow as the typical token’s).<br>Pie: the tokens in play today by slice. Read Oct 4. Supply Analyzer by EventTrader.</div></div>
+  <div class="col"><span><span class="mk-lbl after">After · range (PHAR)</span></span>
+    <div class="tip" style="width:290px"><b>Supply pressure 1/10 · Flooding</b>Sellable tokens grow +52% to +67% a year (estimate).<span class="pk">1 = most new supply · 3 parts not measured</span></div></div>
+  <div class="col"><span><span class="mk-lbl after">After · measured (SWAP)</span></span>
+    <div class="tip" style="width:250px"><b>Supply pressure 9/10 · Squeezing</b>Sellable tokens shrink 8.4% a year.<span class="pk">10 = shrinking fastest</span></div></div>
+  <div class="col"><span><span class="mk-lbl after">After · unknown (DODO)</span></span>
+    <div class="tip" style="width:250px"><b>Supply pressure unknown</b>Not enough measured for a figure.<span class="pk">6 parts not measured</span></div></div>
+</div>
+
+<div class="mk-sep"></div>
+
+<!-- ============ CARD ============ -->
+<div class="row">
+  <div class="col"><span><span class="mk-lbl before">Before · Supply card (Pharaoh)</span></span>
+    <section class="xcard old">
+      <div class="xhead"><div class="xk">Supply</div><span class="xi">i</span></div>
+      <div class="supstats"><div class="supstat"><div class="sv">$4.0M</div><div class="sl">market cap</div></div>
+        <div class="supstat v-bad"><div class="sv">+16% ⚠</div><div class="sl">new tokens a week</div></div>
+        <div class="supstat v-na"><div class="sv">unknown</div><div class="sl">next unlock</div></div></div>
+      <div class="sarow"><div id="oldPie"></div><div>
+        <div class="sahero"><b>+52% to +67%</b><span class="sl">a year · the sellable pile</span><span class="sapill">1 / 10 · Flooding</span></div>
+        <p class="sasay">The pile of tokens that can be sold grows 22.9M a month. Nothing measured goes out.</p>
+        <p class="saunk">Unknown: vesting schedule, staking flow, burns — an unknown outflow counts as 0, an unknown inflow as the typical token’s; the dashed figure is a range.</p>
+        <div class="oldcurve"></div></div></div>
+      <ul class="salegend"><li><i style="background:var(--accent)"></i>Free to sell · 33.5M</li><li><i style="background:var(--band-blue)"></i>Staked, free to unlock · 497M</li><li><i style="border:1px dashed var(--muted)"></i>Reserve, outside the pie · 469M</li></ul>
+      <a class="salink">Open in Supply Analyzer ↗</a><br><span class="suptag">Supply sources disagree</span>
+    </section></div>
+  <div class="col"><span><span class="mk-lbl after">After · collapsed, one slice hovered</span></span>
+    <div id="cardA"></div></div>
+</div>
+
+<div class="mk-sep"></div>
+<div class="row">
+  <div class="col"><span><span class="mk-lbl after">After · “What we could not measure” open</span></span>
+    <div id="cardB"></div></div>
+  <div class="col" style="flex:1">
+    <span><span class="mk-lbl after">States · hero only</span></span>
+    <span class="mk-cap">measured · HyperSwap (SWAP), no range, no estimate tag</span><div id="stM"></div>
+    <span class="mk-cap" style="margin-top:12px">unknown · DODO, no figure</span><div id="stU"></div>
+    <span class="mk-cap" style="margin-top:12px">range + sources disagree · Pharaoh: see the cards; the tag sits on the expand row</span>
+  </div>
+</div>
+
+<div class="mk-sep"></div>
+<div class="row">
+  <div class="col"><span><span class="mk-lbl after">Phone 390</span></span><div class="phone" id="cardP"></div></div>
+  <div class="col" style="flex:1"><span><span class="mk-lbl after">Tooltips on tap (live copy)</span></span>
+    <span class="mk-cap">“estimate” tag</span>
+    <div class="tip"><b>Estimate: a range</b>3 parts could not be measured. An unknown outflow counts as 0, an unknown inflow as the typical token’s.</div>
+    <span class="mk-cap" style="margin-top:12px">pressure badge</span>
+    <div class="tip"><b>Supply pressure 1 of 10</b>1 = the sellable pile grows fastest, 10 = it shrinks fastest. 1–3 Flooding, 4–7 Balanced, 8–10 Squeezing.</div>
+  </div>
+</div>
+
+<script>
+var SL = {
+  free:{name:'Free to sell', col:'var(--accent)', mean:'can be sold now'},
+  staked_free:{name:'Staked, free to unlock', col:'var(--band-blue)', mean:'staked, can be withdrawn'},
+  staked_locked:{name:'Staked, locked', col:'#1f4f8f', mean:'staked and locked'},
+  vesting:{name:'Vesting', col:'var(--bad)', mean:'unlocks on a schedule'},
+  paid_out:{name:'Newly paid out', col:'#ff8a8a', mean:'just paid out'},
+  bb_kept:{name:'Bought back, kept', col:'var(--good)', mean:'bought back, held'},
+  bb_burned:{name:'Bought back, burned', col:'#00a85a', mean:'bought back, destroyed'}
+};
+function tok(v){ return v >= 1e9 ? (v/1e9).toFixed(2) + 'B' : v >= 1e6 ? (v/1e6).toFixed(1) + 'M' : (v/1e3).toFixed(0) + 'K'; }
+function pie(slices, size){
+  var r = size/2, ri = r - 2.6, a = -Math.PI/2, out = '<svg width="' + size + '" height="' + size + '" viewBox="0 0 ' + size + ' ' + size + '" aria-hidden="true">' +
+    '<circle cx="' + r + '" cy="' + r + '" r="' + (r-1) + '" fill="none" stroke="#000" stroke-width="2"/>';
+  slices.forEach(function(s){
+    var a1 = a + 2*Math.PI*s.share/100, big = a1 - a > Math.PI ? 1 : 0;
+    if (s.share >= 99.99) out += '<circle class="s" data-k="' + s.k + '" cx="' + r + '" cy="' + r + '" r="' + ri + '" style="fill:' + SL[s.k].col + '"/>';
+    else out += '<path class="s" data-k="' + s.k + '" d="M' + r + ' ' + r + ' L' + (r+ri*Math.cos(a)).toFixed(2) + ' ' + (r+ri*Math.sin(a)).toFixed(2) + ' A' + ri + ' ' + ri + ' 0 ' + big + ' 1 ' +
+      (r+ri*Math.cos(a1)).toFixed(2) + ' ' + (r+ri*Math.sin(a1)).toFixed(2) + ' Z" style="fill:' + SL[s.k].col + '"/>';
+    a = a1; });
+  return out + '</svg>';
+}
+function curve(ys, l0, l1){
+  var W = 300, H = 64, lo = Math.min.apply(null, ys), hi = Math.max.apply(null, ys);
+  lo = Math.max(0, lo - (hi - lo) * .5); hi = hi + (hi - lo) * .1;
+  var pts = ys.map(function(y, i){ return ((i/(ys.length-1))*(W-2)+1).toFixed(1) + ' ' + (H-14-(y-lo)/(hi-lo)*(H-18)).toFixed(1); });
+  return '<svg class="curve" viewBox="0 0 ' + W + ' ' + H + '" preserveAspectRatio="none" role="img" aria-label="The sellable pile over the next 24 months"><path class="a" d="M' + pts.join(' L') + ' L' + (W-1) + ' ' + (H-14) + ' L1 ' + (H-14) + ' Z"/><path class="l" d="M' + pts.join(' L') + '"/>' +
+    '<text x="1" y="' + (H-1) + '">' + l0 + '</text><text x="' + (W-1) + '" y="' + (H-1) + '" text-anchor="end">' + l1 + '</text></svg>';
+}
+var PH_PILE = [530.6,553.5,576.4,599.3,622.1,645.0,667.9,690.8,713.7,736.5,759.4,782.3,805.2,828.1,851.0,873.8,896.7,919.6,942.5,965.4,988.2,1000,1000,1000];
+var PHAR = {tone:'red', hero:'+52% to +67%', est:true, p:'1', band:'Flooding', range:false, scale:'1 = most new supply',
+  say:'The pile of tokens that can be sold grows 22.9M a month. Nothing measured goes out.',
+  slices:[{k:'free', amt:33488613, share:6.31}, {k:'staked_free', amt:497139211, share:93.69}], reserve:469372176,
+  unknown:['vesting schedule','staking flow','burns'], disagree:'CoinGecko counts 33.5M tokens out, DeFiLlama 270.2M: 8.1× apart. Upside and dilution use CoinGecko’s figure. Not a pick until the two agree.'};
+function heroHtml(d){
+  return '<div class="sa-hero ' + d.tone + '"><div class="sa-fig"><b>' + d.hero + '</b>' +
+    (d.est ? '<button class="sa-est" type="button" aria-label="Estimate: a range. ' + d.unknown.length + ' parts could not be measured.">estimate</button>' : '') + '</div>' +
+    '<span class="sa-press ' + d.band + (d.range ? ' range' : '') + '" tabindex="0" role="img" aria-label="Supply pressure ' + d.p + ' of 10, ' + d.band + '"><span class="pn">' + d.p + '<small>/10</small></span><span class="pb">' + d.band + '</span><span class="ps">' + d.scale + '</span></span>' +
+    '<div class="sa-unit">' + d.unit + '</div></div>' + (d.say ? '<p class="sa-say">' + d.say + '</p>' : '');
+}
+function card(d, open, hover, id){
+  d.unit = d.unit || 'sellable tokens a year';
+  var leg = d.slices.map(function(s){ return '<li tabindex="0" data-k="' + s.k + '"><i style="background:' + SL[s.k].col + '"></i>' + SL[s.k].name + '<span class="v">' + tok(s.amt) + '</span></li>'; }).join('') +
+    '<li tabindex="0" data-k="reserve"><i style="border:1px dashed var(--muted)"></i>Reserve, outside the pie<span class="v">' + tok(d.reserve) + '</span></li>';
+  return '<section class="xcard sa2"><div class="xhead"><div class="xk">Supply</div><span class="xi">i</span></div>' +
+    '<div class="supstats"><div class="supstat"><div class="sv">$4.0M</div><div class="sl">market cap</div></div>' +
+    '<div class="supstat v-bad"><div class="sv">+16% ⚠</div><div class="sl">new tokens a week</div></div>' +
+    '<div class="supstat v-na"><div class="sv">unknown</div><div class="sl">next unlock</div></div></div>' + heroHtml(d) +
+    '<div class="sa-viz"><div class="sa-pie" id="' + id + 'p">' + pie(d.slices, 84) + '<div class="sl-tip" role="tooltip" hidden></div></div><ul class="sa-leg" aria-label="Tokens in play today">' + leg + '</ul>' +
+    '<div class="sa-curve"><p class="sa-ctit">Sellable pile, next 24 months</p>' + curve(PH_PILE, 'Oct 2026 · 531M', 'Sep 2028 · 1.00B') + '</div></div>' +
+    '<details class="sa-more"' + (open ? ' open' : '') + '><summary>What we could not measure <span class="n">' + d.unknown.length + '</span>' +
+    (d.disagree ? '<span class="dis">sources disagree</span>' : '') + '</summary><dl>' +
+    '<dt>Not measured</dt><dd>' + d.unknown.map(function(u){ return '<span class="chip">' + u + '</span>'; }).join('') + '</dd>' +
+    '<dt>Assumed</dt><dd>An unknown outflow counts as 0, an unknown inflow as the typical token’s. That is why the figure is a range.</dd>' +
+    (d.disagree ? '<dt>Sources</dt><dd>' + d.disagree + '</dd>' : '') +
+    '<dt>Pressure</dt><dd>6 − ceil(yearly change of the sellable pile / 2.5%): 1–3 Flooding, 4–7 Balanced, 8–10 Squeezing.</dd>' +
+    '<dt>Read</dt><dd>Oct 4 · Supply Analyzer by EventTrader</dd></dl></details>' +
+    '<div class="sa-foot"><a href="#">Open in Supply Analyzer ↗</a></div></section>';
+}
+function wire(root, d, hoverK){
+  var p = root.querySelector('.sa-pie'), tip = p.querySelector('.sl-tip');
+  function show(k){
+    root.querySelectorAll('[data-k]').forEach(function(el){ el.classList.toggle('hl', el.dataset.k === k); });
+    p.classList.toggle('has-hl', !!k);
+    if (!k){ tip.hidden = true; return; }
+    var s = d.slices.filter(function(x){ return x.k === k; })[0];
+    tip.innerHTML = k === 'reserve' ? '<b>Reserve, outside the pie</b><span class="m">' + tok(d.reserve) + '</span>not in circulation yet'
+      : '<b>' + SL[k].name + '</b><span class="m">' + tok(s.amt) + ' · ' + Math.round(s.share) + '%</span>' + SL[k].mean;
+    tip.hidden = false;
+  }
+  root.querySelectorAll('[data-k]').forEach(function(el){
+    ['mouseenter','focus'].forEach(function(t){ el.addEventListener(t, function(){ show(el.dataset.k); }); });
+    ['mouseleave','blur'].forEach(function(t){ el.addEventListener(t, function(){ show(null); }); });
+    el.addEventListener('click', function(){ show(el.dataset.k); });
+  });
+  if (hoverK) show(hoverK);
+}
+document.getElementById('oldPie').innerHTML = pie(PHAR.slices, 96);
+document.querySelector('.oldcurve').innerHTML = curve(PH_PILE, 'Oct 2026 · 531M', 'Sep 2028 · 1.00B');
+var A = document.getElementById('cardA'); A.innerHTML = card(PHAR, false, true, 'a'); wire(A, PHAR, 'free');
+var B = document.getElementById('cardB'); B.innerHTML = card(PHAR, true, false, 'b'); wire(B, PHAR);
+var P = document.getElementById('cardP'); P.innerHTML = card(PHAR, false, false, 'p'); wire(P, PHAR, 'staked_free');
+document.getElementById('stM').innerHTML = '<div class="xcard sa2" style="width:auto;padding:4px 18px 16px">' + heroHtml({tone:'green', hero:'−8.4%', est:false, p:'9', band:'Squeezing', scale:'10 = shrinking fastest', unit:'sellable tokens a year',
+  say:'The pile of tokens that can be sold shrinks 495K a month. Buybacks and new tokens are about even.', unknown:[]}) + '</div>';
+document.getElementById('stU').innerHTML = '<div class="xcard sa2" style="width:auto;padding:4px 18px 16px">' + heroHtml({tone:'grey', hero:'?', est:false, p:'?', band:'unknown', scale:'6 parts not measured', unit:'not enough measured for a figure', say:'', unknown:[]}) + '</div>';
+</script>
+</body>
+</html>

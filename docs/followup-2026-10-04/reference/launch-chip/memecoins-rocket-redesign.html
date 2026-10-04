@@ -1,0 +1,166 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Memecoins Launch CTA</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+/* ---------- live tokens (cymetica.com/gem-screener/app) ---------- */
+:root{
+  --paper:#0a0e17; --surface:#0d1520; --surface-2:#111a28; --surface-sunk:#070b12;
+  --ink:#E6EDF7; --ink-2:#A9B8CC; --muted:#6F8199; --text-heading:#F3F7FC;
+  --accent:#00cfff; --accent-soft:rgba(0,207,255,.14); --accent-ink:#7FE6FF;
+  --gem:#00ff88; --good:#00ff88; --good-soft:rgba(0,255,136,.14);
+  --bad:#ff4444; --bad-soft:rgba(255,68,68,.14); --copper:#ff4444;
+  --rule:rgba(0,150,255,.15); --rule-soft:rgba(0,150,255,.08); --focus:#00cfff;
+}
+*{box-sizing:border-box}
+html,body{margin:0; background:var(--paper)}
+body{color:var(--ink); font-family:"IBM Plex Sans",system-ui,sans-serif; font-size:15px; line-height:1.48;
+  -webkit-font-smoothing:antialiased; padding:22px 32px 30px}
+:focus-visible{outline:2px solid var(--focus); outline-offset:2px; border-radius:3px}
+
+/* ---------- mockup chrome ---------- */
+.mk-h{display:flex; align-items:baseline; gap:14px; margin:0 0 14px}
+.mk-h b{font-family:"Archivo Black",sans-serif; font-weight:400; font-size:22px; color:var(--text-heading)}
+.mk-h span{font:500 12px "IBM Plex Mono",monospace; color:var(--muted)}
+.mk-lbl{display:inline-block; font:700 11px "IBM Plex Mono",monospace; letter-spacing:.14em; text-transform:uppercase;
+  padding:3px 9px; border-radius:6px; margin:0 0 8px}
+.mk-lbl.before{color:var(--muted); border:1px solid var(--rule)}
+.mk-lbl.after{color:var(--paper); background:var(--accent)}
+.mk-lbl.alt{color:var(--ink-2); border:1px dashed var(--muted)}
+.mk-why{font-size:13px; color:var(--ink-2); margin:-2px 0 8px} .mk-why b{color:var(--ink)}
+.mk-sep{height:1px; background:var(--rule); margin:20px 0 16px}
+.mk-row{display:flex; gap:28px; align-items:flex-start}
+.mk-phone{width:390px; flex:none; border:1px solid var(--rule); border-radius:22px; padding:14px 16px 16px}
+.mk-states{display:flex; gap:22px; align-items:center; margin-top:10px; font:500 11px "IBM Plex Mono",monospace; color:var(--muted)}
+.mk-states > span{display:flex; align-items:center; gap:10px}
+.fake-logo{width:22px; height:22px; border-radius:50%; border:2px solid var(--surface); box-sizing:content-box; display:inline-grid;
+  place-items:center; font:700 9px "IBM Plex Mono",monospace; color:var(--ink-2); background:#1a2636}
+.more{color:var(--muted); font:500 12px "IBM Plex Mono",monospace; text-align:left}
+
+/* ---------- live table CSS (recreated) ---------- */
+.tablewrap{border:1px solid var(--rule); border-radius:8px; overflow:hidden; background:var(--surface)}
+table{border-collapse:collapse; width:100%; font-size:14px}
+td{padding:9px 9px; border-bottom:1px solid var(--rule-soft); vertical-align:middle; color:var(--ink-2); text-align:right}
+td.left{text-align:left} td.tight{width:1%; white-space:nowrap}
+tr.stgroup td{text-align:left; padding-top:14px; padding-bottom:6px; border-bottom:1px solid var(--rule)}
+.stg-name{font-family:"IBM Plex Mono",monospace; font-size:12px; font-weight:700; letter-spacing:.08em; text-transform:uppercase; color:var(--bad)}
+.stg-n{margin-left:8px; font-family:"IBM Plex Mono",monospace; font-size:11px; color:var(--ink-2); border:1px solid var(--rule); border-radius:9px; padding:0 7px}
+.stg-rule{margin-left:10px; font-size:11.5px; color:var(--muted)}
+.namecell{display:flex; align-items:center; gap:10px; min-width:0}
+.logostack{display:inline-flex; flex:none} .logostack > * + *{margin-left:-9px}
+.namecell .txt{display:flex; flex-direction:column; gap:1px; min-width:0}
+.nmrow{display:flex; align-items:center; flex-wrap:nowrap; min-width:0}
+.namecell .nm{font-weight:600; color:var(--ink); font-size:14px; white-space:nowrap}
+.namecell .sym{font-family:"IBM Plex Mono",monospace; font-size:11px; color:var(--muted)}
+.caticon{width:18px; height:18px; border-radius:50%; display:inline-flex; align-items:center; justify-content:center; flex:none; margin-left:4px}
+.caticon.good{color:var(--gem); background:color-mix(in srgb, var(--gem) 12%, transparent)}
+a.caticon.lpad{color:var(--good); background:var(--good-soft)}
+.stpill{display:inline-flex; align-items:center; gap:4px; font:700 10.5px "IBM Plex Mono",monospace; letter-spacing:.05em;
+  text-transform:uppercase; border:1px solid currentColor; border-radius:99px; padding:3px 8px; white-space:nowrap;
+  color:var(--bad); background:var(--bad-soft)}
+
+/* ================= AFTER: the launch chip (see memecoins-rocket-spec.md) ================= */
+.lp-cta{display:inline-flex; align-items:center; gap:8px; flex:none; height:34px; padding:0 12px 0 3px; margin-left:14px;
+  border-radius:99px; border:1px solid rgba(0,207,255,.55); text-decoration:none; white-space:nowrap;
+  background:linear-gradient(90deg, rgba(0,207,255,.22), rgba(0,207,255,.06));
+  color:var(--accent-ink); font:700 13px "IBM Plex Sans",sans-serif;
+  transition:transform .15s, box-shadow .15s, border-color .15s}
+.lp-disc{width:28px; height:28px; border-radius:50%; display:grid; place-items:center; flex:none;
+  background:var(--accent); color:#04121c; box-shadow:0 0 14px rgba(0,207,255,.45)}
+.lp-ext{opacity:.75; font-size:12px}
+.lp-cta:hover, .lp-cta.is-hover{transform:translateY(-1px); border-color:var(--accent);
+  box-shadow:0 0 0 1px var(--accent), 0 8px 22px -8px rgba(0,207,255,.7)}
+.lp-cta:focus-visible, .lp-cta.is-focus{outline:2px solid var(--text-heading); outline-offset:3px}
+@media (prefers-reduced-motion:reduce){ .lp-cta{transition:none} .lp-cta:hover{transform:none} }
+
+/* B: yellow, for comparison only (outside the palette) */
+.lp-cta.y{border-color:rgba(255,214,10,.6); background:linear-gradient(90deg, rgba(255,214,10,.22), rgba(255,214,10,.05)); color:#ffe066}
+.lp-cta.y .lp-disc{background:#ffd60a; color:#1a1400; box-shadow:0 0 14px rgba(255,214,10,.45)}
+.lp-cta.y:hover, .lp-cta.y.is-hover{border-color:#ffd60a; box-shadow:0 0 0 1px #ffd60a, 0 8px 22px -8px rgba(255,214,10,.7)}
+
+.phone .lp-cta{height:32px; margin-left:10px; padding-right:11px; font-size:12.5px}
+.phone .lp-cta .lp-long{display:none}
+.phone .lp-disc{width:26px; height:26px}
+.phone .tablewrap{overflow:hidden} .phone table{width:560px}
+</style>
+</head>
+<body>
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <symbol id="i-rocket" viewBox="0 0 16 16"><path d="M9.2 10.6 5.4 6.8C6.6 3.9 9.2 2.2 13.8 2.2c0 4.6-1.7 7.2-4.6 8.4z" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linejoin="round"/><circle cx="10.4" cy="5.6" r="1.1" fill="currentColor"/><path d="M5.4 6.8 3 7.2 4.6 5.2 6.3 5M9.2 10.6 8.8 13l2-1.6.2-1.7M4.6 9.6c-1.2.4-1.8 1.4-2 3.8 2.4-.2 3.4-.8 3.8-2" fill="none" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+  <symbol id="i-rocket-b" viewBox="0 0 16 16"><path d="M9.2 10.6 5.4 6.8C6.6 3.9 9.2 2.2 13.8 2.2c0 4.6-1.7 7.2-4.6 8.4z" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linejoin="round"/><circle cx="10.4" cy="5.6" r="1.2" fill="currentColor"/><path d="M5.4 6.8 3 7.2 4.6 5.2 6.3 5M9.2 10.6 8.8 13l2-1.6.2-1.7M4.6 9.6c-1.2.4-1.8 1.4-2 3.8 2.4-.2 3.4-.8 3.8-2" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/></symbol>
+  <symbol id="i-bars" viewBox="0 0 16 16"><path d="M3 13.5v-3M8 13.5V7.5M13 13.5v-10" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></symbol>
+</svg>
+
+<div class="mk-h"><b>Memecoins · launch CTA</b><span>Sectors tab · FALLING group · the rocket links to cymetica.com/launchpad (new tab), its only words in the code: "Launch your own memecoin"</span></div>
+
+<!-- ============ BEFORE ============ -->
+<span class="mk-lbl before">Before · live</span>
+<div class="tablewrap"><table>
+  <tr class="stgroup"><td colspan="3"><span class="stg-name">▼ Falling</span><span class="stg-n">5</span><span class="stg-rule">below 3M · below 1M</span></td></tr>
+  <tr><td class="left"><span class="namecell"><span class="logostack"><span class="fake-logo">D</span><span class="fake-logo">S</span><span class="fake-logo">P</span></span>
+    <span class="txt"><span class="nmrow"><span class="nm">Memecoins</span><span class="caticon good"><svg width="15" height="15"><use href="#i-bars"/></svg></span><a class="caticon lpad" href="#"><svg width="15" height="15"><use href="#i-rocket"/></svg></a></span><span class="sym">15 coins</span></span></span></td>
+    <td class="tight"><span class="stpill">▼ Falling</span></td><td class="more">… other columns unchanged</td></tr>
+</table></div>
+
+<div class="mk-sep"></div>
+
+<!-- ============ AFTER A ============ -->
+<span class="mk-lbl after">After A · cyan · recommended</span>
+<p class="mk-why"><b>Why cyan:</b> on this page green and red are verdicts on the data (and this row is Falling); cyan is what every link and button is, so a cyan chip says "action", not "memecoins look good".</p>
+<div class="tablewrap"><table>
+  <tr class="stgroup"><td colspan="3"><span class="stg-name">▼ Falling</span><span class="stg-n">5</span><span class="stg-rule">below 3M · below 1M</span></td></tr>
+  <tr><td class="left"><span class="namecell"><span class="logostack"><span class="fake-logo">D</span><span class="fake-logo">S</span><span class="fake-logo">P</span></span>
+    <span class="txt"><span class="nmrow"><span class="nm">Memecoins</span><span class="caticon good"><svg width="15" height="15"><use href="#i-bars"/></svg></span></span><span class="sym">15 coins</span></span>
+    <a class="lp-cta lpad" href="#" target="_blank" rel="noopener" aria-label="Launch your own memecoin (opens the Launchpad in a new tab)"><span class="lp-disc" aria-hidden="true"><svg width="20" height="20"><use href="#i-rocket-b"/></svg></span><span>Launch<span class="lp-long"> your own memecoin</span></span><span class="lp-ext" aria-hidden="true">↗</span></a></span></td>
+    <td class="tight"><span class="stpill">▼ Falling</span></td><td class="more">… other columns unchanged</td></tr>
+</table></div>
+<div class="mk-states">
+  <span>default <a class="lp-cta" href="#" style="margin-left:0"><span class="lp-disc"><svg width="20" height="20"><use href="#i-rocket-b"/></svg></span>Launch your own memecoin<span class="lp-ext">↗</span></a></span>
+  <span>hover <a class="lp-cta is-hover" href="#" style="margin-left:0"><span class="lp-disc"><svg width="20" height="20"><use href="#i-rocket-b"/></svg></span>Launch your own memecoin<span class="lp-ext">↗</span></a></span>
+  <span>keyboard focus <a class="lp-cta is-focus" href="#" style="margin-left:0"><span class="lp-disc"><svg width="20" height="20"><use href="#i-rocket-b"/></svg></span>Launch your own memecoin<span class="lp-ext">↗</span></a></span>
+</div>
+
+<div class="mk-sep"></div>
+
+<!-- ============ AFTER B ============ -->
+<span class="mk-lbl alt">Alternative B · yellow · for comparison</span>
+<p class="mk-why"><b>Outside the palette:</b> the live page itself says "EventTrader's palette has no amber, orange or yellow", and their build check rejects it, so B needs an exception from Cymetica.</p>
+<div class="tablewrap"><table>
+  <tr class="stgroup"><td colspan="3"><span class="stg-name">▼ Falling</span><span class="stg-n">5</span><span class="stg-rule">below 3M · below 1M</span></td></tr>
+  <tr><td class="left"><span class="namecell"><span class="logostack"><span class="fake-logo">D</span><span class="fake-logo">S</span><span class="fake-logo">P</span></span>
+    <span class="txt"><span class="nmrow"><span class="nm">Memecoins</span><span class="caticon good"><svg width="15" height="15"><use href="#i-bars"/></svg></span></span><span class="sym">15 coins</span></span>
+    <a class="lp-cta y lpad" href="#"><span class="lp-disc"><svg width="20" height="20"><use href="#i-rocket-b"/></svg></span><span>Launch<span class="lp-long"> your own memecoin</span></span><span class="lp-ext">↗</span></a></span></td>
+    <td class="tight"><span class="stpill">▼ Falling</span></td><td class="more">… other columns unchanged</td></tr>
+</table></div>
+
+<div class="mk-sep"></div>
+
+<!-- ============ PHONES ============ -->
+<div class="mk-row">
+  <div><span class="mk-lbl after">A · phone 390px</span>
+    <div class="mk-phone phone"><div class="tablewrap"><table>
+      <tr class="stgroup"><td colspan="3"><span class="stg-name">▼ Falling</span><span class="stg-n">5</span><span class="stg-rule">below 3M · below 1M</span></td></tr>
+      <tr><td class="left"><span class="namecell"><span class="logostack"><span class="fake-logo">D</span><span class="fake-logo">S</span><span class="fake-logo">P</span></span>
+        <span class="txt"><span class="nmrow"><span class="nm">Memecoins</span><span class="caticon good"><svg width="15" height="15"><use href="#i-bars"/></svg></span></span><span class="sym">15 coins</span></span>
+        <a class="lp-cta lpad" href="#"><span class="lp-disc"><svg width="17" height="17"><use href="#i-rocket-b"/></svg></span><span>Launch<span class="lp-long"> your own memecoin</span></span><span class="lp-ext">↗</span></a></span></td>
+        <td class="tight"><span class="stpill">▼ Falling</span></td><td class="more">…</td></tr>
+    </table></div>
+    <p class="mk-why" style="margin-top:8px;font-size:12px">The table scrolls sideways (min-width 820px) as today; under 560px the chip shows "Launch", the full name stays in aria-label.</p></div>
+  </div>
+  <div><span class="mk-lbl alt">B · phone 390px</span>
+    <div class="mk-phone phone"><div class="tablewrap"><table>
+      <tr class="stgroup"><td colspan="3"><span class="stg-name">▼ Falling</span><span class="stg-n">5</span><span class="stg-rule">below 3M · below 1M</span></td></tr>
+      <tr><td class="left"><span class="namecell"><span class="logostack"><span class="fake-logo">D</span><span class="fake-logo">S</span><span class="fake-logo">P</span></span>
+        <span class="txt"><span class="nmrow"><span class="nm">Memecoins</span><span class="caticon good"><svg width="15" height="15"><use href="#i-bars"/></svg></span></span><span class="sym">15 coins</span></span>
+        <a class="lp-cta y lpad" href="#"><span class="lp-disc"><svg width="17" height="17"><use href="#i-rocket-b"/></svg></span><span>Launch<span class="lp-long"> your own memecoin</span></span><span class="lp-ext">↗</span></a></span></td>
+        <td class="tight"><span class="stpill">▼ Falling</span></td><td class="more">…</td></tr>
+    </table></div></div>
+  </div>
+</div>
+</body>
+</html>

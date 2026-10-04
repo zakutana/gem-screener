@@ -1,0 +1,195 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Gem Screener Guardians</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#0a0e17; --surface:#0d1520; --surface-2:#111a28; --surface-sunk:#070b12;
+  --ink:#E6EDF7; --ink-2:#A9B8CC; --muted:#6F8199; --text-heading:#F3F7FC;
+  --accent:#00cfff; --accent-soft:rgba(0,207,255,.14);
+  --good:#00ff88; --good-soft:rgba(0,255,136,.14); --bad:#ff4444; --bad-soft:rgba(255,68,68,.14);
+  --caution:#3b82f6; --warn:var(--caution); --warn-soft:color-mix(in srgb, var(--caution) 16%, transparent);
+  --rule:rgba(0,150,255,.15); --rule-soft:rgba(0,150,255,.08); --focus:#00cfff;
+}
+*{box-sizing:border-box}
+html,body{margin:0; background:var(--paper)}
+body{color:var(--ink); font-family:"IBM Plex Sans",system-ui,sans-serif; font-size:15px; line-height:1.48; -webkit-font-smoothing:antialiased; padding:22px 32px 30px}
+:focus-visible{outline:2px solid var(--focus); outline-offset:2px; border-radius:6px}
+.mk-h{display:flex; align-items:baseline; gap:14px; margin:0 0 14px}
+.mk-h b{font-family:"Archivo Black",sans-serif; font-weight:400; font-size:22px; color:var(--text-heading)}
+.mk-h span{font:500 12px "IBM Plex Mono",monospace; color:var(--muted)}
+.mk-lbl{display:inline-block; font:700 11px "IBM Plex Mono",monospace; letter-spacing:.14em; text-transform:uppercase; padding:3px 9px; border-radius:6px; margin:0 8px 8px 0}
+.mk-lbl.before{color:var(--muted); border:1px solid var(--rule)} .mk-lbl.after{color:var(--paper); background:var(--accent)}
+.mk-cap{font:500 11.5px "IBM Plex Mono",monospace; color:var(--muted)}
+.mk-sep{height:1px; background:var(--rule); margin:22px 0 16px}
+.before img{display:block; width:470px; border-radius:10px; border:1px solid var(--rule)}
+
+/* ===== the page's own check ring (.ckc), unchanged ===== */
+.ckc{display:inline-flex; align-items:center; justify-content:center; width:34px; height:34px; border-radius:50%; border:1.5px solid currentColor; flex:none; color:var(--muted)}
+.ckc.v-good{color:var(--good); background:var(--good-soft)} .ckc.v-caution{color:var(--warn); background:var(--warn-soft)} .ckc.v-bad{color:var(--bad); background:var(--bad-soft)}
+.ckc.v-not_checked{border-style:dashed} .ckc.v-not_applicable{background:rgba(111,129,153,.16)}
+.ckc svg{width:18px; height:18px; fill:none; stroke:currentColor; stroke-width:1.4; stroke-linecap:round; stroke-linejoin:round}
+.ckc.sm{width:26px; height:26px} .ckc.sm svg{width:14px; height:14px}
+
+/* ===== Guardians block ===== */
+.gcard{background:var(--surface-2); border:1px solid var(--rule); border-radius:12px; padding:14px 16px 14px; min-width:0}
+.gh{display:flex; align-items:center; gap:8px}
+.gh svg{width:15px; height:15px; fill:none; stroke:var(--accent); stroke-width:1.4; stroke-linecap:round; stroke-linejoin:round}
+.gh .t{font:700 12px "IBM Plex Sans",sans-serif; letter-spacing:.15em; text-transform:uppercase; color:var(--ink)}
+.gh .coin{margin-left:auto; font:600 11.5px "IBM Plex Mono",monospace; color:var(--muted)}
+.gsum{margin:8px 0 6px}
+.gsum .w{font:600 13px "IBM Plex Mono",monospace; color:var(--ink-2); white-space:nowrap}
+.gsum .r{color:var(--bad)} .gsum .c{color:var(--warn)} .gsum .g{color:var(--good)} .gsum .n{color:var(--muted)}
+/* the state mark on the ring: the non-colour cue */
+.ckc{position:relative}
+.ckc .mk{position:absolute; right:-4px; top:-4px; width:15px; height:15px; border-radius:50%; display:grid; place-items:center;
+  font:700 9.5px/1 "IBM Plex Mono",monospace; font-style:normal; color:var(--paper); background:currentColor; box-shadow:0 0 0 2px var(--surface-2)}
+.ckc .mk{color:inherit} .ckc .mk::selection{background:none}
+.ckc.v-good .mk{background:var(--good); color:var(--paper)} .ckc.v-caution .mk{background:var(--warn); color:var(--paper)} .ckc.v-bad .mk{background:var(--bad); color:var(--paper)}
+.ckc.v-not_checked .mk{background:var(--surface-2); color:var(--muted); border:1px dashed var(--muted)} .ckc.v-not_applicable .mk{background:#4a5a70; color:var(--paper)}
+.glist{list-style:none; margin:4px 0 0; padding:0; display:grid; grid-template-columns:1fr 1fr; gap:2px 10px}
+.grow{position:relative; display:flex; gap:12px; align-items:center; padding:8px 6px; border-radius:8px; cursor:help}
+.grow:hover, .grow:focus-visible{background:rgba(0,207,255,.06)}
+.gi{display:flex; gap:6px}
+.gn{font-size:14px; font-weight:700; color:var(--ink); line-height:1.2}
+.grow.v-not_checked .gn{color:var(--ink-2)}
+.gp{font:700 10.5px "IBM Plex Mono",monospace; letter-spacing:.1em; text-transform:uppercase; border:1px solid currentColor; border-radius:6px; padding:2px 7px; white-space:nowrap}
+.gp.v-good{color:var(--good)} .gp.v-caution{color:var(--warn)} .gp.v-bad{color:var(--bad)} .gp.v-not_checked{color:var(--muted); border-style:dashed} .gp.v-not_applicable{color:var(--muted)}
+/* the page's tooltip card (.ckcard), one line of value + one of context */
+.ckcard{position:absolute; z-index:5; left:0; top:calc(100% + 6px); width:300px; background:#0d1520; border:1px solid var(--cc, var(--muted)); border-radius:12px;
+  padding:12px 14px 10px; box-shadow:0 10px 30px rgba(0,0,0,.55); color:var(--ink-2); font-size:13.5px; line-height:1.45; cursor:default}
+.ckcard.v-good{--cc:var(--good)} .ckcard.v-caution{--cc:var(--warn)} .ckcard.v-bad{--cc:var(--bad)} .ckcard.v-not_checked{--cc:var(--muted)}
+.ckcard .cc-h{display:flex; align-items:center; gap:8px; margin-bottom:6px}
+.ckcard .cc-h svg{width:18px; height:18px; fill:none; stroke:var(--cc); stroke-width:1.4; stroke-linecap:round; stroke-linejoin:round}
+.ckcard .cc-name{color:var(--ink); font-weight:700; flex:1}
+.ckcard .cc-val{color:var(--ink); font-weight:700; font-size:15px}
+.ckcard .cc-foot{margin-top:8px; border-top:1px solid var(--rule); padding-top:6px; font:11px "IBM Plex Mono",monospace; letter-spacing:.1em; text-transform:uppercase; color:var(--muted)}
+.ckcard[hidden]{display:none}
+.glist li:nth-child(even) .ckcard{left:auto; right:0}
+.glater{border:1.5px dashed rgba(111,129,153,.55); border-radius:10px; padding:10px 12px; margin-top:12px}
+.glater .lh{display:flex; align-items:baseline; gap:8px; margin-bottom:8px}
+.glater .lh b{font-size:13px; color:var(--ink-2)} .glater .lh span{font-size:12px; color:var(--muted)}
+.glater ul{list-style:none; margin:0; padding:0; display:grid; grid-template-columns:repeat(auto-fill, minmax(130px,1fr)); gap:6px 10px}
+.glater li{display:flex; align-items:center; gap:7px; font-size:12.5px; color:var(--ink-2); cursor:help; border-radius:6px}
+.gfoot{display:flex; justify-content:space-between; gap:10px; margin-top:10px; font-size:12px; color:var(--muted)}
+.gfoot a{color:var(--accent); font-weight:700; text-decoration:none}
+.coins{display:grid; grid-template-columns:repeat(3, minmax(0,1fr)); gap:16px; align-items:start}
+.legend{display:flex; flex-wrap:wrap; gap:8px 18px; align-items:center}
+.legend span{display:inline-flex; align-items:center; gap:8px; font-size:12.5px; color:var(--ink-2)}
+.legend b{font:700 11px "IBM Plex Mono",monospace; letter-spacing:.08em; text-transform:uppercase}
+.set{display:grid; grid-template-columns:repeat(4, minmax(0,1fr)); gap:8px 16px; margin-top:10px}
+.set div{display:flex; gap:10px; align-items:center; font-size:12.5px; color:var(--ink-2)} .set b{display:block; color:var(--ink); font-size:13px}
+.phone{width:390px; border:1px solid var(--rule); border-radius:22px; padding:14px 16px 16px; flex:none}
+.phone .gcard{padding:12px}
+@media (prefers-reduced-motion:reduce){ *{transition:none !important} }
+</style>
+</head>
+<body>
+<div class="mk-h"><b>Guardians</b><span>coin detail only · the page's own check icons and rings · verdicts and texts from the live coin API, 4 Oct 2026</span></div>
+
+<div style="display:flex; gap:28px; align-items:flex-start">
+  <div class="before"><span class="mk-lbl before">Before · Checks (live)</span><img src="before-checks.png" alt="Today's Checks block"></div>
+  <div style="flex:1; min-width:0">
+    <span class="mk-lbl after">Six guardians, a ring and a name each</span>
+    <div class="set" id="set"></div>
+    <div class="mk-sep" style="margin:16px 0 12px"></div>
+    <span class="mk-lbl after">States</span><span class="mk-cap">ring + word + glyph, never colour alone; no data stays dashed, never green</span>
+    <div class="legend" id="legend" style="margin-top:4px"></div>
+    <div class="mk-sep" style="margin:16px 0 12px"></div>
+    <span class="mk-lbl after">Phone 390</span>
+    <div class="phone" id="phone"></div>
+  </div>
+</div>
+
+<div class="mk-sep"></div>
+<span class="mk-lbl after">Coin detail · three live coins</span><span class="mk-cap">Collector Crypt · Pharaoh Exchange · Stargate Finance — each guardian is only its ring and its name; every number lives in the card (hover, focus or tap), one shown open per coin</span>
+<div class="coins" id="coins" style="margin-top:6px"></div>
+
+<script>
+/* the live CHECK_ICON glyphs (16x16, stroke only); 'lock' is new, drawn to the same rules */
+var I = {
+  rug_power:'<circle cx="5.2" cy="10.8" r="2.6"/><path d="M7.1 8.9 13 3M11 5l1.8 1.8M9.3 6.7l1.4 1.4"/>',
+  new_tokens:'<rect x="2.5" y="6" width="11" height="5" rx="1"/><path d="M5 6V2.8h6V6M5 9.5h6v3.7H5z"/>',
+  reaches_you:'<path d="M2 3h12L9.5 8.5V13l-3-1.5v-3z"/>',
+  slippage:'<path d="M8 2.2c2.4 3 4 5 4 7a4 4 0 0 1-8 0c0-2 1.6-4 4-7z"/>',
+  price_run:'<path d="M8 1.8c.6 2.6 3.8 4 3.8 7.4a3.8 3.8 0 0 1-7.6 0c0-1.6.8-2.6 1.6-3.4.3 1.2 1 1.8 1.6 2 .1-2.2-.2-4 .6-6z"/>',
+  audit:'<path d="M8 1.8 13 3.6v4.2c0 3-2 5.2-5 6.4-3-1.2-5-3.4-5-6.4V3.6z"/><path d="M5.7 8 7.4 9.7l3-3.4"/>',
+  track_record:'<path d="M2.5 8a5.5 5.5 0 1 0 1.7-4"/><path d="M2 2.5V5h2.5M8 5v3.2l2.2 1.4"/>',
+  team:'<circle cx="6" cy="5.5" r="2.2"/><path d="M2 13c.3-2.4 1.9-3.6 4-3.6s3.7 1.2 4 3.6"/><path d="M10.6 3.6a2.1 2.1 0 0 1 0 4M11.8 9.7c1.3.5 2 1.6 2.2 3.3"/>',
+  whales:'<circle cx="8" cy="8" r="5.5"/><path d="M8 2.5V8l4.6 3"/>',
+  lock:'<rect x="3.2" y="7" width="9.6" height="6.8" rx="1.4"/><path d="M5.3 7V5.2a2.7 2.7 0 0 1 5.4 0V7M8 9.6v1.6"/>',
+  insider_flow:'<path d="M9.5 2.5H3.5v11h6"/><path d="M7 8h7M11.5 5.5 14 8l-2.5 2.5"/>',
+  market_cap:'<path d="M3.5 13.5v-4M8 13.5v-8M12.5 13.5V3"/>',
+  strength_3m:'<path d="M8 2.5v11M4.5 13.5h7M2.5 5h11"/><path d="M1.5 9.5 3.5 5l2 4.5a2 2 0 0 1-4 0zM10.5 9.5l2-4.5 2 4.5a2 2 0 0 1-4 0z"/>'
+};
+function svg(id){ return '<svg viewBox="0 0 16 16" aria-hidden="true">' + I[id] + '</svg>'; }
+var MARK = {good:'✓', caution:'!', bad:'×', not_checked:'?', not_applicable:'–'};
+function ring(id, v, sm, nob){ return '<span class="ckc ' + (sm ? 'sm ' : '') + 'v-' + v + '">' + svg(id) + (nob ? '' : '<i class="mk" aria-hidden="true">' + MARK[v] + '</i>') + '</span>'; }
+var GUARD = [
+  ['rug', 'Rug power', ['rug_power'], 'can the owner mint, freeze, change taxes or upgrade', 'rug_power'],
+  ['share', 'Holders paid', ['reaches_you'], 'does revenue reach holders (red under 5%)', 'reaches_you'],
+  ['door', 'Thin liquidity', ['slippage'], 'price move on a $10K buy', 'slippage'],
+  ['run', 'Price run', ['price_run'], 'how far the price already ran', 'price_run'],
+  ['sec', 'Security', ['audit', 'track_record'], 'audit listed · past hacks', 'audit + track_record'],
+  ['team', 'Team', ['team'], 'who ships it', 'team']
+];
+var WORD = {good:'✓ clear', caution:'! caution', bad:'× red', not_checked:'? not checked', not_applicable:'– does not apply'};
+document.getElementById('set').innerHTML = GUARD.map(function(g){
+  return '<div><span class="gi" style="display:flex;gap:4px">' + g[2].map(function(i){ return ring(i, 'good', true); }).join('') + '</span><span><b>' + g[1] + '</b>' + g[3] + '</span></div>'; }).join('');
+document.getElementById('legend').innerHTML = ['good','caution','bad','not_checked','not_applicable'].map(function(v){
+  var c = {good:'var(--good)', caution:'var(--warn)', bad:'var(--bad)'}[v] || 'var(--muted)';
+  return '<span>' + ring('slippage', v) + '<b style="color:' + c + '">' + WORD[v] + '</b></span>'; }).join('');
+
+/* [verdict, key number, one line of context, source · day]; Security also carries each light */
+var COINS = [
+ {sym:'CARDS', name:'Collector Crypt', tip:'share', g:{
+   rug:['good','Nobody can change the token','No owner key on the token contract.','on-chain · Sep 29'],
+   share:['bad','0.0% of revenue to holders','Holders get under 5% of revenue.','data · Oct 3'],
+   door:['good','0.5% on a $10K buy','Deepest DEX pool.','DEX pool · Oct 4'],
+   run:['caution','+67% in 30 days','35% below its all-time high.','data · Oct 4'],
+   sec:['bad','No audit listed · no exploit listed','Not proof of a hack.','DefiLlama · Sep 30', ['bad','good']],
+   team:['not_checked','Not scanned','Its site could not be read.','Degen report · Sep 30'],
+   dil:['bad','1/10 Flooding · range 1–6','Sellable +0% to +15% a year, an estimate.','Supply Analyzer · Oct 4']}},
+ {sym:'PHAR', name:'Pharaoh Exchange', tip:'run', g:{
+   rug:['not_checked','Not scanned','The owner is a contract that is not a Safe.','on-chain · Oct 4'],
+   share:['not_checked','Not scanned','How revenue reaches holders is not checked.','Degen report · Sep 30'],
+   door:['caution','2.6% on a $10K buy','Deepest DEX pool.','DEX pool · Oct 4'],
+   run:['bad','+194% in 30 days','12% below its all-time high.','data · Oct 3'],
+   sec:['bad','No audit listed · no exploit listed','Not proof of a hack.','DefiLlama · Sep 30', ['bad','good']],
+   team:['not_checked','Not scanned','Its site could not be read.','Degen report · Sep 30'],
+   dil:['bad','1/10 Flooding','Sellable +52% to +67% a year, an estimate.','Supply Analyzer · Oct 4']}},
+ {sym:'STG', name:'Stargate Finance', tip:'door', g:{
+   rug:['good','No power to mint, pause or upgrade','The admin key cannot change supply or code.','on-chain · Sep 29'],
+   share:['not_checked','Not scanned','DefiLlama’s fee page could not be read.','Degen report · Sep 30'],
+   door:['caution','$5.7M traded in 24 h','Thin or no DEX pool; exchanges carry it.','exchange volume · Oct 4'],
+   run:['good','+2.5% in 30 days','96% below its all-time high.','data · Oct 3'],
+   sec:['caution','Audits listed, scope not read · hacks not scanned','A similar name has a listed exploit, not tied to it.','DefiLlama · Sep 30', ['caution','not_checked']],
+   team:['good','Public entity','Its terms page names Stargate Foundation.','Project site · Sep 30'],
+   dil:['caution','5/10 Balanced · range 1–5','Sellable +0% to +15% a year, an estimate.','Supply Analyzer · Oct 4']}}
+];
+function block(c, tipKey){
+  var n = {bad:0, caution:0, good:0, not_checked:0};
+  GUARD.forEach(function(g){ n[c.g[g[0]][0]]++; });
+  var rows = GUARD.map(function(g){
+    var s = c.g[g[0]], v = s[0];
+    var icons = g[2].map(function(id, k){ return ring(id, s[4] ? s[4][k] : v); }).join('');
+    var card = '<div class="ckcard v-' + v + '" role="tooltip"' + (g[0] === tipKey ? '' : ' hidden') + '><div class="cc-h">' + svg(g[2][0]) +
+      '<span class="cc-name">' + g[1] + '</span><span class="gp v-' + v + '">' + WORD[v] + '</span></div><div class="cc-val">' + s[1] + '</div>' + s[2] +
+      '<div class="cc-foot">' + s[3] + '</div></div>';
+    return '<li class="grow v-' + v + '" tabindex="0" aria-label="' + g[1] + ': ' + WORD[v].slice(2) + '. ' + s[1] + '"><span class="gi">' + icons + '</span>' +
+      '<span class="gn">' + g[1] + '</span>' + card + '</li>';
+  }).join('');
+  return '<section class="gcard" aria-label="Guardians"><div class="gh">' + svg('audit') + '<span class="t">Guardians</span><span class="coin">' + c.sym + '</span></div>' +
+    '<div class="gsum"><span class="w"><span class="r">' + n.bad + ' red</span> · <span class="c">' + n.caution + ' caution</span> · <span class="g">' + n.good + ' clear</span> · <span class="n">' + n.not_checked + ' not checked</span></span></div>' +
+    '<ul class="glist">' + rows + '</ul></section>';
+}
+document.getElementById('coins').innerHTML = COINS.map(function(c){ return block(c, c.tip); }).join('');
+document.getElementById('phone').innerHTML = block(COINS[0], null);
+</script>
+</body>
+</html>

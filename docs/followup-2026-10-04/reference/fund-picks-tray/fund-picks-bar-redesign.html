@@ -1,0 +1,308 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Fund Picks Tray</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+/* ---------- live tokens (cymetica.com/gem-screener/app) ---------- */
+:root{
+  --paper:#0a0e17; --surface:#0d1520; --surface-2:#111a28; --surface-sunk:#070b12;
+  --ink:#E6EDF7; --ink-2:#A9B8CC; --muted:#6F8199; --text-heading:#F3F7FC;
+  --accent:#00cfff; --accent-soft:rgba(0,207,255,.14); --accent-ink:#7FE6FF;
+  --gem:#00ff88; --good:#00ff88; --good-soft:rgba(0,255,136,.14);
+  --bad:#ff4444; --caution:#3b82f6; --warn:var(--caution);
+  --rule:rgba(0,150,255,.15); --rule-soft:rgba(0,150,255,.08); --focus:#00cfff;
+  --shadow:0 1px 2px rgba(0,0,0,.5), 0 14px 36px -18px rgba(0,0,0,.8);
+}
+*{box-sizing:border-box}
+html,body{margin:0; background:var(--paper)}
+body{color:var(--ink); font-family:"IBM Plex Sans",system-ui,sans-serif; font-size:15px; line-height:1.48;
+  -webkit-font-smoothing:antialiased; padding:22px 32px 30px}
+:focus-visible{outline:2px solid var(--focus); outline-offset:2px; border-radius:3px}
+.sr-only{position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0 0 0 0); white-space:nowrap}
+
+/* ---------- mockup chrome ---------- */
+.mk-h{display:flex; align-items:baseline; gap:14px; margin:0 0 14px}
+.mk-h b{font-family:"Archivo Black",sans-serif; font-weight:400; font-size:22px; color:var(--text-heading)}
+.mk-h span{font:500 12px "IBM Plex Mono",monospace; color:var(--muted)}
+.mk-lbl{display:inline-block; font:700 11px "IBM Plex Mono",monospace; letter-spacing:.14em; text-transform:uppercase;
+  padding:3px 9px; border-radius:6px; margin:0 8px 8px 0}
+.mk-lbl.before{color:var(--muted); border:1px solid var(--rule)}
+.mk-lbl.after{color:var(--paper); background:var(--accent)}
+.mk-cap{font:500 11.5px "IBM Plex Mono",monospace; color:var(--muted)}
+.mk-sep{height:1px; background:var(--rule); margin:20px 0 16px}
+.mk-gap{height:18px}
+.mk-grid{display:grid; grid-template-columns:repeat(3, 390px); gap:24px; justify-content:start}
+.vp{position:relative; overflow:hidden; border:1px solid var(--rule); border-radius:12px; background:var(--paper)}
+.vp.phone{width:390px; height:470px; border-radius:22px}
+.vp.phone .picktray{position:absolute; top:auto; bottom:0; transform:none}   /* mock: docked to the frame */
+.av{width:20px; height:20px; border-radius:50%; display:inline-grid; place-items:center; flex:none;
+  font:700 8.5px "IBM Plex Mono",monospace; color:var(--ink-2); background:#1d2a3c; border:1px solid rgba(0,150,255,.2)}
+.mk-ann{position:absolute; right:14px; font:600 11px "IBM Plex Mono",monospace; color:var(--accent-ink); background:var(--surface-sunk);
+  border:1px dashed rgba(0,207,255,.5); border-radius:6px; padding:3px 8px; z-index:40}
+
+/* ---------- live CSS (recreated): header, controls, table ---------- */
+.apphead{background:var(--surface); border-bottom:1px solid var(--rule); padding:12px 20px 0}
+.brand{display:flex; align-items:baseline; gap:10px; height:62px}
+.brand b{font:400 30px "Archivo Black",sans-serif; color:var(--text-heading)}
+.brand span{font:700 12px "IBM Plex Sans",sans-serif; color:var(--gem)}
+.brand em{margin-left:auto; font:500 12px "IBM Plex Mono",monospace; color:var(--ink-2); font-style:normal}
+.tabs{display:flex; gap:28px; font:600 14px "IBM Plex Sans",sans-serif; color:var(--ink-2)}
+.tabs span{padding:8px 0 10px; border-bottom:2px solid transparent} .tabs .on{color:var(--ink); border-bottom-color:var(--accent)}
+.tabs .lg{margin-left:auto; color:var(--accent)}
+.controls{position:relative; display:flex; flex-wrap:wrap; align-items:center; gap:10px; padding:14px 124px 14px 20px;
+  background:var(--surface-2); border-bottom:1px solid var(--rule); min-height:90px}
+.switch{display:inline-flex; border:1px solid var(--rule); border-radius:8px; overflow:hidden; background:var(--surface-sunk)}
+.switch button{appearance:none; border:0; background:transparent; color:var(--ink-2); font:600 13px "IBM Plex Mono",monospace; padding:7px 14px}
+.switch button.active{color:var(--accent); background:var(--surface)}
+.search{display:flex; align-items:center; gap:8px; border:1px solid var(--rule); border-radius:6px; padding:6px 12px; color:var(--muted); font-size:13px; width:250px}
+.count-badge{font:500 13px "IBM Plex Mono",monospace; color:var(--muted); border:1px solid var(--rule); border-radius:8px; padding:5px 10px}
+.count-badge b{color:var(--ink)}
+.bench{position:absolute; right:20px; top:50%; margin-top:-39px; width:92px; height:78px; border-radius:10px; display:grid; place-items:center; text-align:center;
+  border:1px solid rgba(0,255,136,.45); color:var(--gem); font:700 9px/1.3 "IBM Plex Mono",monospace; letter-spacing:.08em}
+.floor{flex-basis:100%; font:500 11px "IBM Plex Mono",monospace; letter-spacing:.1em; color:var(--muted); text-transform:uppercase}
+.pickbar{flex-basis:100%; display:flex; flex-wrap:wrap; align-items:center; gap:6px; padding:8px 10px; border:1px solid rgba(0,150,255,.15); border-radius:8px; background:rgba(17,24,39,.6); font-size:12px; color:var(--ink-2)}
+.pb-label{font-weight:700; color:var(--ink)}
+.pb-chip{border:1px solid rgba(0,150,255,.35); border-radius:999px; background:transparent; color:var(--accent-ink); font:inherit; font-size:12px; padding:2px 8px}
+.pb-launch{margin-left:auto; padding:6px 12px; border-radius:6px; background:var(--accent); color:var(--paper); font-weight:700; text-decoration:none}
+.pb-clear{border:none; background:transparent; color:var(--muted); font:inherit; font-size:12px; text-decoration:underline}
+.tablewrap{border:1px solid var(--rule); border-radius:8px; overflow:hidden; background:var(--surface); margin:14px 20px 0}
+table{border-collapse:collapse; width:100%; font-size:14px}
+td{padding:9px 10px; border-bottom:1px solid var(--rule-soft); vertical-align:middle; color:var(--ink-2); text-align:right; white-space:nowrap}
+td.left{text-align:left}
+.rk{font:500 12px "IBM Plex Mono",monospace; color:var(--muted); margin-right:8px}
+.namecell{display:inline-flex; align-items:center; gap:10px; vertical-align:middle}
+.namecell .av{width:26px; height:26px; font-size:9.5px}
+.nm{font-weight:600; color:var(--ink); display:block; line-height:1.2} .sym{font:11px "IBM Plex Mono",monospace; color:var(--muted)}
+.mono{font-family:"IBM Plex Mono",monospace; color:var(--ink)}
+.pickbtn{display:inline-block; width:18px; height:18px; line-height:16px; margin-right:6px; padding:0; border:1px solid rgba(0,150,255,.35);
+  border-radius:4px; background:transparent; color:var(--accent); font:700 12px "IBM Plex Sans",sans-serif; text-align:center; vertical-align:middle}
+.pickbtn.on{background:var(--gem); border-color:var(--gem); color:var(--paper)}
+.pickbtn:disabled{opacity:.35; cursor:not-allowed}
+.thead td{font:600 10.5px "IBM Plex Mono",monospace; letter-spacing:.07em; text-transform:uppercase; color:var(--muted); background:var(--surface-2)}
+
+/* ================= AFTER: the picks tray (see fund-picks-bar-spec.md) ================= */
+/* desktop: in flow inside .controls (so inside the sticky header), full width of the toolbar */
+.picktray{flex-basis:100%; position:relative; border:1.5px solid rgba(0,207,255,.55); border-radius:10px;
+  background:linear-gradient(100deg, rgba(0,207,255,.10), rgba(0,207,255,.02) 60%), var(--surface);
+  box-shadow:0 0 0 1px rgba(0,0,0,.35), 0 0 18px rgba(0,207,255,.10)}
+.picktray[hidden]{display:none}
+.picktray.pt-enter{animation:pt-drop .26s ease-out 1, pt-glow 1.2s ease-out .26s 1}
+@keyframes pt-drop{from{translate:0 -8px; opacity:0}}
+@keyframes pt-glow{
+  25%{border-color:var(--accent); box-shadow:0 0 0 4px rgba(0,207,255,.30), 0 0 34px rgba(0,207,255,.55)}
+  60%{border-color:var(--accent); box-shadow:0 0 0 2px rgba(0,207,255,.18), 0 0 22px rgba(0,207,255,.30)}}
+.picktray.mk-glow{border-color:var(--accent); box-shadow:0 0 0 4px rgba(0,207,255,.30), 0 0 34px rgba(0,207,255,.55)}  /* mock: a still of 25% */
+.pt-inner{padding:9px 10px 9px 12px; display:grid; align-items:center; gap:8px 16px;
+  grid-template-columns:auto auto minmax(0,1fr) auto auto; grid-template-areas:"ring id chips clear launch"}
+.pt-ring{grid-area:ring; position:relative; width:42px; height:42px; flex:none}
+.pt-ring svg{display:block; width:42px; height:42px; transform:rotate(-90deg)}
+.pt-ring .trk{stroke:var(--rule)} .pt-ring .val{stroke:var(--gem); transition:stroke-dasharray .2s}
+.pt-ring b{position:absolute; inset:0; display:grid; place-items:center; font:700 15px "IBM Plex Mono",monospace; color:var(--text-heading)}
+.pt-id{grid-area:id; min-width:0}
+.pt-title{margin:0; font:700 15px "IBM Plex Sans",sans-serif; color:var(--text-heading); white-space:nowrap}
+.pt-title .of{font:600 12.5px "IBM Plex Mono",monospace; color:var(--gem); margin-left:6px}
+.pt-sub{margin:1px 0 0; font:500 12px "IBM Plex Sans",sans-serif; color:var(--ink-2); white-space:nowrap}
+.pt-chips{grid-area:chips; display:flex; gap:6px; margin:0; padding:2px 0; list-style:none; overflow-x:auto; scrollbar-width:thin; min-width:0;
+  -webkit-mask-image:linear-gradient(90deg, #000 calc(100% - 28px), transparent); mask-image:linear-gradient(90deg, #000 calc(100% - 28px), transparent)}
+.pt-chip{display:inline-flex; align-items:center; gap:6px; height:32px; padding:0 9px 0 5px; border-radius:99px; cursor:pointer; flex:none;
+  border:1px solid rgba(0,150,255,.35); background:rgba(0,207,255,.07); color:var(--ink); font:700 12.5px "IBM Plex Mono",monospace}
+.pt-chip .x{color:var(--muted); font-weight:500; font-size:14px; line-height:1}
+.pt-chip:hover{border-color:var(--accent)} .pt-chip:hover .x{color:var(--ink)}
+.pt-clear{grid-area:clear; appearance:none; border:0; background:none; color:var(--ink-2); font:600 13px "IBM Plex Sans",sans-serif;
+  height:44px; padding:0 6px; cursor:pointer; text-decoration:underline; text-underline-offset:3px; text-decoration-color:var(--muted)}
+.pt-launch{grid-area:launch; display:inline-flex; align-items:center; justify-content:center; gap:10px; height:44px; padding:0 18px 0 20px;
+  border-radius:10px; background:var(--accent); color:#04121c; text-decoration:none; font:700 15px "IBM Plex Sans",sans-serif; white-space:nowrap;
+  box-shadow:0 6px 20px -8px rgba(0,207,255,.8)}
+.pt-launch:hover{background:var(--accent-ink)}
+.pt-launch:focus-visible{outline:2px solid var(--text-heading); outline-offset:3px}
+.pt-launch .n{min-width:24px; height:24px; padding:0 6px; border-radius:99px; background:#04121c; color:var(--accent); display:inline-grid; place-items:center;
+  font:700 12.5px "IBM Plex Mono",monospace}
+.picktray.pt-full .pt-ring .val{stroke:var(--warn)}
+.picktray.pt-full .pt-title .of{color:var(--warn)}
+.pt-limit{display:none; color:var(--ink)}
+.picktray.pt-full .pt-limit{display:inline} .picktray.pt-full .pt-what{display:none}
+.pt-limit::before{content:"i"; display:inline-grid; place-items:center; width:15px; height:15px; margin-right:6px; border-radius:50%;
+  border:1px solid var(--warn); color:var(--warn); font:700 9.5px "IBM Plex Mono",monospace; vertical-align:1px}
+@media (prefers-reduced-motion:reduce){ .picktray.pt-enter{animation:none} .pt-ring .val{transition:none} }
+
+/* phone (mock: .phone frame; ship as @media (max-width:640px)): bottom dock */
+.phone .picktray{left:0; right:0; z-index:30; border:0; border-top:1.5px solid rgba(0,207,255,.55); border-radius:0;
+  background:linear-gradient(180deg, rgba(0,207,255,.07), transparent 70%), var(--surface-2);
+  box-shadow:0 -14px 34px -12px rgba(0,0,0,.85), 0 -1px 18px rgba(0,207,255,.16)}
+.phone .pt-inner{grid-template-columns:auto minmax(0,1fr); grid-template-areas:"ring chips" "clear launch"; gap:8px 10px; padding:10px 12px 12px}
+.phone .pt-id{display:none}
+.phone .picktray.pt-full .pt-id{display:block} .phone .picktray.pt-full .pt-inner{grid-template-areas:"ring chips" "id id" "clear launch"}
+.phone .pt-title{display:none}
+.phone .pt-ring, .phone .pt-ring svg{width:40px; height:40px}
+.phone .pt-launch{height:46px; font-size:14.5px}
+.phone .pt-clear{padding:0 4px}
+.phone td{padding:9px 8px}
+</style>
+</head>
+<body>
+
+<div class="mk-h"><b>Fund picks tray</b><span>desktop: under the filters, sticky with the app header · phone: bottom dock · symbols and values from the live snapshot; letter discs stand in for logos</span></div>
+
+<!-- ======================= BEFORE ======================= -->
+<span class="mk-lbl before">Before · live, 2 picks</span>
+<div class="controls" style="border:1px solid var(--rule); border-radius:12px">
+  <div class="switch"><button class="active">Vetted only</button><button>Degen picks</button><button>All by upside</button></div>
+  <div class="search">⌕ search name, symbol, category…</div>
+  <span class="count-badge"><b>76</b> projects</span>
+  <div class="pickbar"><span class="pb-label">Your fund picks (2/30):</span> <button class="pb-chip">UP ×</button> <button class="pb-chip">PHAR ×</button>
+    <a class="pb-launch" href="#">Launch a fund with these →</a> <button class="pb-clear">clear</button></div>
+  <div class="floor">min. revenue / 30d · $100K</div>
+  <div class="bench">BENCHMARK<br>34x<br>REVENUE</div>
+</div>
+
+<div class="mk-sep"></div>
+
+<!-- shared bits -->
+<template id="head"><div class="apphead"><div class="brand"><b>Gem Screener</b><span>Revenue-driven AI Research</span><em>Updated 4 h ago · 211 apps · 33 chains</em></div>
+  <div class="tabs"><span>Top Picks</span><span class="on">Apps</span><span>Chains</span><span>Sectors</span><span class="lg">Legend</span></div></div></template>
+
+<!-- ======================= AFTER · desktop · 0 ======================= -->
+<span class="mk-lbl after">Desktop · 0 picks</span><span class="mk-cap">no tray; the toolbar and table as today</span>
+<div class="vp" data-head>
+  <div class="controls">
+    <div class="switch"><button class="active">Vetted only</button><button>Degen picks</button><button>All by upside</button></div>
+    <div class="search">⌕ search name, symbol, category…</div><span class="count-badge"><b>76</b> projects</span>
+    <div class="floor">min. revenue / 30d · $100K</div><div class="bench">BENCHMARK<br>34x<br>REVENUE</div>
+  </div>
+  <div class="tablewrap" style="margin-bottom:14px"><table>
+    <tr class="thead"><td class="left"># Project</td><td>Market cap</td><td>Revenue 30d</td></tr>
+    <tr><td class="left"><button class="pickbtn">+</button><span class="rk">1</span><span class="namecell"><span class="av">PH</span><span><span class="nm">Pharaoh Exchange</span><span class="sym">PHAR</span></span></span></td><td class="mono">$4.0M</td><td class="mono">$2.6M</td></tr>
+  </table></div>
+</div>
+
+<div class="mk-gap"></div>
+<!-- ======================= AFTER · desktop · first pick ======================= -->
+<span class="mk-lbl after">Desktop · first pick (the highlight)</span><span class="mk-cap">drops in under the filters (0.26 s), then one 1.2 s cyan glow that fades to rest; nothing loops. Still frame at 25 % of the glow</span>
+<div class="vp" data-head>
+  <div class="controls">
+    <div class="switch"><button class="active">Vetted only</button><button>Degen picks</button><button>All by upside</button></div>
+    <div class="search">⌕ search name, symbol, category…</div><span class="count-badge"><b>76</b> projects</span>
+    <section class="picktray mk-glow" aria-label="Your fund picks"><div class="pt-inner">
+      <div class="pt-ring" aria-hidden="true"><svg viewBox="0 0 46 46"><circle class="trk" cx="23" cy="23" r="19" fill="none" stroke-width="4"/><circle class="val" cx="23" cy="23" r="19" fill="none" stroke-width="4" stroke-linecap="round" stroke-dasharray="3.98 119.38"/></svg><b>1</b></div>
+      <div class="pt-id"><p class="pt-title">Your fund picks<span class="of">1 of 30</span></p>
+        <p class="pt-sub"><span class="pt-what">Opens the Fund Launcher with these preloaded · you set the weights there</span></p></div>
+      <ul class="pt-chips"><li><button class="pt-chip" type="button" aria-label="Remove PHAR"><span class="av">PH</span>PHAR<span class="x" aria-hidden="true">×</span></button></li></ul>
+      <button class="pt-clear" type="button">Clear</button>
+      <a class="pt-launch" href="#">Launch a fund with these <span class="n" aria-hidden="true">1</span> →</a>
+    </div><p class="sr-only" aria-live="polite">PHAR added. 1 of 30 picks.</p></section>
+    <div class="floor">min. revenue / 30d · $100K</div><div class="bench">BENCHMARK<br>34x<br>REVENUE</div>
+  </div>
+  <div class="tablewrap" style="margin-bottom:14px"><table>
+    <tr class="thead"><td class="left"># Project</td><td>Market cap</td><td>Revenue 30d</td></tr>
+    <tr><td class="left"><button class="pickbtn on">✓</button><span class="rk">1</span><span class="namecell"><span class="av">PH</span><span><span class="nm">Pharaoh Exchange</span><span class="sym">PHAR</span></span></span></td><td class="mono">$4.0M</td><td class="mono">$2.6M</td></tr>
+  </table></div>
+</div>
+
+<div class="mk-gap"></div>
+<!-- ======================= AFTER · desktop · scrolled ======================= -->
+<span class="mk-lbl after">Desktop · scrolled down</span><span class="mk-cap">the app header, toolbar and tray stay pinned as one sticky block (z-index 20); rows scroll in the table's own box, which starts below it</span>
+<div class="vp" style="height:600px">
+  <div style="position:absolute; inset:0 0 auto 0; z-index:20; box-shadow:0 10px 18px -6px rgba(0,0,0,.6)" data-headin>
+    <div class="controls">
+      <div class="switch"><button class="active">Vetted only</button><button>Degen picks</button><button>All by upside</button></div>
+      <div class="search">⌕ search name, symbol, category…</div><span class="count-badge"><b>76</b> projects</span>
+      <section class="picktray" aria-label="Your fund picks"><div class="pt-inner">
+        <div class="pt-ring" aria-hidden="true"><svg viewBox="0 0 46 46"><circle class="trk" cx="23" cy="23" r="19" fill="none" stroke-width="4"/><circle class="val" cx="23" cy="23" r="19" fill="none" stroke-width="4" stroke-linecap="round" stroke-dasharray="11.94 119.38"/></svg><b>3</b></div>
+        <div class="pt-id"><p class="pt-title">Your fund picks<span class="of">3 of 30</span></p>
+          <p class="pt-sub"><span class="pt-what">Opens the Fund Launcher with these preloaded · you set the weights there</span></p></div>
+        <ul class="pt-chips"><li><button class="pt-chip"><span class="av">PH</span>PHAR<span class="x">×</span></button></li><li><button class="pt-chip"><span class="av">UP</span>UP<span class="x">×</span></button></li><li><button class="pt-chip"><span class="av">GM</span>GMX<span class="x">×</span></button></li></ul>
+        <button class="pt-clear" type="button">Clear</button>
+        <a class="pt-launch" href="#">Launch a fund with these <span class="n">3</span> →</a>
+      </div></section>
+      <div class="floor">min. revenue / 30d · $100K</div><div class="bench">BENCHMARK<br>34x<br>REVENUE</div>
+    </div>
+  </div>
+  <div class="tablewrap" id="scrollTable" style="position:absolute; left:0; right:0; margin:0 20px; overflow:auto; scrollbar-width:none; height:200px"><table>
+    <tr class="thead"><td class="left" style="position:sticky;top:0;z-index:2"># Project</td><td style="position:sticky;top:0;z-index:2">Market cap</td><td style="position:sticky;top:0;z-index:2">Revenue 30d</td></tr>
+    <tr><td class="left"><button class="pickbtn">+</button><span class="rk">14</span><span class="namecell"><span class="av">O</span><span><span class="nm">o1.exchange</span><span class="sym">O</span></span></span></td><td class="mono" style="color:var(--muted)">…</td><td class="mono" style="color:var(--muted)">…</td></tr>
+    <tr><td class="left"><button class="pickbtn">+</button><span class="rk">15</span><span class="namecell"><span class="av">KN</span><span><span class="nm">KyberSwap</span><span class="sym">KNC</span></span></span></td><td class="mono" style="color:var(--muted)">…</td><td class="mono" style="color:var(--muted)">…</td></tr>
+    <tr><td class="left"><button class="pickbtn">+</button><span class="rk">16</span><span class="namecell"><span class="av">SO</span><span><span class="nm">SoSoValue</span><span class="sym">SOSO</span></span></span></td><td class="mono" style="color:var(--muted)">…</td><td class="mono" style="color:var(--muted)">…</td></tr>
+    <tr><td class="left"><button class="pickbtn">+</button><span class="rk">17</span><span class="namecell"><span class="av">PU</span><span><span class="nm">Pump</span><span class="sym">PUMP</span></span></span></td><td class="mono" style="color:var(--muted)">…</td><td class="mono" style="color:var(--muted)">…</td></tr>
+    <tr><td class="left"><button class="pickbtn">+</button><span class="rk">18</span><span class="namecell"><span class="av">OV</span><span><span class="nm">Overtime</span><span class="sym">OVER</span></span></span></td><td class="mono" style="color:var(--muted)">…</td><td class="mono" style="color:var(--muted)">…</td></tr>
+    <tr><td class="left"><button class="pickbtn on">✓</button><span class="rk">19</span><span class="namecell"><span class="av">GM</span><span><span class="nm">GMX</span><span class="sym">GMX</span></span></span></td><td class="mono" style="color:var(--muted)">…</td><td class="mono" style="color:var(--muted)">…</td></tr>
+  </table></div>
+  <span class="mk-ann" id="annTop">sticky block: app header ≤ 130 px + toolbar + tray</span>
+  <span class="mk-ann" id="annTbl">table box max-height = 100vh − 230 px − tray height</span>
+</div>
+
+<div class="mk-gap"></div>
+<!-- ======================= AFTER · desktop · 30 ======================= -->
+<span class="mk-lbl after">Desktop · 30 picks (limit)</span><span class="mk-cap">ring full in the caution blue, the line says why nothing more can be added; unticked + buttons are disabled</span>
+<div class="vp" data-head>
+  <div class="controls">
+    <div class="switch"><button class="active">Vetted only</button><button>Degen picks</button><button>All by upside</button></div>
+    <div class="search">⌕ search name, symbol, category…</div><span class="count-badge"><b>76</b> projects</span>
+    <section class="picktray pt-full" aria-label="Your fund picks"><div class="pt-inner">
+      <div class="pt-ring" aria-hidden="true"><svg viewBox="0 0 46 46"><circle class="trk" cx="23" cy="23" r="19" fill="none" stroke-width="4"/><circle class="val" cx="23" cy="23" r="19" fill="none" stroke-width="4" stroke-dasharray="119.38 0"/></svg><b>30</b></div>
+      <div class="pt-id"><p class="pt-title">Your fund picks<span class="of">30 of 30</span></p>
+        <p class="pt-sub"><span class="pt-what"></span><span class="pt-limit">30 is the limit: remove one to add another</span></p></div>
+      <ul class="pt-chips" id="chips30"></ul>
+      <button class="pt-clear" type="button">Clear</button>
+      <a class="pt-launch" href="#">Launch a fund with these <span class="n" aria-hidden="true">30</span> →</a>
+    </div></section>
+    <div class="floor">min. revenue / 30d · $100K</div><div class="bench">BENCHMARK<br>34x<br>REVENUE</div>
+  </div>
+  <div class="tablewrap" style="margin-bottom:14px"><table>
+    <tr class="thead"><td class="left"># Project</td><td>Market cap</td><td>Revenue 30d</td></tr>
+    <tr><td class="left"><button class="pickbtn" disabled>+</button><span class="rk">32</span><span class="namecell"><span class="av">GA</span><span><span class="nm">GAIB</span><span class="sym">GAIB</span></span></span></td><td class="mono" style="color:var(--muted)">…</td><td class="mono" style="color:var(--muted)">…</td></tr>
+  </table></div>
+</div>
+
+<div class="mk-sep"></div>
+
+<!-- ======================= AFTER · phone (bottom dock, unchanged) ======================= -->
+<div class="mk-grid">
+  <div><span class="mk-lbl after">Phone 390 · 0 picks</span>
+    <div class="vp phone"><table id="ph0"></table></div></div>
+  <div><span class="mk-lbl after">Phone 390 · 2 picks</span>
+    <div class="vp phone"><table id="ph2"></table>
+    <section class="picktray" aria-label="Your fund picks"><div class="pt-inner">
+      <div class="pt-ring" aria-hidden="true"><svg viewBox="0 0 46 46"><circle class="trk" cx="23" cy="23" r="19" fill="none" stroke-width="4"/><circle class="val" cx="23" cy="23" r="19" fill="none" stroke-width="4" stroke-linecap="round" stroke-dasharray="7.96 119.38"/></svg><b>2</b></div>
+      <div class="pt-id"><p class="pt-sub"><span class="pt-limit">30 is the limit: remove one to add another</span></p></div>
+      <ul class="pt-chips"><li><button class="pt-chip"><span class="av">PH</span>PHAR<span class="x">×</span></button></li><li><button class="pt-chip"><span class="av">UP</span>UP<span class="x">×</span></button></li></ul>
+      <button class="pt-clear" type="button">Clear</button>
+      <a class="pt-launch" href="#">Launch a fund with these <span class="n">2</span> →</a>
+    </div></section></div></div>
+  <div><span class="mk-lbl after">Phone 390 · 30 picks</span>
+    <div class="vp phone"><table id="ph30"></table>
+    <section class="picktray pt-full" aria-label="Your fund picks"><div class="pt-inner">
+      <div class="pt-ring" aria-hidden="true"><svg viewBox="0 0 46 46"><circle class="trk" cx="23" cy="23" r="19" fill="none" stroke-width="4"/><circle class="val" cx="23" cy="23" r="19" fill="none" stroke-width="4" stroke-dasharray="119.38 0"/></svg><b>30</b></div>
+      <div class="pt-id"><p class="pt-sub"><span class="pt-limit">30 is the limit: remove one to add another</span></p></div>
+      <ul class="pt-chips" id="chips30m"></ul>
+      <button class="pt-clear" type="button">Clear</button>
+      <a class="pt-launch" href="#">Launch a fund with these <span class="n">30</span> →</a>
+    </div></section></div></div>
+</div>
+
+<script>
+/* mock only. The 30 symbols are the live snapshot's top vetted apps by upside (UP + 29). */
+var head = document.getElementById('head').innerHTML;
+document.querySelectorAll('[data-head]').forEach(function(v){ v.insertAdjacentHTML('afterbegin', head); });
+document.querySelectorAll('[data-headin]').forEach(function(v){ v.insertAdjacentHTML('afterbegin', head); });
+var S = ['UP','PHAR','NEST','RAM','SECZ','CARDS','ORE','SOLV','RNBW','GNS','DRG','HPL','FXN','MNDE','O','KNC','SOSO','PUMP','OVER','GMX','DOLO','LON','MET','EDGE','LISTA','SPK','BIFI','MIN','FLIP','STG'];
+var h = S.map(function(s){ return '<li><button class="pt-chip" type="button" aria-label="Remove ' + s + '"><span class="av">' + s.slice(0,2) + '</span>' + s + '<span class="x" aria-hidden="true">×</span></button></li>'; }).join('');
+document.getElementById('chips30').innerHTML = h; document.getElementById('chips30m').innerHTML = h;
+/* scrolled frame: the table box starts under the sticky block; its first row slides under the table head */
+var hh = document.querySelector('[data-headin]').offsetHeight;
+var tw = document.getElementById('scrollTable'); tw.style.top = (hh + 12) + 'px'; tw.style.height = (600 - hh - 24) + 'px';
+document.getElementById('annTop').style.top = (hh - 34) + 'px';
+var at = document.getElementById('annTbl'); at.style.top = (hh + 100) + 'px'; at.style.right = 'auto'; at.style.left = '38%';
+tw.scrollTop = 30;   /* row 15 half under the table head: the rows scroll, the head and the tray stay */
+var R = [['PH','Pharaoh Exchange','PHAR','$4.0M'],['UP','up','UP','$6.7M'],['NE','nest','NEST','$4.5M'],['RA','RamsesX','RAM','$3.4M'],['SE','Securitize','SECZ','$52.3M'],['CA','Collector Crypt','CARDS','$235.9M']];
+function rows(on, full){ return '<tr class="thead"><td class="left"># Project</td><td>Market cap</td></tr>' + R.map(function(r, i){
+  var b = i < on ? '<button class="pickbtn on">✓</button>' : '<button class="pickbtn"' + (full ? ' disabled' : '') + '>+</button>';
+  return '<tr><td class="left">' + b + '<span class="rk">' + (i + 1) + '</span><span class="namecell"><span class="av">' + r[0] + '</span><span><span class="nm">' + r[1] + '</span><span class="sym">' + r[2] + '</span></span></span></td><td class="mono">' + r[3] + '</td></tr>'; }).join(''); }
+document.getElementById('ph0').innerHTML = rows(0); document.getElementById('ph2').innerHTML = rows(2); document.getElementById('ph30').innerHTML = rows(5, true);
+</script>
+</body>
+</html>

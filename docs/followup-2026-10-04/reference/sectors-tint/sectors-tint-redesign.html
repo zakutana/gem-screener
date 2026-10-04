@@ -1,0 +1,97 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Sectors Chart Tint</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo+Black&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--paper:#0a0e17; --surface:#0d1520; --surface-2:#111a28; --ink:#E6EDF7; --ink-2:#A9B8CC; --muted:#6F8199; --text-heading:#F3F7FC;
+  --accent:#00cfff; --good:#00ff88; --bad:#ff4444; --caution:#3b82f6; --warn:var(--caution); --rule:rgba(0,150,255,.15)}
+*{box-sizing:border-box}
+html,body{margin:0; background:var(--paper)}
+body{color:var(--ink); font-family:"IBM Plex Sans",system-ui,sans-serif; padding:22px 32px 30px}
+.mk-h{display:flex; align-items:baseline; gap:14px; margin:0 0 14px}
+.mk-h b{font-family:"Archivo Black",sans-serif; font-weight:400; font-size:22px; color:var(--text-heading)}
+.mk-h span{font:500 12px "IBM Plex Mono",monospace; color:var(--muted)}
+.mk-lbl{display:inline-block; font:700 11px "IBM Plex Mono",monospace; letter-spacing:.14em; text-transform:uppercase; padding:3px 9px; border-radius:6px; margin:0 8px 8px 0}
+.mk-lbl.before{color:var(--muted); border:1px solid var(--rule)} .mk-lbl.after{color:var(--paper); background:var(--accent)}
+.mk-cap{font:500 11.5px "IBM Plex Mono",monospace; color:var(--muted)}
+.panel{background:var(--surface); border:1px solid var(--rule); border-radius:12px; padding:14px 16px 8px; margin-bottom:18px; width:1070px}
+.scatter text{font-family:"IBM Plex Sans",sans-serif}
+.scatter .plabel{paint-order:stroke; stroke:var(--surface); stroke-width:3px; stroke-linejoin:round; font-weight:600}
+.scatter .quad{font-family:"IBM Plex Mono",monospace; letter-spacing:.08em}
+.grid2{display:grid; grid-template-columns:1036px 1fr; gap:20px; align-items:start}
+</style>
+</head>
+<body>
+<div class="mk-h"><b>Sectors · stage tint</b><span>rotation chart, Sectors tab · bubble positions traced from the live screenshot (4 Oct 2026); everything but the plot background is unchanged</span></div>
+<div id="out"></div>
+<script>
+var NS = 'http://www.w3.org/2000/svg';
+function el(t, a){ var e = document.createElementNS(NS, t); for (var k in a) e.setAttribute(k, a[k]); return e; }
+var W = 1036, H = 440, pL = 44, pR = 14, pT = 26, pB = 60;
+var sx = function(x){ return pL + (x - 135) * (W - pL - pR) / 1793; }, sy = function(y){ return pT + (y - 172) * (H - pT - pB) / 488; };
+var C = {hot:'#00ff88', emerging:'#00cfff', fading:'#3b82f6', falling:'#ff4444'};
+/* [name, x, y, r, stage, tailX, tailY, tailStage, labelSide] in screenshot pixels */
+var S = [['AI',1183,204,16,'hot',873,475,'falling','r'], ['L2',1270,293,12,'hot',994,462,'falling','r'], ['RWA',1169,323,17,'hot',904,430,'falling','l'],
+  ['DEX & perps',1198,395,17,'hot',1592,332,'hot','t'], ['Privacy',1590,390,17,'hot',1337,329,'hot','t'], ['DeFi lending & staking',1287,457,13,'fading',1811,351,'hot','b'],
+  ['DePIN',894,366,14,'emerging',939,459,'falling','r'], ['Infrastructure',805,438,9,'falling',1069,420,'fading','t'], ['Gaming',672,450,10,'falling',816,477,'falling','l'],
+  ['L1',813,518,24,'falling',1281,413,'hot','l'], ['Memecoins',856,543,17,'falling',1216,409,'hot','b'], ['Prediction markets',500,596,13,'falling',886,402,'emerging','l']];
+function chart(alpha, id){
+  var svg = el('svg', {width:W, height:H, viewBox:'0 0 ' + W + ' ' + H, 'class':'scatter cycle'}), defs = el('defs', {});
+  svg.appendChild(defs);
+  var x0 = sx(1032), y0 = sy(416), x1 = W - pR, y1 = H - pB;
+  if (alpha) {
+    /* one radial gradient per stage, centred on its outer corner, fading to nothing before the median lines */
+    [['emerging', pL, pT, 0, 0], ['hot', x1, pT, 1, 0], ['falling', pL, y1, 0, 1], ['fading', x1, y1, 1, 1]].forEach(function(q){
+      var g = el('radialGradient', {id: id + q[0], gradientUnits:'userSpaceOnUse', cx:q[1], cy:q[2], r: Math.hypot(x0 - pL, y0 - pT) * 0.95});
+      g.appendChild(el('stop', {offset:0, 'stop-color':C[q[0]], 'stop-opacity':alpha}));
+      g.appendChild(el('stop', {offset:0.55, 'stop-color':C[q[0]], 'stop-opacity':alpha * 0.35}));
+      g.appendChild(el('stop', {offset:1, 'stop-color':C[q[0]], 'stop-opacity':0}));
+      defs.appendChild(g);
+      svg.appendChild(el('rect', {'class':'stagebg', x: q[3] ? x0 : pL, y: q[4] ? y0 : pT, width: q[3] ? x1 - x0 : x0 - pL, height: q[4] ? y1 - y0 : y0 - pT, fill:'url(#' + id + q[0] + ')'}));
+    });
+  }
+  svg.appendChild(el('rect', {x:pL, y:pT, width:W - pL - pR, height:H - pT - pB, fill:'none', stroke:'rgba(0,150,255,.15)'}));
+  svg.appendChild(el('line', {x1:x0, x2:x0, y1:pT, y2:y1, stroke:'#6F8199', 'stroke-dasharray':'4 4', opacity:.7}));
+  svg.appendChild(el('line', {x1:pL, x2:x1, y1:y0, y2:y0, stroke:'#6F8199', 'stroke-dasharray':'4 4', opacity:.7}));
+  function txt(x, y, a, t, size, fill, cls){ var e = el('text', {x:x, y:y, 'text-anchor':a, fill:fill, 'font-size':size}); if (cls) e.setAttribute('class', cls); e.textContent = t; svg.appendChild(e); return e; }
+  txt(sx(272), y1 + 14, 'start', '−39%', 10, '#6F8199'); txt(x0, y1 + 14, 'middle', 'median', 10, '#6F8199'); txt(sx(1810), y1 + 14, 'end', '+39%', 10, '#6F8199');
+  txt(pL - 6, sy(204) + 3, 'end', '+29%', 10, '#6F8199'); txt(pL - 6, y0 + 3, 'end', '0', 10, '#6F8199'); txt(pL - 6, sy(629) + 3, 'end', '−29%', 10, '#6F8199');
+  txt((pL + x1) / 2, y1 + 28, 'middle', '3 months against the median sector →', 10.5, '#6F8199');
+  var q = function(x, y, a, n, rule, c){ var t = txt(x, y, a, '', 11.5, c, 'quad'); var s1 = el('tspan', {'font-weight':700}); s1.textContent = n; t.appendChild(s1);
+    var s2 = el('tspan', {'font-size':10, dx:6, opacity:.85}); s2.textContent = rule; t.appendChild(s2); };
+  q(pL + 2, pT - 9, 'start', '↗ EMERGING', 'below 3M · above 1M', C.emerging); q(x1 - 2, pT - 9, 'end', '▲ HOT', 'above 3M · above 1M', C.hot);
+  q(pL + 2, H - 7, 'start', '▼ FALLING', 'below 3M · below 1M', C.falling); q(x1 - 2, H - 7, 'end', '↘ FADING', 'above 3M · below 1M', C.fading);
+  S.forEach(function(s, i){
+    var g = el('linearGradient', {id: id + 't' + i, gradientUnits:'userSpaceOnUse', x1:sx(s[5]), y1:sy(s[6]), x2:sx(s[1]), y2:sy(s[2])});
+    g.appendChild(el('stop', {offset:0, 'stop-color':C[s[7]], 'stop-opacity':.55})); g.appendChild(el('stop', {offset:1, 'stop-color':C[s[4]], 'stop-opacity':.9}));
+    defs.appendChild(g);
+    svg.appendChild(el('line', {x1:sx(s[5]), y1:sy(s[6]), x2:sx(s[1]), y2:sy(s[2]), stroke:'url(#' + id + 't' + i + ')', 'stroke-width':1.6}));
+    svg.appendChild(el('circle', {cx:sx(s[5]), cy:sy(s[6]), r:2.2, fill:C[s[7]]}));
+  });
+  S.forEach(function(s){
+    var r = s[3] * 0.62, x = sx(s[1]), y = sy(s[2]);
+    svg.appendChild(el('circle', {cx:x, cy:y, r:r, fill:C[s[4]], 'fill-opacity':.18, stroke:C[s[4]], 'stroke-width':1.8}));
+    var lx = s[8] === 'r' ? x + r + 4 : s[8] === 'l' ? x - r - 4 : x, ly = s[8] === 't' ? y - r - 6 : s[8] === 'b' ? y + r + 13 : y + 4;
+    txt(lx, ly, s[8] === 'r' ? 'start' : s[8] === 'l' ? 'end' : 'middle', s[0], 12, '#E6EDF7', 'plabel');
+  });
+  return svg;
+}
+var V = [['before', 'Now · flat plot area', 0, ''], ['after', 'A · very subtle · 6% at the corner', 0.06, 'recommended: reads as a hint of the four stages, invisible behind the bubbles'],
+         ['after', 'B · a bit stronger · 10% at the corner', 0.10, 'the quadrants read at a glance; still under every bubble, line and label']];
+var out = document.getElementById('out');
+V.forEach(function(v, i){
+  var wrap = document.createElement('div');
+  wrap.innerHTML = '<span class="mk-lbl ' + v[0] + '">' + v[1] + '</span><span class="mk-cap">' + v[3] + '</span>';
+  var p = document.createElement('div'); p.className = 'panel';
+  p.innerHTML = '<div style="font-weight:600;font-size:13px;margin-bottom:2px">Right = ahead of the median sector over 3 months. Up = ahead of it this month. Each corner is a stage.</div>' +
+    '<div class="mk-cap" style="margin-bottom:8px">Bubble size = market cap. Tail = where it stood 4 weeks ago. Click a bubble for the sector.</div>';
+  p.appendChild(chart(v[2], 'c' + i)); wrap.appendChild(p); out.appendChild(wrap);
+});
+</script>
+</body>
+</html>
